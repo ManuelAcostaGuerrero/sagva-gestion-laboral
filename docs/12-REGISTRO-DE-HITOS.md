@@ -4,7 +4,7 @@ Este documento debe mantenerse al día **después de resultados observados**, nu
 
 | Hito | Estado al 01-11-2026 | Evidencia disponible | Responsable de aceptación |
 |---|---|---|---|
-| INT-000 Documentación y reglas | Pendiente de verificar publicación | Este conjunto documental | Propietario (revisión) |
+| INT-000 Documentación y reglas | Publicada; revisión del propietario pendiente | Commit `fe08da0c6cc89e80f25a8bacfcb01580fa7109a3` y readback en main | Propietario (revisión) |
 | INT-001 Huella base | No iniciado | Ninguna | Propietario |
 | INT-002 Paridad Huella + ensayo privado | No iniciado | Ninguna | Propietario |
 | INT-003 Conciliación personas Propinas | No iniciado | Ninguna (matriz siempre privada) | Propietario |
@@ -28,4 +28,4 @@ Este documento debe mantenerse al día **después de resultados observados**, nu
 - **Aprobación del propietario:** fecha y contexto verificable.
 
 ## Log de decisiones de publicación
-- 2026-11-01: se prepara documentación inicial. El estado INT-000 solo será «documentación publicada» cuando el commit sea visible; sin avances funcionales implícitos.
+- 2026-11-01: documentación publicada y comprobada en `main`, commit `fe08da0c6cc89e80f25a8bacfcb01580fa7109a3`. El propietario aún debe revisarla. No hay avances funcionales implícitos.
