@@ -39,7 +39,7 @@
 Operación de asistentes: [AGENTS.md](../AGENTS.md). Cambios: [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## Semáforo de avance
-- `INT-000` Documentación y gobernanza: **en preparación** hasta verificación del commit de esta entrega.
+- `INT-000` Documentación y gobernanza: **publicada y verificada en `main`**, pendiente de revisión del propietario. Evidencia: commit `fe08da0c6cc89e80f25a8bacfcb01580fa7109a3`.
 - `INT-001` Huella copiada íntegra y probada: pendiente.
 - `INT-002` Restauro privado y paridad integral Huella: pendiente.
 - `INT-003` Identidad/conciliación Propinas: pendiente, requiere propietario.
