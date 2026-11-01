@@ -1,0 +1,18 @@
+{
+  "name": "Red Taurus Codex Asistencia",
+  "short_name": "Red Taurus",
+  "description": "Asistencia mediante QR personal y PIN en terminales autorizadas.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#eef2f1",
+  "theme_color": "#1d5d53",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+name: Validar mejoras QR móvil
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'client/**'
+      - 'server/**'
+      - 'tools/test-qr-mobile-browser.mjs'
+      - 'package*.json'
+      - '.github/workflows/validar-qr-movil.yml'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Probar API en SQLite temporal
+        run: npm run test:server
+      - name: Compilar frontend
+        run: npm run build --workspace client
