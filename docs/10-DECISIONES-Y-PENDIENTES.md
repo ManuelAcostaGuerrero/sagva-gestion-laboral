@@ -16,6 +16,8 @@ Todas las decisiones de esta tabla se refieren al **diseño acordado**, no a una
 | D-010 | 2026-11-01 | Durante integración `INT-NNN`, luego lanzamiento desde `v1.0.0` | Separar hitos de releases |
 | D-011 | 2026-11-01 | Convención X = funcionalidades, Y = estética/UX, Z = corrección | Jerarquía de cambios definida por propietario |
 | D-012 | 2026-11-01 | Aprobación expresa para cambiar pantallas y reglas económicas; preservar originales | Paridad y control |
+| D-013 | 2026-11-01 | **Ejecutar toda tarea de GitHub directamente desde este chat**, con herramientas GitHub; **no delegarla a Work** | Evitar gasto de los pocos créditos restantes y errores de traspaso |
+| D-014 | 2026-11-01 | **Work solo para acciones imprescindibles fuera de las capacidades del chat, con explicación y autorización previa** | Resguardar presupuesto, dar trazabilidad y limitar operaciones sobre la PC |
 
 ## Pendientes que no se pueden inventar
 - [ ] Commit exacto de Huella que servirá de copia INT-001 (tomar de `main` cuando inicie).

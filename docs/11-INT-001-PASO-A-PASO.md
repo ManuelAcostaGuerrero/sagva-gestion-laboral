@@ -2,6 +2,12 @@
 
 **Misión:** tener Huella Digital v1.19.2 (o versión/commit efectivo que se verifique al ejecutar) funcionando en `sagva-gestion-laboral` exactamente como en su repositorio original. **Sin mover la base real ni integrar Propinas todavía.**
 
+## Responsable de ejecución y herramientas
+
+**Ejecutar la parte GitHub directamente desde el chat:** lectura del repositorio original, selección de archivos, creación de rama, copia segura de código, commits, PR, CI y verificación. **No usar Work para estos pasos**, ni pedir al propietario que copie archivos manualmente si la conexión GitHub permite hacerlo.
+
+La instalación y comparación visual en la **PC física del propietario** no se puede dar por realizada desde GitHub. Solo para ese tramo, si realmente no existe una alternativa segura desde este chat, explicar el impedimento y **pedir autorización antes de involucrar Work o gastar créditos**. Separar la entrega GitHub del ensayo local, sin inventar resultados.
+
 ## Antes de tocar archivos
 - [ ] Confirmar repo destino `ManuelAcostaGuerrero/sagva-gestion-laboral` y rama `main`.
 - [ ] Registrar SHA exacto y versión actual del origen `ManuelAcostaGuerrero/asistencia-huella-digital`.

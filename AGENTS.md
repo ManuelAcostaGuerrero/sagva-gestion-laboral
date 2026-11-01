@@ -21,6 +21,16 @@ Leer primero `README.md` y `docs/00-INDICE-Y-ESTADO.md`. Este archivo rige cualq
 6. No contratar hosting, modificar DNS, desplegar a producción, cambiar permisos públicos/privados ni fusionar cambios riesgosos sin autorización.
 7. No usar recursos de Work o servicios de pago si puede hacerse de forma segura y verificable con GitHub/CI gratuitos; no prometer costo cero universal.
 
+## Política de trabajo y presupuesto: GitHub aquí, Work solo si es imprescindible
+
+**Decisión expresa del propietario (01-11-2026), de máxima prioridad para este proyecto:**
+- **Todo lo que se pueda realizar en GitHub se ejecuta directamente desde este chat usando la conexión GitHub disponible:** leer código, copiar archivos entre repositorios, documentar, crear ramas, commits, PR, revisar pruebas/Actions, resolver problemas, verificar resultados y fusionar los cambios autorizados. No trasladar estas labores a Work ni pedir al usuario que las repita manualmente.
+- **Work NO se utiliza por defecto ni por comodidad.** Reservarlo exclusivamente para una acción que de verdad requiera controlar la PC, una aplicación local o un proceso gráfico que las herramientas de este chat no permitan completar.
+- Antes de consumir créditos de Work, **explicar exactamente qué paso no puede hacerse desde aquí, por qué es imprescindible, cuál será la acción mínima y solicitar autorización expresa**. No hacer traspasos automáticos ni gastar créditos para probar suerte.
+- Si una operación local no está disponible, continuar con todo el trabajo GitHub que sí se pueda verificar; entregar instrucciones locales breves solo para el tramo imprescindible. **No afirmar que se ejecutó trabajo sobre la PC**.
+- Priorizar GitHub y CI con costos verificables, trabajo en este chat, cambios pequeños y validaciones reales. No consumir recursos adicionales para compensar problemas de planificación.
+- Proteger el esfuerzo del propietario: **no reconstruir funcionalidades que ya existen ni repetir el fracaso de la integración anterior**. Cada fase debe acreditar paridad funcional/visual y la procedencia del código utilizado.
+
 ## Procedimiento mínimo por tarea
 1. Consultar fase/estado en `docs/00-INDICE-Y-ESTADO.md` y criterios en `docs/06-PRUEBAS-Y-ACEPTACION.md`.
 2. Verificar archivos/commit de origen **en la ejecución actual**, no suponer información de un historial de chat.
