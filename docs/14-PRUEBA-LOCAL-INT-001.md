@@ -8,6 +8,18 @@
 - Los recursos externos de DigitalPersona se copian **solo localmente**, sin subirlos al repositorio público. No es una autorización de redistribución ni una prueba del lector físico.
 - Ninguna base de trabajadores ni archivo `data/asistencia.db` se trasladará del original. Se usa **nueva SQLite local vacía**.
 
+## Instalación inicial mediante BAT (recomendada)
+
+El archivo **`Instalar-INT001.bat`** contiene los pasos de instalación que antes se pegaban en PowerShell. Está **separado de `Actualizar.bat`** y solo se usa para preparar la copia de INT-001.
+
+1. Abre [Instalar-INT001.bat](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/blob/int001-huella-codigo/Instalar-INT001.bat) y descárgalo con **Raw / Descargar archivo sin procesar**.
+2. Ejecuta ese BAT en Windows. Usa por defecto las rutas `C:\Users\Admin\Documents\Codex\asistencia-huella-digital` y `C:\Users\Admin\Documents\Codex\sagva-gestion-laboral`.
+3. El BAT clona la rama `int001-huella-codigo` si no existe, copia los tres recursos locales originales con SHA verificado, ejecuta `npm ci`, `npm run test:server` y `npm run build --workspace client`.
+4. Si ya existe la carpeta nueva, no la elimina, no hace `git pull` ni cambia la rama automáticamente. Si contiene base de datos o configuración privada, detiene la instalación.
+
+**No ejecuta `Actualizar.bat`, `Preparar.bat` ni `Iniciar.bat`; tampoco abre pestañas.** Al terminar, para probar la aplicación sigue el apartado «Iniciar base de prueba aislada» de más abajo.
+
+### Alternativa manual
 ## 1. Preparar carpeta independiente
 Desde PowerShell, sustituir la ruta base solo si tu carpeta `Codex` está en otro lugar:
 
