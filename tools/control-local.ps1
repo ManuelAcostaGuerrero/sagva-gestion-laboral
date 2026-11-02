@@ -4,7 +4,7 @@ $root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 Set-Location -LiteralPath $root
 $local = Join-Path $root '.local'
 New-Item -ItemType Directory -Force -Path $local | Out-Null
-$mutex = New-Object Threading.Mutex($false, 'Local\AsistenciaHuellaDigitalControl')
+$mutex = New-Object Threading.Mutex($false, 'Local\SAGVAGestionLaboralControl')
 $locked = $false
 $transcript = $false
 function Run([string]$Command, [string[]]$Arguments) {
@@ -45,7 +45,7 @@ function Stopped {
 }
 function GitReady {
   if ((git branch --show-current) -ne 'main') { throw 'Usa la rama main antes de actualizar.' }
-  if ((git remote get-url origin) -ne 'https://github.com/ManuelAcostaGuerrero/asistencia-huella-digital.git') { throw 'Origin no corresponde al repositorio esperado.' }
+  if ((git remote get-url origin) -ne 'https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral.git') { throw 'Origin no corresponde al repositorio esperado.' }
   $dirty = @(git status --porcelain)
   if ($LASTEXITCODE -ne 0) { throw 'No se pudo comprobar Git.' }
   if ($dirty.Count) { $dirty | Write-Host; throw 'Hay cambios locales. Guardalos en Git antes de actualizar. No se sobrescribieron ni se hizo stash.' }
@@ -83,7 +83,7 @@ function Backup {
 }
 function StopOwn {
   foreach ($process in @(Owned)) {
-    Write-Host "Deteniendo asistencia-huella-digital PID $($process.ProcessId)"
+    Write-Host "Deteniendo SAGVA Gestion Laboral PID $($process.ProcessId)"
     Stop-Process -Id $process.ProcessId -ErrorAction Stop
   }
   if (Test-Path (Join-Path $local 'processes.json')) { Remove-Item -LiteralPath (Join-Path $local 'processes.json') }
@@ -131,7 +131,7 @@ try {
   if (!$locked) { throw 'Otro control de este proyecto esta en ejecucion.' }
   Start-Transcript -Path (Join-Path $local ((Get-Date -Format 'yyyyMMdd-HHmmss') + "-$Accion.log")) -Append | Out-Null
   $transcript=$true
-  Write-Host "ASISTENCIA HUELLA DIGITAL - $Accion - $root"
+  Write-Host "SAGVA GESTION LABORAL (HUELLA BASE) - $Accion - $root"
   Write-Host "Version: $((Get-Content 'package.json' -Raw | ConvertFrom-Json).version)"
   if ($Accion -in @('Actualizar','Iniciar','Reiniciar','Preparar','Respaldar','Importar','CompletarFichas')) { RequireNode }
   switch ($Accion) {
