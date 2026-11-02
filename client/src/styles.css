@@ -1862,3 +1862,60 @@ button.enrolled {
     flex-direction: column;
   }
 }
+
+/* Ojo de contraseña: mostrar solo mientras se mantiene presionado. */
+.hold-password-field {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 13px;
+  min-width: 0;
+}
+
+.hold-password-field > label {
+  margin-bottom: 0;
+}
+
+.login-primary-card .hold-password-field {
+  margin-bottom: 0;
+  width: 100%;
+  text-align: left;
+}
+
+.hold-password-control {
+  min-width: 0;
+  position: relative;
+}
+
+.hold-password-control input {
+  padding-right: 52px;
+}
+
+.hold-password-control .hold-password-eye {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: #40504d;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  touch-action: manipulation;
+  transform: translateY(-50%);
+  user-select: none;
+  width: 40px;
+}
+
+.hold-password-control .hold-password-eye:focus-visible {
+  outline: 2px solid #1d5d53;
+  outline-offset: 1px;
+}
+
+.passwords-match {
+  color: #1d5d53;
+}
+
+.passwords-mismatch {
+  color: #9d2d20;
+}

@@ -3,6 +3,7 @@ import DateTimeField from './DateTimeField.jsx';
 import DateField from './DateField.jsx';
 import TokenKiosk from './TokenKiosk.jsx';
 import TokenCredentials from './TokenCredentials.jsx';
+import PressToRevealPassword from './PressToRevealPassword.jsx';
 import EmployeeFile from './EmployeeFile.jsx';
 import DocumentCatalog from './DocumentCatalog.jsx';
 import DocumentAudit from './DocumentAudit.jsx';
@@ -502,7 +503,7 @@ function Login({ onLogin, setMessage }) {
         {connection === 'offline' && <button type="button" onClick={checkConnection}>Comprobar conexión</button>}
         {loginError && <p className="soft-alert" role="alert">{loginError}</p>}
         <label>Usuario<input autoComplete="username" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} /></label>
-        <label>Clave<input type="password" autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} /></label>
+        <PressToRevealPassword label="Clave" autoComplete="current-password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
         <button className="primary" type="submit" disabled={submitting}><Shield size={18} /> {submitting ? 'Ingresando…' : 'Ingresar'}</button>
         <button type="button" onClick={() => setShowRecovery((current) => !current)}>
           {showRecovery ? 'Ocultar recuperacion' : 'Olvide mi clave'}
@@ -515,7 +516,7 @@ function Login({ onLogin, setMessage }) {
             <h2><KeyRound size={20} /> Recuperar con Authenticator</h2>
             <label>Usuario<input value={recoveryForm.username} onChange={(e) => setRecoveryForm({ ...recoveryForm, username: e.target.value })} /></label>
             <label>Codigo Authenticator<input value={recoveryForm.otpCode} onChange={(e) => setRecoveryForm({ ...recoveryForm, otpCode: e.target.value })} inputMode="numeric" /></label>
-            <label>Nueva clave<input type="password" value={recoveryForm.newPassword} onChange={(e) => setRecoveryForm({ ...recoveryForm, newPassword: e.target.value })} /></label>
+            <PressToRevealPassword label="Nueva clave" autoComplete="new-password" value={recoveryForm.newPassword} onChange={(e) => setRecoveryForm({ ...recoveryForm, newPassword: e.target.value })} />
             <button type="submit">Restablecer con autenticador</button>
           </form>
 
@@ -523,7 +524,7 @@ function Login({ onLogin, setMessage }) {
             <h2><ShieldCheck size={20} /> Recuperar con respaldo</h2>
             <label>Usuario<input value={backupRecoveryForm.username} onChange={(e) => setBackupRecoveryForm({ ...backupRecoveryForm, username: e.target.value })} /></label>
             <label>Codigo respaldo<input value={backupRecoveryForm.backupCode} onChange={(e) => setBackupRecoveryForm({ ...backupRecoveryForm, backupCode: e.target.value })} /></label>
-            <label>Nueva clave<input type="password" value={backupRecoveryForm.newPassword} onChange={(e) => setBackupRecoveryForm({ ...backupRecoveryForm, newPassword: e.target.value })} /></label>
+            <PressToRevealPassword label="Nueva clave" autoComplete="new-password" value={backupRecoveryForm.newPassword} onChange={(e) => setBackupRecoveryForm({ ...backupRecoveryForm, newPassword: e.target.value })} />
             <button type="submit">Restablecer con respaldo</button>
           </form>
         </div>
@@ -580,6 +581,7 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
   const [generatedBackupCodes, setGeneratedBackupCodes] = useState([]);
   const [backupCodePassword, setBackupCodePassword] = useState('');
   const [adminUserForm, setAdminUserForm] = useState({ username: '', fullName: '', password: '', role: 'supervisor' });
+  const [confirmAdminUserPassword, setConfirmAdminUserPassword] = useState('');
   const [scheduleData, setScheduleData] = useState({ groups: [], shifts: [], assignments: [] });
   const [shiftForm, setShiftForm] = useState({ name: '', groupId: '', startTime: '08:00', endTime: '17:00', breakMinutes: 30 });
   const [schedulePlanner, setSchedulePlanner] = useState({ employeeId: '', month: currentMonthValue(), selectedShiftId: '' });
@@ -1126,12 +1128,17 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
 
   async function createAdminUser(event) {
     event.preventDefault();
+    if (adminUserForm.password !== confirmAdminUserPassword) {
+      setMessage('La clave inicial y su confirmacion no coinciden');
+      return;
+    }
     try {
       await api('/admin/users', {
         method: 'POST',
         body: JSON.stringify(adminUserForm)
       });
       setAdminUserForm({ username: '', fullName: '', password: '', role: 'supervisor' });
+      setConfirmAdminUserPassword('');
       await Promise.all([loadAdminUsers(), loadAuditLogs()]);
       setMessage('Usuario administrativo creado');
     } catch (error) {
@@ -2234,22 +2241,13 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
           <div className="security-grid">
             <form className="form-panel password-form" onSubmit={changeAdminPassword}>
               <h2><KeyRound size={20} /> Cambiar clave admin</h2>
-              <label>
-                Clave actual
-                <input type="password" value={passwordForm.currentPassword} onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} />
-              </label>
+              <PressToRevealPassword label="Clave actual" autoComplete="current-password" value={passwordForm.currentPassword} onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })} />
               <label>
                 O codigo Authenticator
                 <input value={passwordForm.otpCode} onChange={(e) => setPasswordForm({ ...passwordForm, otpCode: e.target.value })} inputMode="numeric" />
               </label>
-              <label>
-                Nueva clave
-                <input type="password" value={passwordForm.newPassword} onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} required />
-              </label>
-              <label>
-                Confirmar nueva clave
-                <input type="password" value={passwordForm.confirmPassword} onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} required />
-              </label>
+              <PressToRevealPassword label="Nueva clave" autoComplete="new-password" value={passwordForm.newPassword} onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })} required />
+              <PressToRevealPassword label="Confirmar nueva clave" autoComplete="new-password" value={passwordForm.confirmPassword} onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })} required />
               <button className="primary" type="submit">Actualizar clave</button>
             </form>
 
@@ -2261,10 +2259,7 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
               </div>
               {!authenticatorSetup.qrCodeDataUrl && (
                 <form onSubmit={beginAuthenticatorSetup}>
-                  <label>
-                    Confirma clave actual
-                    <input type="password" value={authenticatorSetup.currentPassword} onChange={(e) => setAuthenticatorSetup({ ...authenticatorSetup, currentPassword: e.target.value })} required />
-                  </label>
+                  <PressToRevealPassword label="Confirma clave actual" autoComplete="current-password" value={authenticatorSetup.currentPassword} onChange={(e) => setAuthenticatorSetup({ ...authenticatorSetup, currentPassword: e.target.value })} required />
                   <button type="submit">Configurar autenticador</button>
                 </form>
               )}
@@ -2289,10 +2284,7 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
                 <strong>Disponibles</strong>
                 <span>{backupCodeStatus.availableCodes} de {backupCodeStatus.totalCodes}</span>
               </div>
-              <label>
-                Confirma clave actual
-                <input type="password" value={backupCodePassword} onChange={(e) => setBackupCodePassword(e.target.value)} required />
-              </label>
+              <PressToRevealPassword label="Confirma clave actual" autoComplete="current-password" value={backupCodePassword} onChange={(e) => setBackupCodePassword(e.target.value)} required />
               <button type="submit">Generar codigos</button>
               {generatedBackupCodes.length > 0 && (
                 <div className="backup-code-list">
@@ -2305,7 +2297,13 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
               <h2><Users size={20} /> Roles del sistema</h2>
               <label>Usuario<input value={adminUserForm.username} onChange={(e) => setAdminUserForm({ ...adminUserForm, username: e.target.value })} required /></label>
               <label>Nombre<input value={adminUserForm.fullName} onChange={(e) => setAdminUserForm({ ...adminUserForm, fullName: e.target.value })} required /></label>
-              <label>Clave inicial<input type="password" value={adminUserForm.password} onChange={(e) => setAdminUserForm({ ...adminUserForm, password: e.target.value })} required /></label>
+              <PressToRevealPassword label="Clave inicial" autoComplete="new-password" value={adminUserForm.password} onChange={(e) => setAdminUserForm({ ...adminUserForm, password: e.target.value })} required />
+              <PressToRevealPassword label="Confirmar clave inicial" autoComplete="new-password" value={confirmAdminUserPassword} onChange={(e) => setConfirmAdminUserPassword(e.target.value)} required />
+              {confirmAdminUserPassword && (
+                <small className={adminUserForm.password === confirmAdminUserPassword ? 'passwords-match' : 'passwords-mismatch'} role="status">
+                  {adminUserForm.password === confirmAdminUserPassword ? 'Las claves coinciden' : 'Las claves no coinciden'}
+                </small>
+              )}
               <label>
                 Rol
                 <select value={adminUserForm.role} onChange={(e) => setAdminUserForm({ ...adminUserForm, role: e.target.value })}>
