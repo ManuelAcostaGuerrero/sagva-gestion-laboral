@@ -28,5 +28,18 @@ Cuando incrementa X, Y/Z vuelven a cero; cuando incrementa Y, Z vuelve a cero. E
 5. Etiquetar solo releases comprobadas; no prometer actualización local al fusionar en GitHub.
 6. Registrar notas: qué cambió, problemas corregidos, pasos de actualización, advertencias y reversión.
 
+## Orden funcional obligatorio del futuro actualizador
+
+**No se activa durante la integración INT-001.** Cuando el propietario autorice implementar la actualización en una etapa posterior, las operaciones serán estrictamente:
+
+1. **Comprobar si hay actualización** comparando versión/commit local con la publicación aprobada. Si coincide, terminar sin detener ni abrir pestañas.
+2. **Detener el sistema solo si está iniciado**, validando que los procesos pertenecen a SAGVA Gestión Laboral. Nunca tocar otros sistemas.
+3. **Actualizar** con backup privado verificado, comprobación de cambios locales, descarga y validaciones seguras, pruebas, migraciones controladas y recuperación ante errores; conservar estado previo de ejecución.
+4. **Volver a mostrar el sistema en la misma pestaña del navegador**, recargándola después de confirmar salud del servicio. Si no había pestaña, permitir abrir una nueva; nunca duplicar la que ya existe.
+
+**Límite técnico:** abrir una URL mediante PowerShell, BAT o navegador predeterminado normalmente crea una pestaña nueva o no garantiza reutilizar la existente. Para cumplir el punto 4 se requiere cooperación del frontend, por ejemplo detectar el cambio de versión desde la pestaña actualmente abierta y recargarla allí; probarlo en navegador real. No afirmar que el script puede localizar cualquier pestaña abierta sin esa integración. Nunca cerrar todo el navegador para actualizar el backend.
+
+**Pruebas de aceptación futuras:** (a) sistema ya actualizado: sin reinicio ni pestaña adicional; (b) sistema abierto en una pestaña: parada/actualización/inicio y recarga de la misma pestaña; (c) sistema detenido: actualización sin abrir navegador espontáneamente; (d) puertos ocupados por terceros: abortar sin tocar otros procesos; (e) fallo de migración/compilación: reportar error, preservar datos y restaurar conforme a procedimiento probado.
+
 ## Identidad y actualizaciones locales
 Nunca sobrescribir datos y credenciales con `git pull` ni suponer que `main` actualiza automáticamente la PC. Reutilizar `Actualizar.bat` de Huella solo tras inspección y adaptación segura de rutas; no introducir de inmediato el actualizador problemático del legado. Los originales retienen sus versiones (Huella 1.19.2, Propinas 4.4.0 al inventario).

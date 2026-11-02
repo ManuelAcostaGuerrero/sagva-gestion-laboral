@@ -35,6 +35,8 @@ npm.cmd run build --workspace client
 
 Si falla uno, detenerse y presentar el texto exacto del error. No ejecutar `npm audit fix --force` ni cambiar versiones por cuenta propia.
 
+**Para esta validación de INT-001 no ejecutar `Actualizar.bat` ni desde Huella original ni desde SAGVA.** La comprobación del actualizador queda para una etapa posterior y deberá respetar los cuatro pasos documentados en `docs/07-VERSIONADO-Y-CAMBIOS.md`.
+
 ## 4. Iniciar base de prueba aislada
 **Detener antes la instancia original de Huella** y comprobar que no hay otro sistema usando 4000, 5173 ni 5180. No cerrar programas por PID a ciegas. En la carpeta nueva:
 

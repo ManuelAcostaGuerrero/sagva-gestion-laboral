@@ -20,6 +20,14 @@
 6. En INT-004 crear migraciones PostgreSQL repetibles y prueba de segunda ejecución, rollback/restauración y rendimiento.
 7. Para corte definitivo: auditar seguridad, permisos, respaldo externo probado, paridad, aprobación y plan con escrituras congeladas. No operar dos maestros simultáneos.
 
+## Actualizaciones posteriores (requisito, no procedimiento vigente)
+
+**El propietario decidió no utilizar `Actualizar.bat` en INT-001.** La primera comprobación de Huella se instala en carpeta aislada siguiendo la guía de prueba; no se actualiza una instancia activa ni se abre navegador automáticamente.
+
+Cuando se implemente el actualizador autorizado, respetar: **(1) comprobar si ya está actualizado, (2) detener únicamente el proceso SAGVA si está activo, (3) actualizar con respaldos y verificaciones, (4) recuperar la misma pestaña abierta sin generar duplicados**. La recarga de la pestaña existente debe coordinarse desde el frontend, porque un comando local que abre una URL no puede garantizar reutilizar la pestaña ya abierta. No cerrar el navegador ni ejecutar scripts de actualización con el sistema original.
+
+Ver reglas y casos de prueba en [docs/07-VERSIONADO-Y-CAMBIOS.md](07-VERSIONADO-Y-CAMBIOS.md).
+
 ## Criterios para seleccionar servidor en el futuro
 No contratar de inmediato. Se evaluará VPS cuando el sistema esté validado localmente. Requisitos: PostgreSQL estable, backups cifrados y recuperación probada, acceso HTTPS, logs protegidos, monitoreo, actualización repetible y control de costos. No confundir dominio con hosting.
 
