@@ -31,15 +31,15 @@ Leer primero `README.md` y `docs/00-INDICE-Y-ESTADO.md`. Este archivo rige cualq
 - Priorizar GitHub y CI con costos verificables, trabajo en este chat, cambios pequeños y validaciones reales. No consumir recursos adicionales para compensar problemas de planificación.
 - Proteger el esfuerzo del propietario: **no reconstruir funcionalidades que ya existen ni repetir el fracaso de la integración anterior**. Cada fase debe acreditar paridad funcional/visual y la procedencia del código utilizado.
 
-## Política de actualización futura (todavía no implementar ni ejecutar en INT-001)
+## Reglas específicas del archivo `Actualizar.bat` (no ejecutarlo en INT-001)
 
-Requisito expreso del propietario: el actualizador de SAGVA Gestión Laboral deberá respetar esta **secuencia obligatoria**:
+**El propietario habla específicamente del archivo `Actualizar.bat` que se ejecuta manualmente desde Windows, como en sus otros proyectos. No se refiere a actualizaciones automáticas, avisos en segundo plano ni a crear otra herramienta distinta.** Cuando se habilite ese `.bat` en SAGVA Gestión Laboral, deberá dirigir esta **secuencia obligatoria**:
 1. **Evaluar si está actualizado**: leer versión y commit instalados, consultar versión/commit aprobado en el repositorio, verificar compatibilidad, origen y rama. Si está actualizado, informar **«Ya está actualizado»** y no detener procesos, reinstalar ni abrir pestañas.
 2. **Detener el proceso solo si está activo**: reconocer y detener exclusivamente procesos de este proyecto por identidad/ruta/PID verificados. Jamás cerrar procesos ajenos, el navegador ni otras aplicaciones; registrar si estaba encendido.
 3. **Actualizar de forma segura**: backup consistente y restaurable de datos/configuración, prevalidación, avance Git sin forzar ni descartar cambios, dependencias, migraciones y pruebas según corresponda. Si falla, no declarar éxito ni perder datos; proporcionar pasos de recuperación. Reiniciar el servicio solo si estaba activo antes de la actualización (o conforme a una orden expresa).
 4. **Conservar la pestaña existente del sistema**: si el usuario tiene SAGVA abierto en el navegador, **actualizar o recargar ESA MISMA pestaña**, conservando URL y sesión cuando sea seguro, sin abrir otra. Si no hay pestaña, recién entonces ofrecer abrir una. Un script BAT/PowerShell por sí solo no puede identificar y activar de forma fiable una pestaña arbitraria: diseñar y probar un mecanismo cooperativo de la aplicación/navegador (detección de versión y aviso de recarga en pestaña existente, o equivalente) antes de prometer esta funcionalidad. Nunca ejecutar un `Start-Process` del navegador sin antes resolver esa condición.
 
-**Esta regla describe un requisito futuro, no una función implementada**. Durante INT-001 **no se utilizará el comando Actualizar**, no se añadirá automatización de actualizaciones y no se gastarán créditos Work en ello. Para las pruebas actuales se usa una instalación aislada y control manual.
+**Esta regla describe el comportamiento requerido del `Actualizar.bat` manual, no una función ya implementada**. Durante INT-001 **no se utilizará ese `.bat`**, no se añadirá automatización de actualizaciones y no se gastarán créditos Work en ello. Para las pruebas actuales se usa una instalación aislada y control manual.
 
 ## Procedimiento mínimo por tarea
 1. Consultar fase/estado en `docs/00-INDICE-Y-ESTADO.md` y criterios en `docs/06-PRUEBAS-Y-ACEPTACION.md`.

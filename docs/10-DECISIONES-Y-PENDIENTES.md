@@ -18,7 +18,7 @@ Todas las decisiones de esta tabla se refieren al **diseño acordado**, no a una
 | D-012 | 2026-11-01 | Aprobación expresa para cambiar pantallas y reglas económicas; preservar originales | Paridad y control |
 | D-013 | 2026-11-01 | **Ejecutar toda tarea de GitHub directamente desde este chat**, con herramientas GitHub; **no delegarla a Work** | Evitar gasto de los pocos créditos restantes y errores de traspaso |
 | D-014 | 2026-11-01 | **Work solo para acciones imprescindibles fuera de las capacidades del chat, con explicación y autorización previa** | Resguardar presupuesto, dar trazabilidad y limitar operaciones sobre la PC |
-| D-015 | 2026-11-01 | No utilizar actualización durante INT-001; en el actualizador futuro seguir **comprobar versión → detener proceso propio si activo → actualizar seguro → recargar la misma pestaña abierta sin duplicarla** | Proteger datos, evitar reinicios innecesarios y duplicación de pestañas |
+| D-015 | 2026-11-01 | **El archivo manual `Actualizar.bat` de Windows**, al habilitarse después de INT-001, debe seguir **comprobar versión → detener proceso propio si activo → actualizar seguro → recargar la misma pestaña existente sin duplicarla**. No se trata de actualizaciones automáticas | Proteger datos y evitar reinicios innecesarios/pestañas duplicadas |
 
 ## Pendientes que no se pueden inventar
 - [ ] Implementar y probar en etapa posterior el actualizador con comprobación previa, detención selectiva, actualización segura y recarga cooperativa de la pestaña existente. **No implementar ni ejecutar en INT-001.**
