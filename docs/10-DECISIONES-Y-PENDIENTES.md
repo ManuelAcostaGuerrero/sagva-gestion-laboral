@@ -19,6 +19,7 @@ Todas las decisiones de esta tabla se refieren al **diseño acordado**, no a una
 | D-013 | 2026-11-01 | **Ejecutar toda tarea de GitHub directamente desde este chat**, con herramientas GitHub; **no delegarla a Work** | Evitar gasto de los pocos créditos restantes y errores de traspaso |
 | D-014 | 2026-11-01 | **Work solo para acciones imprescindibles fuera de las capacidades del chat, con explicación y autorización previa** | Resguardar presupuesto, dar trazabilidad y limitar operaciones sobre la PC |
 | D-015 | 2026-11-01 | **El archivo manual `Actualizar.bat` de Windows**, al habilitarse después de INT-001, debe seguir **comprobar versión → detener proceso propio si activo → actualizar seguro → recargar la misma pestaña existente sin duplicarla**. No se trata de actualizaciones automáticas | Proteger datos y evitar reinicios innecesarios/pestañas duplicadas |
+| D-016 | 2026-11-02 | El asistente debe **contradecir con fundamento, no asentir automáticamente y no saltar fases**: comprobar evidencias de hito antes de recomendar el paso siguiente y rechazar declarar INT-003 listo sin INT-002 acreditado | Evitar errores de planificación, duplicidad de datos y confundir CI con aceptación funcional |
 
 ## Pendientes que no se pueden inventar
 - [ ] Implementar y probar en etapa posterior el actualizador con comprobación previa, detención selectiva, actualización segura y recarga cooperativa de la pestaña existente. **No implementar ni ejecutar en INT-001.**

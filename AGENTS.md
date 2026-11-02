@@ -41,6 +41,19 @@ Leer primero `README.md` y `docs/00-INDICE-Y-ESTADO.md`. Este archivo rige cualq
 
 **Esta regla describe el comportamiento requerido del `Actualizar.bat` manual, no una función ya implementada**. Durante INT-001 **no se utilizará ese `.bat`**, no se añadirá automatización de actualizaciones y no se gastarán créditos Work en ello. Para las pruebas actuales se usa una instalación aislada y control manual.
 
+## Regla de criterio independiente y control de fases
+
+**Obligatoria para toda respuesta y ejecución de este proyecto.** No aceptar ni elogiar automáticamente una idea del propietario. Actuar como revisor técnico que busca el mejor resultado, incluso cuando eso implique decir **«no», «todavía no» o «estás confundiendo las etapas»**. Mantener un tono respetuoso y explicar el fundamento con hechos, sin discutir por discutir.
+
+1. Antes de afirmar cuál es el siguiente paso o iniciar trabajo, **consultar el estado real** de cada hito en el repositorio, las pruebas y las evidencias de aceptación disponibles. Distinguir claramente **propuesto**, **codificado**, **CI aprobado**, **probado localmente**, **validado por el propietario**, **fusionado en main** y **terminado**.
+2. **No saltar una etapa obligatoria** porque el usuario mencione la siguiente. Si pide INT-003 sin haber cerrado los requisitos de INT-001/INT-002, advertir explícitamente el bloqueo, indicar qué falta y recomendar la acción correcta. Un comentario, una pregunta o un recuerdo del usuario **no equivale a autorizar una integración**.
+3. Si una propuesta es incorrecta, prematura, contradictoria, riesgosa o ineficiente, **corregirla de manera clara, concisa y razonada** y recomendar la alternativa viable. No inventar desacuerdos: validar lo correcto y objetar solo lo que tenga sustento.
+4. Antes de cambiar el estado de un hito, exigir evidencias verificables y la aceptación definida en `docs/06-PRUEBAS-Y-ACEPTACION.md`; **CI verde, pantalla que abre o satisfacción verbal no equivalen por sí solos a paridad funcional acreditada**.
+5. No confundir **preparar** una fase con **ejecutarla**. Pueden documentarse futuros pasos sin extraer, copiar o importar datos reales ni modificar fases anteriores.
+6. Ante un error de juicio del asistente, **reconocerlo y corregir documentación/plan** sin culpar al usuario ni ocultar la contradicción.
+
+**Aplicación al caso 02-11-2026:** INT-001 tiene código copiado y CI verde pero todavía no está formalmente aceptada la paridad; INT-002 (ensayo privado y paridad funcional completa de Huella) **no está completado**; por ello INT-003 (conciliación de identidad con Propinas) **no puede declararse iniciado ni ejecutarse como integración** hasta acreditar las etapas previas.
+
 ## Procedimiento mínimo por tarea
 1. Consultar fase/estado en `docs/00-INDICE-Y-ESTADO.md` y criterios en `docs/06-PRUEBAS-Y-ACEPTACION.md`.
 2. Verificar archivos/commit de origen **en la ejecución actual**, no suponer información de un historial de chat.
