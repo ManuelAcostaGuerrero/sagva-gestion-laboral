@@ -39,6 +39,7 @@ import {
   Wrench
 } from 'lucide-react';
 import { api, setToken } from './services/api.js';
+import { createEmployeeExport } from './employeeExport.js';
 import { disablePushNotifications, enablePushNotifications, getPushStatus, registerAppServiceWorker } from './services/pushNotifications.js';
 import './styles.css';
 import WeeklyPlanner from './WeeklyPlanner.jsx';
@@ -543,6 +544,7 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
   const [userResults,setUserResults]=useState([]);
   const [userResultsBusy,setUserResultsBusy]=useState(false);
   const [userRefresh,setUserRefresh]=useState(0);
+  const [exportingWorkers, setExportingWorkers] = useState(false);
   const [records, setRecords] = useState([]);
   const [areas, setAreas] = useState([]);
   const [positions, setPositions] = useState([]);
@@ -623,6 +625,33 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
     setEmployees(employeeResult.employees);
     setUserRefresh(n=>n+1);
   }
+
+  async function downloadWorkers(format) {
+    if (adminRole !== 'admin' || exportingWorkers) return;
+    setExportingWorkers(true);
+    try {
+      // Se consulta el padrón completo, sin limitarlo a la búsqueda visible.
+      const result = await api('/employees?includeInactive=1');
+      const { blob, filename } = createEmployeeExport(result.employees, format, 'sagva-laboral');
+      const url = URL.createObjectURL(blob);
+      try {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } finally {
+        window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+      }
+      setMessage('Archivo preparado: ' + filename + ' (' + result.employees.length + ' trabajadores).');
+    } catch (error) {
+      setMessage('No fue posible exportar trabajadores: ' + error.message);
+    } finally {
+      setExportingWorkers(false);
+    }
+  }
+
 
   useEffect(()=>{
     if(adminModule!=='users')return undefined;
@@ -1753,6 +1782,17 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
               <input type="search" value={userQuery} placeholder="Escribe al menos 2 caracteres"
                 onChange={e=>setUserQuery(e.target.value)}/>
             </label>
+            {adminRole === 'admin' && (
+              <div className="worker-export-actions">
+                <button type="button" disabled={exportingWorkers} onClick={() => downloadWorkers('xlsx')}>
+                  <Download size={16} /> Exportar Excel
+                </button>
+                <button type="button" disabled={exportingWorkers} onClick={() => downloadWorkers('xml')}>
+                  <Download size={16} /> Exportar XML
+                </button>
+                <small>Incluye activos e inactivos: ID, nombre, documento, correo, cargo, área y estado. Sin claves ni datos médicos.</small>
+              </div>
+            )}
             {userQuery.trim().length<2&&<p>Escribe un nombre o documento para consultar empleados.</p>}
             {userQuery.trim().length>=2&&<table>
               <thead><tr><th>Nombre</th><th>Documento</th><th>Area</th><th>Estado</th><th></th></tr></thead>

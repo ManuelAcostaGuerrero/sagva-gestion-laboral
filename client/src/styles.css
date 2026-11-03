@@ -1919,3 +1919,16 @@ button.enrolled {
 .passwords-mismatch {
   color: #9d2d20;
 }
+
+
+/* Exportación del padrón de trabajadores en Usuarios. */
+.worker-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+.worker-export-actions small {
+  color: #60706d;
+  flex-basis: 100%;
+}
