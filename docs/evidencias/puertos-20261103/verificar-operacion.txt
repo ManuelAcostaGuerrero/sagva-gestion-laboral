@@ -1,0 +1,1 @@
+Ambos proyectos: datos íntegros sin cambios, inicio repetido conserva PID, navegador y proxy API reales correctos. Cuatro carpetas antiguas retiradas.

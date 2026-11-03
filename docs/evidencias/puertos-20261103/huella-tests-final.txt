@@ -1,0 +1,82 @@
+
+> asistencia-huella-4500@1.19.2 test:server
+> npm test --workspace server
+
+
+> attendance-fingerprint-server@1.19.2 test
+> node --test
+
+✔ Cliente API distingue una conexión fallida de una contraseña incorrecta sin reenviar el login (128.8145ms)
+✔ calcula permanencia descontando colacion cerrada con marcas opuestas (4.5171ms)
+✔ acepta colacion iniciada con entrada_colacion y cerrada con salida_colacion (0.6061ms)
+✔ filtra por fecha y tipo despues de calcular pares (1.283ms)
+✔ Eliminar áreas y cargos: lista de activos/inactivos, liberación y protección de horarios (1041.0375ms)
+✔ Preparación del contrato requiere identidad y fechas válidas, sin habilitar generación prematura (4.9273ms)
+✔ PDF de contrato/anexo: autenticación, vinculación, revisión, historial, auditoría y respaldo en SQLite (1389.9993ms)
+✔ normaliza visualmente alias y clasifica sin escribir (6.676ms)
+✔ GET auditoría detecta faltantes, incompletos y patrón IRL sin modificar documentos (1167.2825ms)
+✔ Catálogo de documentos: roles, asignación, corrección de reglas, bloqueo de borrado e historial (1343.2678ms)
+✔ Contratos 0/1/2 anexos, fechas reales, prórroga posterior y orden (35.2681ms)
+✔ Migración aditiva idempotente conserva registros históricos y verifica claves foráneas (33.7322ms)
+✔ Guardar anexos es atómico, auditado y concurrente; conserva históricos, estado inactivo y término inicial (662.66ms)
+✔ Avisos del informe muestran etiqueta y ambos valores; avisos antiguos se presentan sin reescribirlos (23.9658ms)
+✔ Vencimiento automático calcula meses de calendario, años y días correctamente (23.7488ms)
+✔ Catálogo inicial y anexos financieros; administración crea tipos y cada renovación conserva fechas/PDF (1205.7923ms)
+✔ Guardar correctamente elimina la advertencia de la ficha general (4.5779ms)
+✔ Solo hay advertencia si quedaron cambios reales en otra pestaña (1.1694ms)
+✔ Al completar y validar se cierra la ficha si no hay cambios ajenos sin guardar (0.4041ms)
+✔ Control de revisión temporal: aparece solo en fichas aún no validadas (1.9629ms)
+✔ Migración de fichas preserva IDs, marcas, huellas, historial y referencias; admite varios RUT vacíos (21.9424ms)
+✔ Migración rechaza duplicados de RUT normalizado y revierte sin borrar historial (20.4644ms)
+✔ Ficha API: persistencia, revisión suave, filtros, RUT único, concurrencia y auditoría atómica (1568.1342ms)
+✔ Importación A–F: faltantes reales, fechas dudosas, finiquitado, jornadas y repetición sin sobrescribir correcciones (20.6718ms)
+✔ Guardar ficha persiste todas las secciones modificadas, en orden (6.8984ms)
+✔ Desde cualquier pestaña guarda solo los datos que cambiaron (1.19ms)
+✔ Al validar guarda primero ficha general y luego datos pendientes (6.1274ms)
+✔ Error parcial detiene las secciones siguientes y conserva aviso de lo ya guardado (2.5745ms)
+✔ Un formulario sin cambios no emite escrituras (0.7478ms)
+✔ fecha DD/MM/AAAA siempre limita el año a cuatro dígitos (7.9605ms)
+✔ fecha rechaza días, meses y límites inválidos antes de actualizar el valor ISO (1.323ms)
+✔ Reglas independientes: RUT, composición de nombres y teléfono (4.5584ms)
+✔ Empresa, ficha provisional/validada y condiciones contractuales preservan historial y permisos (1699.23ms)
+✔ Identifica anexos financieros sin confundir contratos ni documentos generales (3.7468ms)
+✔ Aumento y bono guardan montos por entrega, validan importes y preservan históricos, permisos y sueldo base (2085.333ms)
+✔ Fechas de licencia son inclusivas y excluyen calendarios inválidos (6.7432ms)
+✔ Licencia no borra turno preexistente, devuelve fechas sin diagnósticos y bloquea asignación nueva (1422.1405ms)
+✔ La ficha médica es privada, editable, auditada y se guarda sin invadir la ficha laboral (1436.4534ms)
+✔ Deshacer conserva la revision actual incluso despues de guardar y mantiene mas de cinco movimientos (2.6486ms)
+✔ Copiar horario conserva semana destino, crea filas nuevas y elimina indisponibilidad historica (3.1ms)
+✔ Cambiar una persona de fila la mueve solo dentro de la semana y deja la anterior por asignar (0.792ms)
+✔ URL API: localhost, red y HTTPS usan el mismo enlace aunque el .env conserve direcciones antiguas (3.6025ms)
+✔ Web publica: API conserva autenticación/cuerpo y no publica fuentes ni archivos privados (810.2163ms)
+✔ Buscar trabajadores a demanda, emitir lote sin revocar QR y limitarlo a admin (2358.9183ms)
+✔ Login por la web local, Rotativo común a todas las áreas y CRUD de turnos/horarios conservan referencias (2303.4171ms)
+✔ Normalizar Rotativo consolida duplicados sin alterar horas ni referencias armadas (46.5521ms)
+✔ API SQLite: login, empleados, identificación QR/PIN, marcacion, reportes, horarios y auditoria (2687.5554ms)
+✔ SQLite conserva restricciones, ids, parametros y configura fechas locales (25.325ms)
+✔ Una transaccion fallida revierte y las consultas concurrentes esperan su final (44.7546ms)
+✔ Respaldo SQLite incorpora WAL y permite recuperar datos sin duplicarlos (285.8759ms)
+✔ Terminal-empresa-trabajador: QR/PIN aislados, vista previa sin escrituras, cámara autorizada e idempotencia (2872.0271ms)
+✔ QR/PIN: terminal obligatoria, activación única, credenciales hash, rotación/revocación, auditoría e idempotencia (4692.3626ms)
+✔ Prevalidación detecta JSX truncado y JavaScript/manifiestos incorrectos antes de instalar (3993.0735ms)
+✔ Modelos: normal, nocturno y partido descuentan una sola colacion (8.6727ms)
+✔ Reportes: noche y tramos partidos excluyen el intervalo, mantienen atrasos e incompletos (41.2727ms)
+✔ Migracion conserva asignaciones anteriores y aplica cada modelo una sola vez (65.8758ms)
+✔ Planificador API: borrador, cobertura, conflictos, revision, publicacion atomica y reporte nocturno (1342.8004ms)
+✔ Migración de cargos idempotente, nombres mayúsculos y referencias conservadas (22.8426ms)
+✔ RUT módulo 11 local: puntos, guion, K/k, faltantes y formatos incorrectos (3.5316ms)
+✔ Migración conserva nombre legal literal, IDs, historial y propuestas conocidas sin inventar apellidos (69.8284ms)
+✔ Ficha: partes independientes, legal literal, vacíos protegidos, revisión atribuida y provisional seguro (597.9918ms)
+✔ Nombre corto usa primer nombre y apellido, conservando nombres completos y abreviaciones anteriores (3.1742ms)
+✔ Enriquecer completa vacíos, preserva RUT/fechas/inactivos/revisión y usa la última fila duplicada (198.3147ms)
+✔ RUT con puntos mantiene la validación y el correo en mayúsculas se valida correctamente (9.8834ms)
+✔ Normalización histórica es idempotente, conserva originales, nombre legal y RUT, e invalida revisiones antiguas (23.993ms)
+✔ Guardar normaliza nombres/correo y corregir RUT sin campo de motivo conserva historial automático (190.5783ms)
+ℹ tests 66
+ℹ suites 0
+ℹ pass 66
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16382.6655

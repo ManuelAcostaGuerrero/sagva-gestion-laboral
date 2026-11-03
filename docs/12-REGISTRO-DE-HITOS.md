@@ -43,3 +43,8 @@ Este documento debe mantenerse al día **después de resultados observados**, nu
 - El propietario reportó haber instalado/abierto una copia local. **No existe evidencia completa registrada de paridad funcional/visual, ensayo privado restaurable o aprobación INT-002**. Se mantiene INT-001 sin cierre e INT-002 no iniciado formalmente.
 - Se corrigió una recomendación prematura de iniciar INT-003: **la conciliación de trabajadores de Propinas no corresponde todavía**. Primero documentar y acreditar las funciones, pantallas, credenciales, QR/PIN, permisos, documentos, licencias, planificador y restauración exigidos para INT-002. No importar datos reales ni compartir identidades por GitHub.
 - Nueva regla de trabajo: criterio independiente y control de fases en `AGENTS.md` (decisión D-016). No confundir la aceptación de una idea futura con autorización o conveniencia de ejecutarla de inmediato.
+
+## Reparación de operación local (03-11-2026)
+- Se identificaron y retiraron cuatro carpetas QR de ensayo, con archivo privado recuperable; se conserva Huella original y el proyecto INT-001 separado.
+- Puertos propios: Huella 4000/5173; Gestión Laboral 4010/5183. Inicio repetido y rechazo real de conflicto sin cerrar otros proyectos comprobados.
+- [Informe, SHA exacto, pruebas y límites](15-ORDEN-LOCAL-Y-PUERTOS-20261103.md). Esta reparación no acepta ni cierra INT-001/INT-002 y no inicia INT-003.
