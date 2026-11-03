@@ -69,3 +69,6 @@ El preparador genera credenciales aleatorias nuevas en `.local/acceso-inicial.tx
 
 ## Límites
 Esto **no** es restauración de los trabajadores originales, integración de Propinas, migración PostgreSQL ni certificación productiva. El sistema de prueba no debe reemplazar el de uso diario. Si la instalación anterior debe continuar funcionando en paralelo, primero se necesita aislamiento de puertos y ajustes adicionales, no ejecutarlas simultáneamente.
+
+## Aclaración vigente al 03-11-2026
+El procedimiento de instalación anterior fue redactado antes de la prueba local de puertos y antes del merge de PR #1. **No volver a clonar ni ejecutar `Instalar-INT001.bat` si la carpeta nueva ya existe.** Los puertos documentados del entorno vigente son **Huella 4000/5173** y **SAGVA Gestión Laboral 4010/5183** (ver `docs/15-ORDEN-LOCAL-Y-PUERTOS-20261103.md`), por lo que es posible probar ambos sin mezclarlos cuando se conserva dicha configuración. La app nueva ya tiene código en `main`, pero la carpeta de Windows puede seguir en `int001-huella-codigo`. **No cambiar de rama, ejecutar `Actualizar.bat` ni modificar SQLite hasta comprobar el estado local y contar con procedimiento seguro de respaldo y despliegue.** Las pruebas integrales INT-001/INT-002 continúan pendientes.

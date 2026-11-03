@@ -1,9 +1,9 @@
 # 13. INT-001 — Incorporación de código de Huella (evidencia y pendientes)
 
 **Fecha:** 01-11-2026  
-**Estado:** copia técnica parcial; no hay paridad funcional demostrada. No aprobado.  
+**Estado del registro original (01-11):** copia técnica parcial. **Actualización 03-11:** el código fue fusionado a `main` mediante PR #1 (`a23de9b4`), pero no hay paridad funcional integral demostrada ni hito aprobado.  
 **Origen fijado:** `ManuelAcostaGuerrero/asistencia-huella-digital`, commit `fe1f797c3a15ed436899f52cd94063f94db23344`, versión 1.19.2.  
-**Destino:** `sagva-gestion-laboral`, rama `int001-huella-codigo`. El `main` no debe sustituirse por una versión que no compila.
+**Destino:** `sagva-gestion-laboral`, trabajo iniciado en rama `int001-huella-codigo` y publicado en `main` tras dos CI aprobados en HEAD `fccf017d3`. **La publicación de código no habilita producción**.
 
 ## Resultado de la comparación Git
 - Origen: 223 archivos versionados, incluidos documentación original y recursos.
@@ -32,7 +32,7 @@
 2. Validar SHA de cada fichero de origen copiado.
 3. Ejecutar `npm ci`, `npm run test:server` y `npm run build --workspace client` en CI del commit exacto.
 4. Probar instalación aislada; revisar todos los flujos de Personal, Horarios, Documentos, Licencias, QR/PIN, usuarios y auditoría contra Huella original.
-5. Solicitar aceptación expresa del propietario. No fusionar este PR mientras estén los bloqueos anteriores.
+5. La fusión de código a `main` fue expresamente solicitada por el propietario el 03-11-2026 y se ejecutó con CI verde. **Esto no equivale a la aprobación funcional**: solicitar aceptación de INT-001 tras las pruebas pendientes y no pasar a INT-002/INT-003 como si ya estuvieran concluidos.
 
 ## Instalación de prueba
 Seguir [docs/14-PRUEBA-LOCAL-INT-001.md](14-PRUEBA-LOCAL-INT-001.md). Los tres recursos privados de publicación quedan localmente copiados con SHA verificado y excluidos expresamente de Git.

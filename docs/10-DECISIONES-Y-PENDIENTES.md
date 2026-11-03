@@ -20,11 +20,13 @@ Todas las decisiones de esta tabla se refieren al **diseño acordado**, no a una
 | D-014 | 2026-11-01 | **Work solo para acciones imprescindibles fuera de las capacidades del chat, con explicación y autorización previa** | Resguardar presupuesto, dar trazabilidad y limitar operaciones sobre la PC |
 | D-015 | 2026-11-01 | **El archivo manual `Actualizar.bat` de Windows**, al habilitarse después de INT-001, debe seguir **comprobar versión → detener proceso propio si activo → actualizar seguro → recargar la misma pestaña existente sin duplicarla**. No se trata de actualizaciones automáticas | Proteger datos y evitar reinicios innecesarios/pestañas duplicadas |
 | D-016 | 2026-11-02 | El asistente debe **contradecir con fundamento, no asentir automáticamente y no saltar fases**: comprobar evidencias de hito antes de recomendar el paso siguiente y rechazar declarar INT-003 listo sin INT-002 acreditado | Evitar errores de planificación, duplicidad de datos y confundir CI con aceptación funcional |
+| D-017 | 2026-11-03 | Por solicitud explícita del propietario, **fusionar código Huella INT-001 a `main`** mediante PR #1 con CI verde, **sin declarar paridad integral aprobada ni producción habilitada** | Separar integración de control de versiones de aceptación funcional; proteger originales y datos privados |
 
 ## Pendientes que no se pueden inventar
 - [ ] Implementar y probar en etapa posterior el actualizador con comprobación previa, detención selectiva, actualización segura y recarga cooperativa de la pestaña existente. **No implementar ni ejecutar en INT-001.**
-- [ ] Commit exacto de Huella que servirá de copia INT-001 (tomar de `main` cuando inicie).
-- [ ] Copia de código y prueba funcional del sistema en repo nuevo.
+- [x] Fuente Huella INT-001 fijada en `fe1f797c3a15ed436899f52cd94063f94db23344` (v1.19.2), más mejoras autorizadas de contraseña y exportación.
+- [x] Copia de código y CI de la rama INT-001 integrado en `main` (PR #1).
+- [ ] Prueba funcional integral, paridad visual/operativa local y aceptación formal INT-001 e INT-002.
 - [ ] Ruta, cantidad y calidad de datos reales: **solo se inspeccionan privadamente con permiso**.
 - [ ] Matriz privada aprobada de equivalencias por trabajador; recuperar decisiones anteriores si están disponibles, sin darlas por confirmadas.
 - [ ] Reglas reales de empresa/local/área/cargo → grupo/tarifa Propinas y excepciones, con vigencias. **No inventar porcentajes**.

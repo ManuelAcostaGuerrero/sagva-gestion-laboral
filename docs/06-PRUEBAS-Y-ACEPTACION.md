@@ -37,4 +37,6 @@ Configurar en INT-001 los controles pertinentes y usar GitHub Actions en ejecuto
 El proyecto anterior aprobó ciertas pruebas de código pero no acreditó la experiencia original. Aquí se exige **ambas cosas**.
 
 ## Estado actual
-**Actualización 02-11-2026:** ya existe código en la rama `int001-huella-codigo` y GitHub Actions acreditó pruebas del servidor y compilación del frontend en `652a1783`. Esto **no certifica** experiencia visual, funciones en PC ni paridad con los originales. INT-001 continúa pendiente de aceptación e INT-002 no ha iniciado formalmente; no avanzar a INT-003 por esa sola evidencia.
+**Actualización 02-11-2026 (histórica):** ya existía código en la rama `int001-huella-codigo` y GitHub Actions acreditó pruebas del servidor y compilación del frontend en `652a1783`.
+
+**Actualización 03-11-2026:** el propietario solicitó integrar PR #1 y este se fusionó en `main` como `a23de9b4164b975d2589091782c7a5d4a538f0f5`. El commit PR `fccf017d3` tenía dos CI verdes. Esto **no certifica** experiencia visual, funcionamiento en PC ni paridad con los originales. INT-001 aún exige cierre funcional y aceptación; INT-002 sigue sin acreditarse y bloquea INT-003. El merge **no autoriza** despliegue de producción, cambio de base privada ni ejecutar `Actualizar.bat` de Gestión Laboral.
