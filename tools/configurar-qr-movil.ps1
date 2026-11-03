@@ -20,16 +20,16 @@ if([IO.Path]::GetFullPath($CertificatePath) -ne $cert){Copy-Item -LiteralPath $C
 if([IO.Path]::GetFullPath($PrivateKeyPath) -ne $key){Copy-Item -LiteralPath $PrivateKeyPath -Destination $key}
 $config=Join-Path $local 'mobile-https.json'
 $pendingConfig=Join-Path $local ('mobile-https-'+$suffix+'.pending.json')
-@{enabled=$true;port=5180;lanIp=$LanIp;certPath=$cert;keyPath=$key}|ConvertTo-Json|Set-Content -LiteralPath $pendingConfig -Encoding UTF8
+@{enabled=$true;port=5184;lanIp=$LanIp;certPath=$cert;keyPath=$key}|ConvertTo-Json|Set-Content -LiteralPath $pendingConfig -Encoding UTF8
 & node.exe --input-type=module -e "import {mobileHttpsOptions} from './tools/start-web.mjs'; const c=mobileHttpsOptions(process.argv[1]); console.log('HTTPS preparado en https://'+c.lanIp+':'+c.port);" $pendingConfig
 if($LASTEXITCODE -ne 0){throw 'Configuración anterior conservada. Revisa certificado, clave e IP.'}
 if(Test-Path -LiteralPath $config){Copy-Item -LiteralPath $config -Destination ($config+'.'+(Get-Date -Format 'yyyyMMddHHmmss')+'.bak')}
 Move-Item -LiteralPath $pendingConfig -Destination $config -Force
 if($ConfigurarFirewall){
- if(!(Get-NetFirewallRule -Name 'AsistenciaHuellaMobile5180' -ErrorAction SilentlyContinue)){
+ if(!(Get-NetFirewallRule -Name 'SAGVAGestionLaboralMobile5184' -ErrorAction SilentlyContinue)){
   $nodePath=(Get-Command node.exe).Source
-  New-NetFirewallRule -Name 'AsistenciaHuellaMobile5180' -DisplayName 'Asistencia Huella HTTPS movil 5180 (solo LAN)' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 5180 -LocalAddress $LanIp -RemoteAddress LocalSubnet -Program $nodePath -Profile Any | Out-Null
+  New-NetFirewallRule -Name 'SAGVAGestionLaboralMobile5184' -DisplayName 'Asistencia Huella HTTPS movil 5184 (solo LAN)' -Direction Inbound -Action Allow -Protocol TCP -LocalPort 5184 -LocalAddress $LanIp -RemoteAddress LocalSubnet -Program $nodePath -Profile Any | Out-Null
  }
- Write-Host 'Regla HTTPS limitada al puerto 5180 y subred local.'
+ Write-Host 'Regla HTTPS limitada al puerto 5184 y subred local.'
 }
 Write-Host 'Reinicia solo Asistencia Huella. El celular debe confiar en la CA del certificado y estar en la misma LAN.'

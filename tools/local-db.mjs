@@ -9,7 +9,7 @@ const action=process.argv[2];
 const envPath=path.join(root,'server/.env');
 if (action === 'configure') {
   if (!fs.existsSync(envPath)) {
-    fs.writeFileSync(envPath, `SQLITE_PATH=data/asistencia.db\nJWT_SECRET=${crypto.randomBytes(48).toString('base64url')}\nPORT=4000\nCLIENT_ORIGIN=http://localhost:5173\nVAPID_PUBLIC_KEY=\nVAPID_PRIVATE_KEY=\nVAPID_SUBJECT=mailto:admin@example.com\n`, { flag:'wx' });
+    fs.writeFileSync(envPath, `SQLITE_PATH=data/asistencia.db\nJWT_SECRET=${crypto.randomBytes(48).toString('base64url')}\nPORT=4010\nCLIENT_ORIGIN=http://localhost:5183\nVAPID_PUBLIC_KEY=\nVAPID_PRIVATE_KEY=\nVAPID_SUBJECT=mailto:admin@example.com\n`, { flag:'wx' });
   }
   const client=path.join(root,'client/.env');
   if (!fs.existsSync(client)) fs.writeFileSync(client,'VITE_API_URL=\n',{flag:'wx'});
@@ -20,7 +20,7 @@ if (!fs.existsSync(envPath)) throw new Error('Falta server/.env. Ejecuta Prepara
 const config=dotenv.parse(fs.readFileSync(envPath));
 if (['check','migrate','prepare'].includes(action)) {
   if (!config.JWT_SECRET || config.JWT_SECRET.length < 32 || /cambia_este/i.test(config.JWT_SECRET)) throw new Error('Configura JWT_SECRET con al menos 32 caracteres.');
-  if (Number(config.PORT || 4000) !== 4000) throw new Error('Este control utiliza PORT=4000.');
+  if (Number(config.PORT || 4010) !== 4010) throw new Error('Este control utiliza PORT=4010.');
 }
 const filename=resolveDatabasePath(config);
 if (filename === ':memory:') throw new Error('El sistema local necesita una base persistente, no :memory:.');

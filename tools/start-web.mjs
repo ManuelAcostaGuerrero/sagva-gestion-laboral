@@ -12,7 +12,7 @@ export function mobileHttpsOptions(configPath=path.join(root,'.local/mobile-http
   if(!fs.existsSync(configPath))return null;
   const config=JSON.parse(fs.readFileSync(configPath,'utf8').replace(/^\uFEFF/,''));
   if(config.enabled!==true)return null;
-  if(config.port!==5180)throw new Error('El HTTPS móvil debe usar el puerto 5180.');
+  if(config.port!==5184)throw new Error('El HTTPS móvil debe usar el puerto 5184.');
   const cert=fs.readFileSync(config.certPath),key=fs.readFileSync(config.keyPath);
   const certificate=new X509Certificate(cert);
   if(!certificate.checkPrivateKey(createPrivateKey(key)))throw new Error('La clave y el certificado HTTPS no coinciden.');
@@ -21,7 +21,7 @@ export function mobileHttpsOptions(configPath=path.join(root,'.local/mobile-http
   return {cert,key,port:config.port,lanIp:config.lanIp};
 }
 const hopHeaders=['connection','keep-alive','proxy-authenticate','proxy-authorization','te','trailer','transfer-encoding','upgrade'];
-export function createWebApp({distDir=path.join(root,'client/dist'),apiTarget='http://127.0.0.1:4000'}={}) {
+export function createWebApp({distDir=path.join(root,'client/dist'),apiTarget='http://127.0.0.1:4010'}={}) {
   const app=express(),target=new URL(apiTarget);
   app.disable('x-powered-by');app.use(helmet());
   // Only compiled public files are served. Never expose the source workspace.
@@ -56,6 +56,6 @@ if(process.argv[1] && path.resolve(process.argv[1])===fileURLToPath(import.meta.
   const options=mobileHttpsOptions();
   const app=createWebApp();
   if(options){const secure=https.createServer({cert:options.cert,key:options.key},app).listen(options.port,'0.0.0.0',()=>console.log(`Celular: https://${options.lanIp}:${options.port}`));secure.on('error',error=>{console.error(`HTTPS móvil: ${error.code}`);process.exit(1);});}
-  const server=app.listen(5173,'0.0.0.0',()=>console.log('Asistencia web compilada: http://localhost:5173 (API por /api).'));
-  server.on('error',error=>{console.error(`No se pudo iniciar el puerto 5173: ${error.code}`);process.exitCode=1;});
+  const server=app.listen(5183,'0.0.0.0',()=>console.log('Asistencia web compilada: http://localhost:5183 (API por /api).'));
+  server.on('error',error=>{console.error(`No se pudo iniciar el puerto 5183: ${error.code}`);process.exitCode=1;});
 }

@@ -23,7 +23,7 @@ import { contractTermsRouter } from './routes/contractTerms.routes.js';
 import { tokenRouter } from './routes/token.routes.js';
 
 export const app = express();
-const allowedOrigins = String(process.env.CLIENT_ORIGIN || 'http://localhost:5173')
+const allowedOrigins = String(process.env.CLIENT_ORIGIN || 'http://localhost:5183')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
@@ -43,7 +43,7 @@ function isAllowedOrigin(origin) {
 
   try {
     const url = new URL(origin);
-    return ['5173', '5174'].includes(url.port) && isPrivateLanHost(url.hostname);
+    return ['5183', '5184'].includes(url.port) && isPrivateLanHost(url.hostname);
   } catch {
     return false;
   }

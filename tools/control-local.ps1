@@ -17,7 +17,7 @@ function RequireNode {
   if ($LASTEXITCODE -ne 0 -or [int]$major -lt 24) { throw 'SQLite requiere Node.js 24 o posterior.' }
 }
 function Listeners {
-  @(Get-NetTCPConnection -State Listen -ErrorAction Stop | Where-Object { $_.LocalPort -in 4000,5173,5180 })
+  @(Get-NetTCPConnection -State Listen -ErrorAction Stop | Where-Object { $_.LocalPort -in 4010,5183,5184 })
 }
 function Ports {
   foreach ($connection in (Listeners)) {
@@ -28,7 +28,7 @@ function Ports {
   }
 }
 function FreePorts {
-  if (@(Listeners).Count) { Ports; throw 'Puertos ocupados. No se cerrara ningun servicio por conflicto.' }
+  if (@(Listeners).Count) { Ports; throw 'Puertos ocupados por otra instancia. Consulta Estado para identificarla. No se cerrara ningun servicio por conflicto.' }
 }
 function Owned {
   $file = Join-Path $local 'processes.json'
@@ -36,7 +36,11 @@ function Owned {
   $entries = Get-Content -LiteralPath $file -Raw | ConvertFrom-Json
   foreach ($entry in $entries) {
     $process = Get-CimInstance Win32_Process -Filter "ProcessId=$($entry.Id)"
-    if ($process -and $process.Name -eq 'node.exe' -and $process.CreationDate.ToUniversalTime().ToString('o') -eq $entry.Created -and $process.CommandLine.Contains($entry.Script) -and $entry.Script.StartsWith($root + '\', [StringComparison]::OrdinalIgnoreCase)) { $process }
+    if (!$process -or $process.Name -ne 'node.exe') { continue }
+    if ($process.CreationDate.ToUniversalTime().Ticks -ne ([datetime]$entry.Created).ToUniversalTime().Ticks) { continue }
+    if (!$entry.Script.StartsWith($root + '\', [StringComparison]::OrdinalIgnoreCase)) { continue }
+    if (!$process.CommandLine) { throw 'Windows no permite verificar este proceso. Usa el mismo nivel de administrador con que lo iniciaste; no se cerrara ningun proceso sin acreditar.' }
+    if ($process.CommandLine.Contains($entry.Script)) { $process }
   }
 }
 function Stopped {
@@ -52,7 +56,7 @@ function GitReady {
 }
 function UpdatePorts {
   $ownIds=@(Owned | ForEach-Object { $_.ProcessId })
-  if (@(Listeners | Where-Object { $_.OwningProcess -notin $ownIds }).Count) { Ports; throw 'Un servicio ajeno ocupa 4000/5173. Actualizacion cancelada sin detenerlo.' }
+  if (@(Listeners | Where-Object { $_.OwningProcess -notin $ownIds }).Count) { Ports; throw 'Un servicio ajeno ocupa 4010/5183. Actualizacion cancelada sin detenerlo.' }
 }
 function UpdatePrerequisites {
   if (!(Test-Path 'node_modules\dotenv') -or !(Test-Path 'node_modules\esbuild') -or !(Test-Path 'node_modules\vite\bin\vite.js')) {
@@ -88,8 +92,25 @@ function StopOwn {
   }
   if (Test-Path (Join-Path $local 'processes.json')) { Remove-Item -LiteralPath (Join-Path $local 'processes.json') }
 }
+function InstanceReady([int[]]$Ids) {
+  if ($Ids.Count -ne 2) { return $false }
+  $connections = @(Listeners)
+  if (@($connections | Where-Object { $_.OwningProcess -notin $Ids }).Count) { return $false }
+  foreach ($port in @(4010,5183)) {
+    if (@($connections | Where-Object { $_.LocalPort -eq $port -and $_.OwningProcess -in $Ids }).Count -ne 1) { return $false }
+  }
+  try {
+    $health = Invoke-RestMethod 'http://127.0.0.1:5183/api/health' -TimeoutSec 3
+    $client = Invoke-WebRequest 'http://127.0.0.1:5183' -UseBasicParsing -TimeoutSec 3
+    return ($health.service -eq 'attendance-fingerprint-api' -and $client.StatusCode -eq 200)
+  } catch { return $false }
+}
 function StartOwn {
-  if (@(Owned).Count) { throw 'Ya existe una instancia del proyecto. Usa Estado o Reiniciar.' }
+  $existing = @(Owned)
+  if ($existing.Count) {
+    if (InstanceReady @($existing.ProcessId)) { Write-Host 'El proyecto ya esta iniciado y responde correctamente. No se duplicaron procesos.'; return }
+    throw 'Existe una instancia incompleta. Revisa Estado y los logs; usa Reiniciar para recuperar solo este proyecto.'
+  }
   FreePorts
   if (!(Test-Path 'node_modules\vite\bin\vite.js')) { throw 'Faltan dependencias. Ejecuta Actualizar.bat.' }
   if (!(Test-Path 'client\dist\index.html')) { throw 'Falta compilar la pantalla. Ejecuta Actualizar.bat.' }
@@ -117,13 +138,13 @@ function StartOwn {
       $connections = Listeners
       if (@($connections | Where-Object { $_.OwningProcess -notin $entries.Id }).Count) { throw 'Conflicto durante el inicio. Se detendra solo este proyecto.' }
       try {
-        $health = Invoke-RestMethod 'http://127.0.0.1:5173/api/health' -TimeoutSec 2
-        $client = Invoke-WebRequest 'http://127.0.0.1:5173' -UseBasicParsing -TimeoutSec 2
+        $health = Invoke-RestMethod 'http://127.0.0.1:5183/api/health' -TimeoutSec 2
+        $client = Invoke-WebRequest 'http://127.0.0.1:5183' -UseBasicParsing -TimeoutSec 2
         if ($health.service -eq 'attendance-fingerprint-api' -and $client.StatusCode -eq 200) { $ready=$true; break }
       } catch { }
     }
     if (!$ready) { throw 'El sistema no respondio a tiempo. Revisa .local.' }
-    Write-Host 'Sistema listo: http://localhost:5173 - API http://localhost:4000/api'
+    Write-Host 'Sistema listo: http://localhost:5183 - API http://localhost:4010/api'
   } catch { StopOwn; throw }
 }
 try {

@@ -2,7 +2,7 @@ import { app } from './app.js';
 import { runMigrations } from './migrations.js';
 import { pool } from './db.js';
 
-const port=Number(process.env.PORT || 4000);
+const port=Number(process.env.PORT || 4010);
 try {
   await runMigrations();
   const server=app.listen(port,process.env.HOST || '0.0.0.0',()=>console.log(`API lista en http://localhost:${port}`));
