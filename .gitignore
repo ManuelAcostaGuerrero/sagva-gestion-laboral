@@ -82,3 +82,9 @@ medical-files/
 # IDE/local
 .vscode/
 .idea/
+
+# Recursos del original que se provisionan SOLO localmente para prueba exacta.
+# Las bibliotecas DigitalPersona de terceros no se redistribuyen en el repo público.
+/client/public/brand/red-taurus-sidebar.png
+/client/public/vendor/digitalpersona/fingerprint.sdk.min.js
+/client/public/vendor/digitalpersona/websdk.client.bundle.min.js

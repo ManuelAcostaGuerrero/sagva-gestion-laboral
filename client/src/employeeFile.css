@@ -1,0 +1,199 @@
+.ef {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+.ef-toolbar,
+.ef-filters,
+.ef-heading,
+.ef-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ef-toolbar > div {
+  flex: 1;
+  min-width: 200px;
+}
+.ef p {
+  margin: 6px 0;
+  color: #61727a;
+  font-size: 13px;
+}
+.ef-filters input {
+  flex: 1;
+  min-width: 180px;
+}
+.ef button.selected {
+  background: #e6efeb;
+  border-color: #b7cdc4;
+  color: #36574c;
+}
+.ef-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 30%) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.ef-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 70vh;
+  min-width: 0;
+  overflow-y: auto;
+}
+.ef-list button {
+  /* Keep each worker's natural height when the scrollable list fills up. */
+  flex: 0 0 auto;
+  align-items: flex-start;
+  min-width: 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px;
+  white-space: normal;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.ef-list button > strong,
+.ef-list button > span {
+  max-width: 100%;
+  flex-shrink: 0;
+}
+.ef-list span {
+  font-size: 12px;
+}
+.ef-badge {
+  background: #edf0ed;
+  color: #5a6c62;
+  border-radius: 7px;
+  padding: 5px 9px;
+  font-size: 12px;
+}
+.ef-form {
+  background: white;
+  border: 1px solid #dce5e3;
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 0;
+}
+.ef-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.ef-section {
+  border: 1px solid #dce5e3;
+  border-radius: 9px;
+  padding: 16px;
+  min-width: 0;
+  margin: 0;
+  flex: 0 0 auto;
+}
+.ef-section legend { font-size: 16px; font-weight: 600; padding: 0 6px; color: #36574c; }
+.ef-annexes { display: flex; flex-direction: column; gap: 16px; }
+.ef-phone-input { display: flex; gap: 8px; min-width: 0; align-items: stretch; }
+.ef-phone-input select { flex: 0 0 150px; width: 150px; }
+.ef-phone-input input { flex: 1 1 140px; }
+@media(max-width:650px){.ef-phone-input{flex-wrap:wrap}.ef-phone-input select{flex:1 1 120px}}
+
+.ef-field-wide {
+  grid-column: 1 / -1;
+}
+.ef label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  color: #475b62;
+}
+.ef input,
+.ef select,
+.ef textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.ef-clear-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.ef .ef-clear-field input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: auto;
+  min-height: 0;
+  margin: 3px 0 0;
+  padding: 0;
+}
+.ef-note {
+  background: #f1f2ec;
+  color: #64715e;
+  border: 1px solid #e0e4d8;
+  padding: 12px;
+  border-radius: 9px;
+}
+.ef-heading h2 {
+  flex: 1;
+  margin: 0;
+}
+.ef details .ef-grid {
+  margin-top: 12px;
+}
+.ef-empty {
+  padding: 30px;
+  background: white;
+  border-radius: 12px;
+}
+@media (min-width: 851px) {
+  .ef-layout {
+    align-items: stretch;
+    height: clamp(420px, 68dvh, 760px);
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .ef-list,
+  .ef-form {
+    height: 100%;
+    max-height: none;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .ef-form {
+    align-self: stretch;
+  }
+}
+
+@media (max-width: 850px) {
+  .ef-layout {
+    grid-template-columns: 1fr;
+  }
+  .ef-list {
+    max-height: 230px;
+  }
+  .ef-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* La acción de guardado persiste al navegar entre todas las pestañas de la ficha. */
+.ef-shared-save{display:flex;align-items:center;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:5;background:#f7faf9;border:1px solid #d2e2d9;border-radius:9px;padding:11px 12px;box-shadow:0 2px 6px rgba(28,60,50,.07)}
+.ef-shared-save span{font-size:12px;color:#587268;min-width:0;overflow-wrap:anywhere}
+.ef-shared-save button{flex-shrink:0}
+@media(max-width:650px){.ef-shared-save button{flex:1 1 auto}.ef-shared-save span{flex-basis:100%}}

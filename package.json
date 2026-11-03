@@ -1,0 +1,28 @@
+{
+  "name": "asistencia-huella-4500",
+  "version": "1.19.2",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace server\" \"npm run dev --workspace client\"",
+    "diagnose": "powershell -ExecutionPolicy Bypass -File tools/diagnostico-sistema.ps1",
+    "install:all": "npm install --workspaces",
+    "start:windows": "powershell -ExecutionPolicy Bypass -File tools/start-windows.ps1",
+    "test:server": "npm test --workspace server",
+    "server": "npm run dev --workspace server",
+    "client": "npm run dev --workspace client",
+    "setup:windows": "powershell -ExecutionPolicy Bypass -File tools/setup-windows.ps1"
+  },
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true
+  }
+}

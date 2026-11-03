@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-03T15:03:07.157Z",
+  "realStopLaboralDidNotStopHuella": true,
+  "huellaPidsPreserved": true,
+  "otherProjects3000And5000PidsPreserved": true,
+  "realUnknownPort4010Rejected": true,
+  "unknownListenerNotKilled": true,
+  "noBackupOrMigrationDuringConflict": true,
+  "final": {
+    "huellaWeb": 5173,
+    "huellaAPI": 4000,
+    "huellaReady": 200,
+    "laboralStopped": true,
+    "laboralNextWeb": 5183,
+    "laboralNextAPI": 4010
+  },
+  "noBusinessDataWritten": true
+}

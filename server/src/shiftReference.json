@@ -1,0 +1,934 @@
+[
+  {
+    "area": "Cocina",
+    "segments": [
+      {
+        "startTime": "08:00",
+        "endTime": "15:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 316,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Cocina",
+    "segments": [
+      {
+        "startTime": "19:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 172,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Cocina",
+    "segments": [
+      {
+        "startTime": "16:00",
+        "endTime": "00:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 148,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Cocina",
+    "segments": [
+      {
+        "startTime": "08:00",
+        "endTime": "16:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 136,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Cocina",
+    "segments": [
+      {
+        "startTime": "17:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 133,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Cocina",
+    "segments": [
+      {
+        "startTime": "08:00",
+        "endTime": "17:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 94,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Cocina",
+    "segments": [
+      {
+        "startTime": "18:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 86,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Cocina",
+    "segments": [
+      {
+        "startTime": "19:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 74,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Cocina",
+    "segments": [
+      {
+        "startTime": "17:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 66,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Cocina",
+    "segments": [
+      {
+        "startTime": "16:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 56,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Cocina",
+    "segments": [
+      {
+        "startTime": "18:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 49,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Cocina",
+    "segments": [
+      {
+        "startTime": "16:00",
+        "endTime": "02:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 48,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Garzones",
+    "segments": [
+      {
+        "startTime": "19:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 169,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Garzones",
+    "segments": [
+      {
+        "startTime": "18:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 148,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Garzones",
+    "segments": [
+      {
+        "startTime": "18:00",
+        "endTime": "00:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 134,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Garzones",
+    "segments": [
+      {
+        "startTime": "19:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 116,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Garzones",
+    "segments": [
+      {
+        "startTime": "12:00",
+        "endTime": "18:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 96,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Garzones",
+    "segments": [
+      {
+        "startTime": "17:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 95,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Garzones",
+    "segments": [
+      {
+        "startTime": "11:00",
+        "endTime": "18:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 90,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Garzones",
+    "segments": [
+      {
+        "startTime": "11:00",
+        "endTime": "17:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 75,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Garzones",
+    "segments": [
+      {
+        "startTime": "18:00",
+        "endTime": "02:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 67,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Garzones",
+    "segments": [
+      {
+        "startTime": "12:00",
+        "endTime": "19:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 58,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Garzones",
+    "segments": [
+      {
+        "startTime": "20:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 57,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Garzones",
+    "segments": [
+      {
+        "startTime": "19:00",
+        "endTime": "02:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 56,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Barra",
+    "segments": [
+      {
+        "startTime": "11:00",
+        "endTime": "18:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 189,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Barra",
+    "segments": [
+      {
+        "startTime": "18:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 110,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Barra",
+    "segments": [
+      {
+        "startTime": "18:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 50,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Barra",
+    "segments": [
+      {
+        "startTime": "19:00",
+        "endTime": "02:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 40,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Barra",
+    "segments": [
+      {
+        "startTime": "11:00",
+        "endTime": "19:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 39,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Barra",
+    "segments": [
+      {
+        "startTime": "16:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 39,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Barra",
+    "segments": [
+      {
+        "startTime": "20:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 34,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Barra",
+    "segments": [
+      {
+        "startTime": "19:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 33,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Barra",
+    "segments": [
+      {
+        "startTime": "17:00",
+        "endTime": "02:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 32,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Barra",
+    "segments": [
+      {
+        "startTime": "19:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 29,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Barra",
+    "segments": [
+      {
+        "startTime": "18:00",
+        "endTime": "00:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 25,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Barra",
+    "segments": [
+      {
+        "startTime": "18:00",
+        "endTime": "02:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 21,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Copería",
+    "segments": [
+      {
+        "startTime": "19:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 97,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Copería",
+    "segments": [
+      {
+        "startTime": "19:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 58,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Copería",
+    "segments": [
+      {
+        "startTime": "18:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 41,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Copería",
+    "segments": [
+      {
+        "startTime": "11:00",
+        "endTime": "18:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 36,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Copería",
+    "segments": [
+      {
+        "startTime": "12:00",
+        "endTime": "20:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 33,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Copería",
+    "segments": [
+      {
+        "startTime": "11:00",
+        "endTime": "19:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 31,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Copería",
+    "segments": [
+      {
+        "startTime": "11:00",
+        "endTime": "20:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 30,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Copería",
+    "segments": [
+      {
+        "startTime": "20:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 13,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Copería",
+    "segments": [
+      {
+        "startTime": "12:00",
+        "endTime": "19:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 11,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Copería",
+    "segments": [
+      {
+        "startTime": "17:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 4,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Copería",
+    "segments": [
+      {
+        "startTime": "18:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 2,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Copería",
+    "segments": [
+      {
+        "startTime": "14:00",
+        "endTime": "21:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 1,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Caja",
+    "segments": [
+      {
+        "startTime": "18:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 117,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Caja",
+    "segments": [
+      {
+        "startTime": "11:30",
+        "endTime": "18:00"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 111,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Caja",
+    "segments": [
+      {
+        "startTime": "17:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 79,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Caja",
+    "segments": [
+      {
+        "startTime": "11:30",
+        "endTime": "21:00"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 39,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Caja",
+    "segments": [
+      {
+        "startTime": "11:00",
+        "endTime": "18:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 32,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Caja",
+    "segments": [
+      {
+        "startTime": "16:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 27,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Caja",
+    "segments": [
+      {
+        "startTime": "21:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 25,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Caja",
+    "segments": [
+      {
+        "startTime": "11:00",
+        "endTime": "19:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 16,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Caja",
+    "segments": [
+      {
+        "startTime": "12:00",
+        "endTime": "18:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 16,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Caja",
+    "segments": [
+      {
+        "startTime": "18:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 15,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Caja",
+    "segments": [
+      {
+        "startTime": "17:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 15,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Caja",
+    "segments": [
+      {
+        "startTime": "10:30",
+        "endTime": "20:00"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 12,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Bodega",
+    "segments": [
+      {
+        "startTime": "08:00",
+        "endTime": "15:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 184,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Bodega",
+    "segments": [
+      {
+        "startTime": "08:00",
+        "endTime": "16:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 28,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Bodega",
+    "segments": [
+      {
+        "startTime": "08:00",
+        "endTime": "17:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 9,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Bodega",
+    "segments": [
+      {
+        "startTime": "08:00",
+        "endTime": "18:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 2,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Bodega",
+    "segments": [
+      {
+        "startTime": "18:00",
+        "endTime": "03:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 1,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Delivery",
+    "segments": [
+      {
+        "startTime": "20:30",
+        "endTime": "04:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 63,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Delivery",
+    "segments": [
+      {
+        "startTime": "12:00",
+        "endTime": "20:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 60,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Delivery",
+    "segments": [
+      {
+        "startTime": "12:00",
+        "endTime": "15:00"
+      },
+      {
+        "startTime": "20:00",
+        "endTime": "02:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 59,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Delivery",
+    "segments": [
+      {
+        "startTime": "20:00",
+        "endTime": "04:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 39,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Delivery",
+    "segments": [
+      {
+        "startTime": "20:00",
+        "endTime": "02:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 37,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Delivery",
+    "segments": [
+      {
+        "startTime": "12:00",
+        "endTime": "15:00"
+      },
+      {
+        "startTime": "19:00",
+        "endTime": "02:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 33,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Delivery",
+    "segments": [
+      {
+        "startTime": "19:00",
+        "endTime": "02:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 33,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Delivery",
+    "segments": [
+      {
+        "startTime": "19:00",
+        "endTime": "04:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 17,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Delivery",
+    "segments": [
+      {
+        "startTime": "08:00",
+        "endTime": "15:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 14,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Delivery",
+    "segments": [
+      {
+        "startTime": "08:00",
+        "endTime": "16:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 10,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Delivery",
+    "segments": [
+      {
+        "startTime": "19:00",
+        "endTime": "01:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 7,
+    "source": "HORARIO 2026.xlsx"
+  },
+  {
+    "area": "Delivery",
+    "segments": [
+      {
+        "startTime": "16:00",
+        "endTime": "00:30"
+      }
+    ],
+    "breakMinutes": 30,
+    "frequency": 6,
+    "source": "HORARIO 2026.xlsx"
+  }
+]

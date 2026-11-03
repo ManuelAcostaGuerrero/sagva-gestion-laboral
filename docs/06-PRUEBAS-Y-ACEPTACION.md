@@ -37,4 +37,4 @@ Configurar en INT-001 los controles pertinentes y usar GitHub Actions en ejecuto
 El proyecto anterior aprobó ciertas pruebas de código pero no acreditó la experiencia original. Aquí se exige **ambas cosas**.
 
 ## Estado actual
-No existe todavía código copiado al nuevo repo, por tanto **no hay resultados de pruebas funcionales o CI que declarar**. Las casillas de PR se dejan pendientes hasta observar evidencia.
+**Actualización 02-11-2026:** ya existe código en la rama `int001-huella-codigo` y GitHub Actions acreditó pruebas del servidor y compilación del frontend en `652a1783`. Esto **no certifica** experiencia visual, funciones en PC ni paridad con los originales. INT-001 continúa pendiente de aceptación e INT-002 no ha iniciado formalmente; no avanzar a INT-003 por esa sola evidencia.

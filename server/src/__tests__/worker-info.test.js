@@ -1,0 +1,32 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+process.env.SQLITE_PATH=':memory:';process.env.JWT_SECRET='info-tests-only';
+const {pool}=await import('../db.js');const {runMigrations}=await import('../migrations.js');
+const {workerInfoRows,importWorkerInfo}=await import('../importWorkerInfo.js');const {workerName,resolveWorkerNames}=await import('../workerNames.js');
+const headers=['CODIGO INTERNO','RUT COLABORADOR','DV RUT COLABORADOR','NOMBRE','APELLIDO PATERNO','APELLIDO MATERNO','FECHA NACIMIENTO','FECHA CONTRATO','FECHA FINIQUITO','EMAIL','TELEFONO CELULAR','DIRECCION','AREA','ENROLADO','PIN MARCA'];
+const row=(number,data)=>({sheet:'Trabajador',row:number,values:headers.map(h=>data[h]??null)});
+const fixture=()=>[{sheet:'Trabajador',row:1,values:headers},row(2,{'RUT COLABORADOR':'12345678','DV RUT COLABORADOR':'5',NOMBRE:'ANA', 'APELLIDO PATERNO':'PEREZ','APELLIDO MATERNO':'TORRES',EMAIL:'ana@example.test','FECHA CONTRATO':'01/01/2000','FECHA FINIQUITO':'01/10/2027',AREA:'GARZON',ENROLADO:'SI','PIN MARCA':'CON PIN'}),row(3,{'RUT COLABORADOR':'55555555','DV RUT COLABORADOR':'5',NOMBRE:'BERTA','APELLIDO PATERNO':'SOTO','TELEFONO CELULAR':'111'}),row(4,{'RUT COLABORADOR':'55555555','DV RUT COLABORADOR':'5',NOMBRE:'BERTA','APELLIDO PATERNO':'SOTO','TELEFONO CELULAR':'222'}),row(5,{'RUT COLABORADOR':'99999999','DV RUT COLABORADOR':'9',NOMBRE:'CARLOS','APELLIDO PATERNO':'ULLOA'}),row(6,{'RUT COLABORADOR':'11111111','DV RUT COLABORADOR':'1',NOMBRE:'USUARIO','APELLIDO PATERNO':'ADMINISTRADOR','APELLIDO MATERNO':'DEFAULT'})];
+test('Nombre corto usa primer nombre y apellido, conservando nombres completos y abreviaciones anteriores',()=>{
+  const n=resolveWorkerNames('ANA MARIA PEREZ TORRES',{firstName:'ANA M.',paternalLastName:'PEREZ',maternalLastName:'TORRES'});
+  assert.equal(n.firstName,'ANA MARIA');assert.equal(n.fullName,'ANA MARIA PEREZ TORRES');assert.equal(workerName({fullName:n.fullName,extra:n}),'ANA PEREZ');
+  assert.equal(resolveWorkerNames('MARCELO ALBERTO FUENTES ROJAS',{firstName:'MARCELO',paternalLastName:'FUENTE',maternalLastName:'ROJAS'}).paternalLastName,'FUENTES');
+});
+test('Enriquecer completa vacíos, preserva RUT/fechas/inactivos/revisión y usa la última fila duplicada',async()=>{
+  await runMigrations();const [one]=await pool.execute("INSERT INTO employees(full_name,document_id,is_active) VALUES('ANA MARIA PEREZ TORRES','12.345.678-5',0)");
+  await pool.execute("INSERT INTO employee_files(employee_id,hire_date,termination_date,validation_status) VALUES(?,'2026-01-01','2026-12-31','VALIDADO')",[one.insertId]);
+  const [two]=await pool.execute("INSERT INTO employees(full_name,document_id) VALUES('CARLOS ULLOA','22.222.222-2')");
+  await pool.execute('INSERT INTO employee_files(employee_id) VALUES(?)',[two.insertId]);
+  const entries=workerInfoRows(fixture());assert.equal(entries.length,3);assert.equal(entries[1].row,4);assert.equal(entries[0].data.ENROLADO,undefined);assert.equal(entries[0].data['PIN MARCA'],undefined);
+  const result=await importWorkerInfo(fixture(),{approvedLinks:{999999999:two.insertId}});assert.equal(result.created,1);assert.equal(result.updated,2);assert.equal(result.preservedRut,1);
+  const [people]=await pool.execute('SELECT e.*,f.* FROM employees e JOIN employee_files f ON f.employee_id=e.id ORDER BY e.id');
+  assert.equal(people[0].is_active,0);assert.equal(people[0].hire_date,'2026-01-01');assert.equal(people[0].termination_date,'2026-12-31');assert.equal(people[0].validation_status,'VALIDADO');assert.equal(people[0].email,'ana@example.test');
+  assert.equal(people[0].settlement_date,undefined);
+  assert.match(people[0].review_notes,/Fecha de término.*01\/10\/2027.*31\/12\/2026/);
+  assert.match(people[0].review_notes,/Fecha de contratación.*01\/01\/2000.*01\/01\/2026/);
+  assert.doesNotMatch(people[0].review_notes,/hire_date distinto/);
+  assert.equal(people[0].observations,null);
+  assert.equal(people[1].document_id,'22.222.222-2');assert.equal(people[2].mobile,'222');assert.equal(people[2].validation_status,'NO_VALIDADO');
+  assert.equal(people[0].first_name,'ANA');assert.equal(people[0].second_name,'MARIA');assert.equal(people[0].first_last_name,'PEREZ');
+  assert.equal(people[0].legal_full_name,'ANA MARIA PEREZ TORRES');assert.equal(people[2].first_name,'BERTA');
+  assert.equal(people[2].legal_full_name,'BERTA SOTO');
+  const again=await importWorkerInfo(fixture(),{approvedLinks:{999999999:two.insertId}});assert.equal(again.skipped,3);assert.equal(again.created,0);
+});

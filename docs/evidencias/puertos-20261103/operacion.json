@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-03T15:01:34.268Z",
+  "platform": "Windows",
+  "projects": [
+    {
+      "project": "asistencia-huella-digital",
+      "api": 4000,
+      "web": 5173,
+      "repeatedStartPreservedPids": true,
+      "ownedProcessesVerified": true,
+      "apiThroughWeb200": true,
+      "realBrowserLoginVisible": true,
+      "pageErrors": 0,
+      "dataRowsUnchangedSinceBackup": true,
+      "sqliteIntegrityAndForeignKeys": true,
+      "secretsPreserved": true,
+      "headAtBrowserRun": "fe1f797c3a15ed436899f52cd94063f94db23344",
+      "testedSourceCommit": "9883e46e34948b105e19fdc944ec29dc40ec8d22",
+      "sourceVerifiedEqualAfterCommit": true
+    },
+    {
+      "project": "sagva-gestion-laboral",
+      "api": 4010,
+      "web": 5183,
+      "repeatedStartPreservedPids": true,
+      "ownedProcessesVerified": true,
+      "apiThroughWeb200": true,
+      "realBrowserLoginVisible": true,
+      "pageErrors": 0,
+      "dataRowsUnchangedSinceBackup": true,
+      "sqliteIntegrityAndForeignKeys": true,
+      "secretsPreserved": true,
+      "headAtBrowserRun": "3c5c358969c2b802adbc36f9e0e79674fad769f2",
+      "testedSourceCommit": "3244b2007153c25fdd9c9783344c8240bcc1ff3b",
+      "sourceVerifiedEqualAfterCommit": true
+    }
+  ],
+  "dataNotMerged": true,
+  "productionNotUsed": true,
+  "obsoleteFoldersRemoved": 4,
+  "archivesVerified": true
+}

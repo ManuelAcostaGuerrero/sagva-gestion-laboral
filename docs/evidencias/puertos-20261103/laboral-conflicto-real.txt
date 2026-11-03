@@ -1,0 +1,5 @@
+SAGVA GESTION LABORAL (HUELLA BASE) - Iniciar - <PROYECTOS>\sagva-gestion-laboral
+Version: 1.19.2
+Puerto 4010: PID 6104, node.exe, servicio: 
+Comando: "C:\Program Files\nodejs\node.exe" <PROYECTOS>\Archivo-SAGVA\2026-11-03\probar-conflicto.mjs
+ERROR: Puertos ocupados por otra instancia. Consulta Estado para identificarla. No se cerrara ningun servicio por conflicto.

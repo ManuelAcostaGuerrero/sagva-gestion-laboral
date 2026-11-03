@@ -1,0 +1,35 @@
+.mp-module{display:flex;flex-direction:column;gap:15px;min-width:0}
+.mp-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.mp-heading h3{margin:0;color:#2c5145}
+.mp-heading p{margin:5px 0 0}
+.mp-identity{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;border:1px solid #d8e4df;border-radius:10px;padding:15px;background:#f6f9f8}
+.mp-identity>div{display:flex;flex-direction:column;gap:7px;min-width:0}
+.mp-identity span{font-size:12px;color:#63757b}
+.mp-identity strong{overflow-wrap:anywhere;color:#334b50}
+.mp-privacy{border-left:3px solid #a8bcb4;background:#f3f6f4;padding:10px 13px;color:#55696d}
+.mp-section{display:flex;flex-direction:column;gap:0;padding:14px}
+.mp-column-head,.mp-condition{display:grid;grid-template-columns:minmax(130px,1.15fr) minmax(130px,.7fr) minmax(185px,1.8fr);gap:12px;align-items:start}
+.mp-column-head{padding:5px 8px 10px;color:#62777c;font-weight:600;font-size:12px}
+.mp-condition{padding:11px 8px;border-top:1px solid #e4ecea}
+.mp-condition:nth-of-type(even){background:#fafcfb}
+.mp-condition>strong{font-size:13px;color:#36574c;font-weight:600;line-height:1.5}
+.mp-condition label{margin:0}
+.mp-condition textarea{resize:vertical;min-height:48px}
+.mp-condition select,.mp-condition textarea{background:#fff}
+.mp-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;border-top:1px solid #dfe8e6;padding-top:15px}
+.mp-actions span{font-size:12px;color:#63757b}
+@media(max-width:1050px){
+.mp-column-head{display:none}
+.mp-condition{grid-template-columns:minmax(0,1fr);gap:9px}
+.mp-identity{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){.mp-identity{grid-template-columns:minmax(0,1fr)}}
+
+/* Radios nativos para respuesta exclusiva Sí/No en cada antecedente. */
+.mp-answer-cell{display:flex;flex-direction:column;gap:8px;align-items:flex-start;min-width:0}
+.mp-radio-group{display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-height:38px}
+.mp-radio-option{display:inline-flex!important;align-items:center;gap:7px;margin:0!important;font-size:14px!important;font-weight:500;color:#36574c;cursor:pointer;white-space:nowrap}
+.mp-radio-option input[type="radio"]{appearance:auto;accent-color:#2c6b54;width:17px;height:17px;min-width:17px;min-height:17px;flex:none;margin:0;padding:0;cursor:pointer}
+.mp-clear-answer{border:0!important;background:transparent!important;box-shadow:none!important;color:#396e62;padding:0!important;font-size:12px;text-decoration:underline;cursor:pointer;min-height:0}
+.mp-clear-answer:focus-visible{outline:2px solid #2c6b54;outline-offset:4px}
+.mp-unanswered{font-size:12px;color:#6e7d81}

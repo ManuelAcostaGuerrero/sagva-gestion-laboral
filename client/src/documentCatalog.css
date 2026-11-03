@@ -1,0 +1,18 @@
+.dc-module{display:flex;flex-direction:column;gap:16px;min-width:0}
+.dc-form{display:flex;flex-direction:column;gap:14px}
+.dc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}
+.dc-grid label{min-width:0;display:flex;flex-direction:column;gap:6px}
+.dc-grid input,.dc-grid select{width:100%;min-width:0;box-sizing:border-box}
+.dc-people{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:6px;max-height:260px;overflow-y:auto}
+.dc-person{display:flex;align-items:center;gap:8px;padding:7px;border:1px solid #dce5e3;border-radius:7px}
+.dc-person input{width:auto;flex:none}
+.dc-select-people{border:1px solid #dce5e3;border-radius:9px;padding:12px}
+.dc-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:12px;padding:12px}
+.dc-card{border:1px solid #dce5e3;border-radius:10px;background:#fff;padding:14px;min-width:0}
+.dc-inactive{background:#f4f5f5}
+.dc-card-heading{display:flex;justify-content:space-between;align-items:center;gap:9px;flex-wrap:wrap}
+.dc-actions{display:flex;flex-wrap:wrap;gap:6px}
+.dc-actions button{flex:0 1 auto}
+.dc-linked-people{display:flex;flex-direction:column;gap:8px}
+.dc-linked-people button{text-align:left;white-space:normal}
+@media(max-width:850px){.dc-grid,.dc-cards,.dc-people{grid-template-columns:1fr}}

@@ -1,6 +1,6 @@
 # 00. Índice maestro y estado del proyecto
 
-**Actualizado: 01-11-2026.** Estado declarado aquí = hechos verificados, no intención ni calendario.
+**Actualizado: 02-11-2026.** Estado declarado aquí = hechos verificados, no intención ni calendario.
 
 | Campo | Situación |
 |---|---|
@@ -14,12 +14,12 @@
 | Base original de Huella | SQLite, carpeta privada local `data/asistencia.db` |
 | Base original de Propinas | SQLite, carpeta privada local `data/propinas.db` |
 | Base objetivo final | **Una PostgreSQL** con dominios separados y persona maestra única |
-| Versión de integración | `INT-000`, solo documentación |
-| Aplicación copiada al repo nuevo | **NO** |
+| Versión de integración | `INT-001` en rama de pruebas, aún no aprobado |
+| Aplicación copiada al repo nuevo | **SÍ, en rama `int001-huella-codigo`**, con tres recursos originales provisionables exclusivamente en PC; no integrada en `main` |
 | Datos reales importados | **NO** |
 | Paridad funcional acreditada | **NO** |
-| Pruebas CI acreditadas en repo nuevo | **NO** |
-| Instalación local del repo nuevo | **NO VERIFICADA** |
+| Pruebas CI acreditadas en repo nuevo | **SÍ, servidor y compilación web en commit `652a1783`; esto no equivale a validación local/integral** |
+| Instalación local del repo nuevo | **Instalación/arranque reportados por el propietario; paridad y pruebas locales completas aún no acreditadas** |
 | Despliegue productivo | **NO AUTORIZADO** |
 
 ## Documentos obligatorios
@@ -40,9 +40,9 @@ Operación de asistentes: [AGENTS.md](../AGENTS.md). Cambios: [CONTRIBUTING.md](
 
 ## Semáforo de avance
 - `INT-000` Documentación y gobernanza: **publicada y verificada en `main`**, pendiente de revisión del propietario. Evidencia: commit `fe08da0c6cc89e80f25a8bacfcb01580fa7109a3`.
-- `INT-001` Huella copiada íntegra y probada: pendiente.
-- `INT-002` Restauro privado y paridad integral Huella: pendiente.
-- `INT-003` Identidad/conciliación Propinas: pendiente, requiere propietario.
+- `INT-001` Huella base: **código integrado y CI aprobado en rama; pendiente comparación local integral y aprobación; PR #1 aún en borrador**.
+- `INT-002` Ensayo privado y paridad integral Huella: **NO INICIADO FORMALMENTE ni acreditado**; no confundir apertura del sistema o CI verde con este hito.
+- `INT-003` Identidad/conciliación Propinas: **BLOQUEADO hasta cerrar INT-002**; la coincidencia de personas requiere validación privada del propietario.
 - `INT-004` PostgreSQL único y migración: pendiente.
 - `INT-005` Propinas integrada y paridad monetaria: pendiente.
 - `INT-006` Rescate y validación general: pendiente.

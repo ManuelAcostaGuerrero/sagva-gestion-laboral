@@ -1,0 +1,14 @@
+.fixed-date-container{display:block;min-width:0;width:100%}
+.fixed-date-control{display:flex;align-items:center;min-width:0;position:relative;width:100%}
+.fixed-date-control>input[type="text"]{min-width:0;flex:1 1 auto;width:100%;padding-right:39px;font-variant-numeric:tabular-nums;letter-spacing:.025em}
+.fixed-date-control .fixed-date-native{position:absolute!important;right:0;bottom:0;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;opacity:0;pointer-events:none}
+.fixed-date-control .fixed-date-button{position:absolute;right:3px;top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:6px;color:inherit;cursor:pointer;min-width:32px;min-height:32px;border-radius:5px}
+.fixed-date-control .fixed-date-button:hover:not(:disabled){background:rgba(75,110,103,.10)}
+.fixed-date-control .fixed-date-button:disabled{opacity:.45;cursor:default}
+.fixed-date-control input[aria-invalid="true"]{border-color:#b83232}
+.fixed-date-error{display:block;margin-top:4px;font-size:12px;color:#ad3030;line-height:1.3}
+
+.fixed-datetime-container{display:flex;gap:8px;width:100%;min-width:0;align-items:flex-start}
+.fixed-datetime-container>.fixed-date-container{flex:1 1 58%;width:auto}
+.fixed-datetime-container>input[type="time"]{flex:1 1 42%;min-width:112px;max-width:155px}
+@media(max-width:550px){.fixed-datetime-container{flex-wrap:wrap}.fixed-datetime-container>.fixed-date-container{flex:1 1 100%}.fixed-datetime-container>input[type="time"]{flex:1 1 100%;max-width:none}}

@@ -1,0 +1,4 @@
+El proyecto ya esta iniciado y responde correctamente. No se duplicaron procesos.
+Deteniendo SAGVA Gestion Laboral PID 101
+Deteniendo SAGVA Gestion Laboral PID 102
+13 controles aprobados: identidad, permisos, PID reutilizado, inicio repetido y aislamiento. Dobles sin bases reales.
