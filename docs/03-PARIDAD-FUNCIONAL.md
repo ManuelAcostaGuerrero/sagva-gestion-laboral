@@ -9,6 +9,7 @@
 | Cierre seguro tras guardar (D-019, pendiente) | Al guardar correctamente ficha general o completar/validar, cerrar la ficha y regresar a lista sin formulario editable; reabrir solo tras selección expresa. No cerrar en error o con otras secciones sin guardar; confirmar visualmente y conservar borradores. | Solicitud del propietario, 04/11/2026 |
 | Búsqueda por RUT (D-018, pendiente) | Encontrar al mismo trabajador con RUT escrito o almacenado con/sin puntos y guion; equivalencia `K/k`. Probar las cuatro combinaciones con datos ficticios, sin cambiar búsqueda por nombre/empresa o filtros. Diferenciar búsqueda de validación módulo 11 y detección de duplicados. | Solicitud del propietario del 03–04/10, reiterada el 04/11/2026 |
 | Condiciones laborales | Contrato, anexos, jornada, fechas y cambios históricos | Huella |
+| Indefinido sin fecha de término (D-020, pendiente) | El contrato indefinido vigente no muestra ni admite fecha de vencimiento. Fecha real de término solo tras finalizar expresamente la relación, con motivo/auditoría; inactividad no equivale a finiquito. No borrar silenciosamente fechas históricas; conservar fechas y anexos de plazo fijo. | Solicitud del propietario, 04/11/2026 |
 | Documentos | Catálogo dinámico, vencimientos, entregas/firmas registradas, PDF, búsqueda e historial | Huella |
 | Licencias | Registrar períodos/adjuntos; señalización roja en horarios, bloqueo correcto de asignaciones | Huella |
 | Ficha médica | Antecedentes Sí/No y observaciones, accesos restringidos y separación de información | Huella |
