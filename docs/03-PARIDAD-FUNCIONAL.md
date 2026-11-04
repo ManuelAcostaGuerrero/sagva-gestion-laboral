@@ -6,6 +6,7 @@
 | Área | Comprobación mínima | Origen |
 |---|---|---|
 | Trabajadores | Crear/editar, ficha general, nombre legal completo, RUT opcional, contacto, empresa, cargo/área, estados y validación | Huella |
+| Campos administrativos de ficha (D-021, pendiente) | Verificar en SQLite local cuántas fichas tienen Unidad jerárquica, Centro de costo y Sucursal. La Sucursal visible dos veces apunta a `extra.branch` (duplicación visual). Unidad y Centro de costo no son sinónimos de Área/Cargo: preservar valores y fuente importada, ocultar/reagrupar solo después de auditoría. | Diagnóstico de código, 04/11/2026 |
 | Cierre seguro tras guardar (D-019, pendiente) | Al guardar correctamente ficha general o completar/validar, cerrar la ficha y regresar a lista sin formulario editable; reabrir solo tras selección expresa. No cerrar en error o con otras secciones sin guardar; confirmar visualmente y conservar borradores. | Solicitud del propietario, 04/11/2026 |
 | Búsqueda por RUT (D-018, pendiente) | Encontrar al mismo trabajador con RUT escrito o almacenado con/sin puntos y guion; equivalencia `K/k`. Probar las cuatro combinaciones con datos ficticios, sin cambiar búsqueda por nombre/empresa o filtros. Diferenciar búsqueda de validación módulo 11 y detección de duplicados. | Solicitud del propietario del 03–04/10, reiterada el 04/11/2026 |
 | Condiciones laborales | Contrato, anexos, jornada, fechas y cambios históricos | Huella |
