@@ -38,6 +38,7 @@
 13. [Auditoría previa de campos de ficha y orden de mejoras D-018 a D-021](16-AUDITORIA-CAMPOS-FICHA-Y-PLAN-20261104.md).
 14. [Requisitos de empresas, RUT, territorios Chile y nombre completo D-023 a D-027](17-EMPRESAS-RUT-DIRECCIONES-Y-FICHA-20261104.md).
 15. [Hallazgos de empresa, RUT médico, fechas y direcciones del trabajador D-028 a D-031](18-HALLAZGOS-FICHAS-EMPRESAS-DOCUMENTOS-20261104.md).
+16. [Anexo de aumento salarial, lugar de prestación y RUT en Áreas D-032 y D-033](19-ANEXOS-SUELDO-LUGAR-PRESTACION-RUT-AREAS-20261104.md).
 
 Operación de asistentes: [AGENTS.md](../AGENTS.md). Cambios: [CONTRIBUTING.md](../CONTRIBUTING.md).
 
