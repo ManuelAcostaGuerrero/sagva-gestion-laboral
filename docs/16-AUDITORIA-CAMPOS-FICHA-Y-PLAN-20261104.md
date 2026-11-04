@@ -26,7 +26,7 @@ Ejecutar **solo en la carpeta** `C:\Users\Admin\Documents\Codex\sagva-gestion-la
 
 ```powershell
 cd 'C:\Users\Admin\Documents\Codex\sagva-gestion-laboral'
-@'
+$codigo = @'
 import { readFileSync, existsSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import dotenv from 'dotenv';
@@ -70,7 +70,8 @@ try {
 } finally {
   db.close();
 }
-'@ | node --input-type=module
+'@
+$codigo | node --input-type=module
 ```
 
 **Alcance del resultado:** una cantidad mayor a cero demuestra que hay valores almacenados; **cero no demuestra que el atributo no tenga valor comercial futuro**. `sucursal_diferente_predeterminada` significa revisar diferencias; **no autoriza corregirlas automáticamente**. Si `json_invalido` es mayor que cero, detener el cambio de interfaz y diagnosticar la integridad del JSON de forma privada. Si no hay fichas, documentar explícitamente que la instalación de prueba carece de datos y no extrapolarlo a Huella original ni a producción.
