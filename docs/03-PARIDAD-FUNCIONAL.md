@@ -6,6 +6,7 @@
 | Área | Comprobación mínima | Origen |
 |---|---|---|
 | Trabajadores | Crear/editar, ficha general, nombre legal completo, RUT opcional, contacto, empresa, cargo/área, estados y validación | Huella |
+| Búsqueda por RUT (D-018, pendiente) | Encontrar al mismo trabajador con RUT escrito o almacenado con/sin puntos y guion; equivalencia `K/k`. Probar las cuatro combinaciones con datos ficticios, sin cambiar búsqueda por nombre/empresa o filtros. Diferenciar búsqueda de validación módulo 11 y detección de duplicados. | Solicitud del propietario del 03–04/10, reiterada el 04/11/2026 |
 | Condiciones laborales | Contrato, anexos, jornada, fechas y cambios históricos | Huella |
 | Documentos | Catálogo dinámico, vencimientos, entregas/firmas registradas, PDF, búsqueda e historial | Huella |
 | Licencias | Registrar períodos/adjuntos; señalización roja en horarios, bloqueo correcto de asignaciones | Huella |
