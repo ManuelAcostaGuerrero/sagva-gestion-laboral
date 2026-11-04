@@ -19,6 +19,10 @@
 | Marcaciones | Terminal QR/PIN, lectura móvil con cámara que se apaga tras escanear, lector/PIN alternativo, información legible | Huella |
 | Credenciales | Revocación administrativa de terminal, emisión múltiple QR, PIN y gestión segura de tokens | Huella |
 | Administración | Empresas, catálogos de áreas/cargos, usuarios/permisos, auditoría y reportes | Huella |
+| Vínculo empresa→trabajador (D-028, pendiente) | Empresa recién creada aparece en selector de ficha sin F5, con vínculo persistente; configuración opcional Área/Cargo/Jornada no afecta disponibilidad. | Inspección de código y captura, 04/11/2026 |
+| RUT de ficha médica (D-029, pendiente) | Igual que ficha general, usa normalizador/formato de presentación sin reescribir identidad; pruebas con puntuación mal ubicada. | Inspección de código y captura, 04/11/2026 |
+| Fechas en documentos (D-030, pendiente) | Inicio sigue inicialmente a Entrega hasta que usuario cambie manualmente Inicio; se respeta la fecha distinta y no se cambia el vencimiento histórico. | Solicitud del propietario, 04/11/2026 |
+| Domicilio de trabajador (D-031, pendiente) | Región/Provincia/Comuna/Ciudad usando catálogo Chile; domicilio particular NO se autocompleta con dirección de empresa ni se pierden históricos. | Solicitud del propietario, 04/11/2026 |
 | Empresas: RUT (D-023, pendiente) | RUT empresa y representante se autoformatean sin exigir puntos/guion, y se validan; empresa duplicada por RUT normalizado es rechazada. | Solicitud del propietario, 04/11/2026 |
 | Empresas: ubicación Chile (D-024, pendiente) | Región/Provincia/Comuna con catálogos oficiales completos y filtros encadenados, localidad cuando proceda; direcciones antiguas conservadas. | Solicitud del propietario, 04/11/2026 |
 | Empresas: sucursal (D-025, pendiente) | Sucursal predeterminada completa Nombre comercial al crear empresa hasta modificación explícita, sin sobrescribir el dato manual ni fichas anteriores. | Solicitud del propietario, 04/11/2026 |
