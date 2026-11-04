@@ -19,6 +19,11 @@
 | Marcaciones | Terminal QR/PIN, lectura móvil con cámara que se apaga tras escanear, lector/PIN alternativo, información legible | Huella |
 | Credenciales | Revocación administrativa de terminal, emisión múltiple QR, PIN y gestión segura de tokens | Huella |
 | Administración | Empresas, catálogos de áreas/cargos, usuarios/permisos, auditoría y reportes | Huella |
+| Empresas: RUT (D-023, pendiente) | RUT empresa y representante se autoformatean sin exigir puntos/guion, y se validan; empresa duplicada por RUT normalizado es rechazada. | Solicitud del propietario, 04/11/2026 |
+| Empresas: ubicación Chile (D-024, pendiente) | Región/Provincia/Comuna con catálogos oficiales completos y filtros encadenados, localidad cuando proceda; direcciones antiguas conservadas. | Solicitud del propietario, 04/11/2026 |
+| Empresas: sucursal (D-025, pendiente) | Sucursal predeterminada completa Nombre comercial al crear empresa hasta modificación explícita, sin sobrescribir el dato manual ni fichas anteriores. | Solicitud del propietario, 04/11/2026 |
+| Empresas: valores sugeridos (D-026, pendiente) | Área/Cargo/Jornada son sugerencias opcionales para nuevas fichas, explicadas y plegadas, sin afectar trabajadores guardados. | Solicitud del propietario, 04/11/2026 |
+| Personal: nombre completo (D-027, pendiente) | Referencia gris no editable ni enfocada, recompuesta con campos individuales; nombre histórico conservado. | Solicitud del propietario, 04/11/2026 |
 | Operación local | Inicio/detención/estado/respaldo/actualización cuando correspondan, etiqueta de versión visible | Huella |
 
 **Presentación:** preservar distribución, pestañas, campos, orden, botones y planilla original; cuando se cambie la navegación por módulos se comprobará que las pantallas internas no se deterioran. Mantener nombres completos en ficha; nombres cortos solo en contextos aprobados.
