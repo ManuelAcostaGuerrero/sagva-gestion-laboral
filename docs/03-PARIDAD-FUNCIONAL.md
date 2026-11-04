@@ -11,6 +11,9 @@
 | Búsqueda por RUT (D-018, pendiente) | Encontrar al mismo trabajador con RUT escrito o almacenado con/sin puntos y guion; equivalencia `K/k`. Probar las cuatro combinaciones con datos ficticios, sin cambiar búsqueda por nombre/empresa o filtros. Diferenciar búsqueda de validación módulo 11 y detección de duplicados. | Solicitud del propietario del 03–04/10, reiterada el 04/11/2026 |
 | Condiciones laborales | Contrato, anexos, jornada, fechas y cambios históricos | Huella |
 | Anexo aumento de sueldo (D-032, pendiente) | Al confirmar aumento, actualizar el sueldo base vigente con modalidad nuevo base / aumento incremental y fecha efectiva, sin duplicar aplicación, conservar historia y tratar retroactivos/futuros. | Solicitud del propietario, 04/11/2026 |
+| Etiquetas del anexo (D-034, pendiente) | Mostrar «Nuevo sueldo base (reemplaza el actual)» y «Aumento del sueldo base (se suma al actual)» con explicación y vista previa de sueldo resultante/fecha de vigencia. | Solicitud del propietario, 04/11/2026 |
+| Lugar de prestación (D-035, pendiente) | Precargar desde la Sucursal seleccionada, permitir modificación y no sobrescribir términos contractuales guardados. | Solicitud del propietario, 04/11/2026 |
+| Datos previsionales (D-036, pendiente) | Selector AFP, institución de salud y valores de cotización de referencia en ficha laboral, preservando datos anteriores y sin cálculo automático de remuneraciones. | Solicitud del propietario, 04/11/2026 |
 | Formato RUT Personal por área (D-033, pendiente) | Misma función `formatRut` usada en General/Médica, sin modificar RUT almacenado o crear identidad. | Captura y diagnóstico de código, 04/11/2026 |
 | Indefinido sin fecha de término (D-020, pendiente) | El contrato indefinido vigente no muestra ni admite fecha de vencimiento. Fecha real de término solo tras finalizar expresamente la relación, con motivo/auditoría; inactividad no equivale a finiquito. No borrar silenciosamente fechas históricas; conservar fechas y anexos de plazo fijo. | Solicitud del propietario, 04/11/2026 |
 | Documentos | Catálogo dinámico, vencimientos, entregas/firmas registradas, PDF, búsqueda e historial | Huella |
@@ -64,3 +67,5 @@
 - Que un PR esté fusionado o un README diga «v3.0.0».
 
 La evidencia exigida incluye tarea funcional, resultado, caso negativo, fidelidad visual, versión/commit y autorización del propietario.
+
+**Separación de alcance:** D-037 (cargas familiares) y D-038 (maternidad/subsidios) están **solo en planificación jurídica**, no son criterios de aceptación ni trabajos de esta tanda. Véase [documento 20](20-ETIQUETAS-SUELDO-SUCURSAL-PREVISION-Y-PLANIFICACION-20261104.md).
