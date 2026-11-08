@@ -34,3 +34,9 @@ Se corrigen los cuatro hallazgos de auditoría reportados durante el diagnóstic
 - La activación real y los SHA exactos instalados se registran posteriormente en el PR y en el informe local; no se confunden estos dobles con una restauración externa o con una instalación ya realizada.
 
 Los archivos de diagnóstico y respaldos permanecen privados bajo `.local`/Archivo-SAGVA. No publicar secretos, fichas, cantidades personales, bases, PDFs ni capturas autenticadas. No activar Actions de pago ni ejecutar importadores. Continúan pendientes la recuperación externa independiente, aceptación funcional integral, pruebas físicas y conformidad legal/productiva.
+
+## Caso real de clon con una sola rama
+
+La primera activación encontró que el clon original tenía un refspec limitado a INT-001. Aunque origin/main ya existía tras el fetch explícito, Git rechazó `--set-upstream-to` porque main no estaba incluido en ese refspec. El protocolo dejó recuperación pendiente en la fase de activación, antes de instalar dependencias o migrar. Se conserva el intento fallido y su respaldo; no se presenta como actualización exitosa.
+
+La corrección añade únicamente el refspec de main cuando falta, conservando el de la rama anterior y cualquier comodín existente. Una prueba con repositorios Git temporales reales crea un clon --single-branch, activa main y verifica el upstream, la conservación de la rama anterior y el rechazo de un commit no integrado. Esta prueba se incorpora a la preparación de cada actualización. Para reanudar el intento real se revisan fase, SHA, árbol limpio y contenido/esquema iguales al respaldo, dejando constancia privada antes de levantar el bloqueo; nunca se borra la marca sin comprobarlo.
