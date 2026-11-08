@@ -1,4 +1,5 @@
 import {checkRut} from './rut.js';
+import {territoryPathValid} from '../../shared/chileTerritory.js';
 import {normalizeLabel} from './workerFileStandards.js';
 
 export const COMPANY_MIGRATION='20261011_015_company_profiles';
@@ -23,6 +24,16 @@ export async function migrateCompanyProfiles(db){
   `);
   await db.execute('INSERT INTO schema_migrations(id) VALUES(?)',[COMPANY_MIGRATION]);
 }
+export const COMPANY_TERRITORY_MIGRATION='20261108_016_company_territory';
+export async function migrateCompanyTerritory(db){
+  if((await db.execute('SELECT id FROM schema_migrations WHERE id=?',[COMPANY_TERRITORY_MIGRATION]))[0].length)return;
+  await db.execScript(`
+    ALTER TABLE company_profiles ADD COLUMN region TEXT;
+    ALTER TABLE company_profiles ADD COLUMN province TEXT;
+    ALTER TABLE company_profiles ADD COLUMN city TEXT;
+  `);
+  await db.execute('INSERT INTO schema_migrations(id) VALUES(?)',[COMPANY_TERRITORY_MIGRATION]);
+}
 export function companyPayload(data){
   const legalName=normalizeLabel(data.legalName);
   const rut=String(data.taxId||'').trim().toUpperCase();
@@ -31,9 +42,12 @@ export function companyPayload(data){
   if(!legalName)problem('Indica la razón social.');
   if(rut&&!checkRut(rut).valid)problem('El RUT de la empresa no es válido.');
   if(representativeRut&&!checkRut(representativeRut).valid)problem('El RUT del representante no es válido.');
+  const region=normalizeLabel(data.region)||null, province=normalizeLabel(data.province)||null, commune=normalizeLabel(data.commune)||null;
+  if(!territoryPathValid({region,province,commune}))problem('Revisa la relación Región, Provincia y Comuna.');
   return {
     legalName,taxId:rut||null,tradeName:normalizeLabel(data.tradeName)||null,
-    address:normalizeLabel(data.address)||null,commune:normalizeLabel(data.commune)||null,
+    address:normalizeLabel(data.address)||null,region,province,commune,
+    city:normalizeLabel(data.city)||null,
     email:String(data.email||'').trim().toLowerCase()||null,
     phone:String(data.phone||'').trim()||null,
     representativeName:normalizeLabel(data.representativeName)||null,
