@@ -12,7 +12,7 @@ import { migrateWorkPositions } from './workPositions.js';
 import { migrateEmployeeDocuments, migrateDocumentCatalog } from './employeeDocuments.js';
 import { migrateMedicalLeaves } from './medicalLeaves.js';
 import { migrateMedicalProfiles } from './medicalProfiles.js';
-import { migrateCompanyProfiles } from './companyProfiles.js';
+import { migrateCompanyProfiles, migrateCompanyTerritory } from './companyProfiles.js';
 import { migrateContractTerms } from './contractTerms.js';
 
 import { migrateContractFiles } from './contractFiles.js';
@@ -145,6 +145,7 @@ async function migrate() {
     await migrateMedicalLeaves(connection);
     await migrateMedicalProfiles(connection);
     await migrateCompanyProfiles(connection);
+    await migrateCompanyTerritory(connection);
     await migrateContractTerms(connection);
     await migrateContractFiles(connection);
     await migrateWorkerUppercase(connection);

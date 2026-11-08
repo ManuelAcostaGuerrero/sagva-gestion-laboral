@@ -1839,7 +1839,7 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
         </div>
       )}
 
-      <div hidden={adminModule !== 'employeeFile'}><EmployeeFile areas={areas} positions={positions} onSaved={loadEmployees} onMessage={setMessage}
+      <div hidden={adminModule !== 'employeeFile'}><EmployeeFile active={adminModule === 'employeeFile'} areas={areas} positions={positions} onSaved={loadEmployees} onMessage={setMessage}
         workerNavigation={workerNavigation} onWorkerNavigationHandled={() => setWorkerNavigation(current=>({...current,id:null}))} /></div>
 
 

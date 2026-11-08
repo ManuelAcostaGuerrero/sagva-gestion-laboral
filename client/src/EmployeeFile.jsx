@@ -6,6 +6,8 @@ import EmployeeDocuments from "./EmployeeDocuments.jsx";
 import ContractFiles from "./ContractFiles.jsx";
 import MedicalLeaves from "./MedicalLeaves.jsx";
 import MedicalProfile from "./MedicalProfile.jsx";
+import TerritoryFields from './TerritoryFields.jsx';
+import {matchesEmployeeSearch} from './employeeSearch.js';
 import PhoneField from "./PhoneField.jsx";
 import ContractTerms from "./ContractTerms.jsx";
 import {assembledWorkerName,normalizeLabel,workerNumberFromRut,completeFileMissing,SEX_OPTIONS,CIVIL_STATUS_OPTIONS,NATIONALITIES} from "../../server/src/workerFileStandards.js";
@@ -69,7 +71,7 @@ const extras = [
   ["costCenter", "Centro de costo"],
   ["branch", "Sucursal"],
 ];
-export default function EmployeeFile({ areas, positions = [], onSaved, onMessage, workerNavigation, onWorkerNavigationHandled }) {
+export default function EmployeeFile({ areas, positions = [], onSaved, onMessage, workerNavigation, onWorkerNavigationHandled, active = true }) {
   const [files, setFiles] = useState([]),
     [counts, setCounts] = useState({ all: 0, pending: 0, validated: 0 });
   const [filter, setFilter] = useState("ALL"),
@@ -98,8 +100,13 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   useEffect(() => {
     load().catch((e) => setError(e.message));
     api('/auth/me').then(result=>setRole(result.admin?.role||null)).catch(()=>setRole(null));
-    api('/companies').then(result=>setCompanies(result.companies||[])).catch(e=>setError(e.message));
   }, []);
+  useEffect(() => {
+    if(!active)return;
+    let current=true;
+    api('/companies').then(result=>{if(current)setCompanies(result.companies||[]);}).catch(e=>{if(current)setError(e.message);});
+    return ()=>{current=false;};
+  },[active]);
   useEffect(() => {
     if (!dirty && !medicalDirty && !contractDirty) return;
     const guard = (e) => {
@@ -243,9 +250,10 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     {label}{key.endsWith('Date') ? (
       <DateField value={draft[key] || ''} onChange={e => change(key,e.target.value)} />
     ) : (
-      <input type="text" value={key==='documentId' ? formatRut(draft[key]) : draft[key] || ''}
-        readOnly={key==='fullName' && !!assembledWorkerName(draft)}
-        onChange={e => change(key,e.target.value)} />
+      <input type="text" value={key==='fullName' ? (assembledWorkerName(draft)||draft.fullName||'') : key==='documentId' ? formatRut(draft[key]) : draft[key] || ''}
+        className={key==='fullName'?'ef-readonly':''}
+        readOnly={key==='fullName'} tabIndex={key==='fullName'?-1:undefined}
+        onChange={key==='fullName'?undefined:e => change(key,e.target.value)} />
     )}
     {key==='documentId' && <span role="status">{checkRut(draft.documentId).valid ? 'RUT válido · dígito verificador correcto' : draft.documentId ? 'RUT inválido · revisa las cifras y el dígito verificador' : 'RUT pendiente'}</span>}
     {renderClear(key)}
@@ -260,9 +268,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   const shown = files.filter(
     (file) =>
       (filter === "ALL" || file.validationStatus === filter) &&
-      `${file.fullName} ${file.documentId || ""} ${file.company || ""}`
-        .toLowerCase()
-        .includes(search.toLowerCase()),
+      matchesEmployeeSearch(file,search),
   );
   return (
     <section className="ef module-content">
@@ -397,6 +403,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
               <legend>Datos del trabajador</legend>
               <div className="ef-grid">
                 {fields.filter(([key])=>!['mobile','phone'].includes(key)).map(([key,label])=>renderField(key,label))}
+                <TerritoryFields prefix="Trabajador" value={draft.extra||{}} onChange={changes=>change('extra',{...draft.extra,...changes})}/>
                 <PhoneField label="Celular" mobile value={draft.mobile} onChange={value=>change('mobile',value)}/>
                 <PhoneField label="Teléfono fijo" value={draft.phone} onChange={value=>change('phone',value)}/>
                 <label>Número del trabajador (derivado del RUT)<input readOnly value={workerNumberFromRut(draft.documentId)||draft.extra?.workerNumber||''}/></label>
@@ -416,6 +423,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                   {companies.map(company=><option key={company.id} value={company.id} disabled={!company.isActive && Number(draft.companyId)!==company.id}>{company.legalName}{!company.isActive ? ' (inactiva)' : ''}</option>)}
                   {draft.companyId&&!companies.some(c=>c.id===Number(draft.companyId))&&<option value={draft.companyId}>{draft.company || 'Empresa histórica'} (fuera del catálogo disponible)</option>}
                 </select></label>
+                <button type="button" onClick={()=>api('/companies').then(result=>setCompanies(result.companies||[])).catch(e=>setError(e.message))}>Actualizar empresas</button>
                 <label>Sucursal<select aria-label="Sucursal" value={draft.extra?.branch||''} onChange={e=>change('extra',{...draft.extra,branch:e.target.value})}>
                   <option value="" disabled>Sin sucursal registrada</option>
                   {!!selectedCompany?.defaultBranch && <option value={selectedCompany.defaultBranch}>{selectedCompany.defaultBranch}</option>}

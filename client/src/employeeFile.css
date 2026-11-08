@@ -197,3 +197,7 @@
 .ef-shared-save span{font-size:12px;color:#587268;min-width:0;overflow-wrap:anywhere}
 .ef-shared-save button{flex-shrink:0}
 @media(max-width:650px){.ef-shared-save button{flex:1 1 auto}.ef-shared-save span{flex-basis:100%}}
+
+/* El nombre calculado se presenta solo como referencia y no recibe foco. */
+.ef input.ef-readonly{background:#e7ebef;color:#616b76;border-color:#cfd7df;cursor:default}
+.ef details>summary{cursor:pointer;font-weight:600;margin:3px 0 8px}
