@@ -48,7 +48,6 @@ function Stopped {
   FreePorts
 }
 function GitReady {
-  if ((git branch --show-current) -ne 'main') { throw 'Usa la rama main antes de actualizar.' }
   if ((git remote get-url origin) -ne 'https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral.git') { throw 'Origin no corresponde al repositorio esperado.' }
   $dirty = @(git status --porcelain)
   if ($LASTEXITCODE -ne 0) { throw 'No se pudo comprobar Git.' }
@@ -84,6 +83,7 @@ function Backup {
     Write-Host 'Sin server/.env: configuracion inicial pendiente.'
   }
   Write-Host "Respaldo: $destination"
+  $script:LastBackup=$destination
 }
 function StopOwn {
   foreach ($process in @(Owned)) {
@@ -105,7 +105,15 @@ function InstanceReady([int[]]$Ids) {
     return ($health.service -eq 'attendance-fingerprint-api' -and $client.StatusCode -eq 200)
   } catch { return $false }
 }
-function StartOwn {
+function AssertUpdateNotBlocked {
+  $stateFile=Join-Path $local 'update-state.json'
+  if (Test-Path -LiteralPath $stateFile) {
+    $state=Get-Content -LiteralPath $stateFile -Raw | ConvertFrom-Json
+    if ($state.RecoveryRequired) { throw 'Actualizacion pendiente de recuperacion. Revisar update-state.json y el respaldo antes de iniciar; no borrar la marca.' }
+  }
+}
+function StartOwn([switch]$Prepared) {
+  AssertUpdateNotBlocked
   $existing = @(Owned)
   if ($existing.Count) {
     if (InstanceReady @($existing.ProcessId)) { Write-Host 'El proyecto ya esta iniciado y responde correctamente. No se duplicaron procesos.'; return }
@@ -117,8 +125,10 @@ function StartOwn {
   if (!(Test-Path 'server\.env')) { throw 'Falta configuracion inicial. Ejecuta Preparar.bat para configurar SQLite.' }
   if (!(Test-Path 'client\.env')) { throw 'Falta client/.env. Copia client/.env.example y revisa la URL.' }
   Run 'node.exe' @('tools/local-db.mjs','check')
-  Backup
-  Run 'node.exe' @('tools/local-db.mjs','migrate')
+  if (!$Prepared) {
+    Backup
+    Run 'node.exe' @('tools/local-db.mjs','migrate')
+  }
   FreePorts
   $entries = @()
   try {
@@ -147,6 +157,7 @@ function StartOwn {
     Write-Host 'Sistema listo: http://localhost:5183 - API http://localhost:4010/api'
   } catch { StopOwn; throw }
 }
+. (Join-Path $PSScriptRoot 'update-local.ps1')
 try {
   $locked = $mutex.WaitOne(0)
   if (!$locked) { throw 'Otro control de este proyecto esta en ejecucion.' }
@@ -175,44 +186,12 @@ try {
       Run 'node.exe' @('tools/local-db.mjs','prepare')
       Write-Host 'Preparacion lista. Credenciales iniciales: .local/acceso-inicial.txt. Usa Iniciar.bat.'
     }
-    'Actualizar' {
-      GitReady
-      UpdatePorts
-      $resume=@(Owned).Count -gt 0
-      UpdatePrerequisites
-      Backup
-      $before = git rev-parse HEAD
-      Run 'git.exe' @('fetch','origin','main')
-      & git.exe merge-base --is-ancestor HEAD origin/main
-      if ($LASTEXITCODE -ne 0) { throw 'La rama local tiene commits no publicados o diverge de GitHub. No se hizo reset, merge forzado ni stash. Revisa Git antes de actualizar.' }
-      Write-Host 'Revisando el codigo de GitHub antes de instalarlo...'
-      Run 'node.exe' @('tools/validate-update.mjs','--ref','origin/main')
-      if ($resume) { Write-Host 'Se detendra y reiniciara solamente este proyecto tras las validaciones.'; StopOwn }
-      FreePorts
-      Run 'git.exe' @('merge','--ff-only','origin/main')
-      Write-Host "Commit anterior: $before; commit instalado: $(git rev-parse HEAD)"
-      $hash = ((@('package.json','package-lock.json','server/package.json','client/package.json') | ForEach-Object { (Get-FileHash $_ -Algorithm SHA256).Hash }) -join ':')
-      $stamp = Join-Path $local 'dependencies.txt'
-      if (!(Test-Path 'node_modules\vite\bin\vite.js') -or !(Test-Path 'node_modules\esbuild') -or !(Test-Path $stamp) -or (Get-Content $stamp -Raw).Trim() -ne $hash) {
-        Run 'npm.cmd' @('ci')
-        Set-Content $stamp $hash
-      }
-      Run 'node.exe' @('tools/validate-update.mjs')
-      Write-Host 'Ejecutando pruebas del servidor...'
-      Run 'npm.cmd' @('run','test:server')
-      Write-Host 'Compilando la pantalla del sistema...'
-      Run 'npm.cmd' @('run','build','--workspace','client')
-      if (Test-Path 'server\.env') { Run 'node.exe' @('tools/local-db.mjs','migrate'); Run 'node.exe' @('tools/local-db.mjs','diagnose') }
-      else { Write-Host 'Preparacion inicial pendiente: ejecuta Preparar.bat. No se cargaron historicos.' }
-      if ($resume) { StartOwn; Write-Host 'Actualizacion completada. El sistema quedo funcionando.' }
-      else { Write-Host 'Actualizacion completada. El sistema estaba detenido; usa Iniciar.bat.' }
-    }
+    'Actualizar' { RunLocalUpdate }
   }
 } catch {
   Write-Host "ERROR: $($_.Exception.Message)" -ForegroundColor Red
   if ($Accion -eq 'Actualizar') {
     Write-Host 'No se forzaron cambios ni se restauraron datos. Revisa el detalle del log en .local.'
-    if ($resume -and @(Owned).Count -eq 0) { Write-Host 'Este proyecto quedo detenido. Corrige el error antes de iniciarlo.' }
   }
   exit 1
 }

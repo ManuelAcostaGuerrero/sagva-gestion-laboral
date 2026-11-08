@@ -1,3 +1,4 @@
+import LocalUpdateNotice from './LocalUpdateNotice.jsx';
 import MonthField from './MonthField.jsx';
 import DateTimeField from './DateTimeField.jsx';
 import DateField from './DateField.jsx';
@@ -2707,4 +2708,4 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
   );
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+createRoot(document.getElementById('root')).render(<><App /><LocalUpdateNotice /></>);

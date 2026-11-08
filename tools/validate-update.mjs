@@ -18,7 +18,7 @@ export function validateUpdateSource(filename,source) {
 export function validateUpdate(ref=null) {
   const git=args=>execFileSync('git.exe',args,{cwd:root,encoding:'utf8',windowsHide:true,maxBuffer:20*1024*1024});
   const files=(ref?git(['ls-tree','-r','--name-only',ref]):git(['ls-files'])).trim().split(/\r?\n/)
-    .filter(name=> /^(client\/src\/|server\/src\/|tools\/).+\.(jsx|js|mjs)$/.test(name)
+    .filter(name=> /^(client\/src\/|server\/src\/|shared\/|tools\/).+\.(jsx|js|mjs)$/.test(name)
       || ['package.json','package-lock.json','server/package.json','client/package.json','client/public/manifest.webmanifest'].includes(name));
   const failures=[];
   for(const name of files) {
