@@ -3,7 +3,7 @@ $source=Join-Path $PSScriptRoot 'control-local.ps1'
 $tokens=$null; $errors=$null
 $ast=[Management.Automation.Language.Parser]::ParseFile($source,[ref]$tokens,[ref]$errors)
 if($errors.Count){throw 'El controlador no se puede analizar'}
-foreach($name in @('Listeners','FreePorts','Owned','InstanceReady','StartOwn','StopOwn')) {
+foreach($name in @('Listeners','FreePorts','Owned','InstanceReady','AssertUpdateNotBlocked','StartOwn','StopOwn')) {
  $fn=$ast.Find({param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq $name},$true)
  if(!$fn){throw "Falta funcion $name"}
  Invoke-Expression $fn.Extent.Text

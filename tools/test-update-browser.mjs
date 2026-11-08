@@ -1,0 +1,55 @@
+// SQLite en memoria; ninguna configuracion ni cuenta de la instalacion operativa.
+import fs from 'node:fs';
+import path from 'node:path';
+import {createRequire} from 'node:module';
+import assert from 'node:assert/strict';
+import express from 'express';
+process.env.SQLITE_PATH=':memory:';
+process.env.JWT_SECRET='test-local-update-synthetic-only';
+const require=createRequire(import.meta.url);
+const {chromium,expect}=require(process.env.PLAYWRIGHT_MODULE||'@playwright/test');
+const {app}=await import('../server/src/app.js');
+const {pool}=await import('../server/src/db.js');
+const {runMigrations}=await import('../server/src/migrations.js');
+const {createWebApp}=await import('./start-web.mjs');
+await runMigrations();
+const backend=app.listen(0,'127.0.0.1');
+await new Promise(r=>backend.once('listening',r));
+const dist=path.resolve(import.meta.dirname,'../client/dist');
+let version=JSON.parse(fs.readFileSync(path.join(dist,'local-version.json'),'utf8'));
+const webApp=express();let navigations=0;
+webApp.get('/local-version.json',(_req,res)=>res.set('Cache-Control','no-store').json(version));
+webApp.use((req,_res,next)=>{if(req.path==='/')navigations++;next();});
+webApp.use(createWebApp({apiTarget:'http://127.0.0.1:'+backend.address().port}));
+const web=webApp.listen(0,'127.0.0.1');
+await new Promise(r=>web.once('listening',r));
+const browser=await chromium.launch({headless:true});
+try{
+  const context=await browser.newContext(),page=await context.newPage();
+  await page.goto('http://127.0.0.1:'+web.address().port);
+  await expect(page.getByRole('complementary',{name:'Instalación de Gestión Laboral'})).toContainText(version.commit.slice(0,7));
+  await page.getByRole('button',{name:/^Administraci[oó]n$/i}).click();
+  const draft=page.getByLabel(/usuario/i).first();
+  await draft.fill('borrador-sintetico');
+  const initial=navigations;
+  version={...version,commit:'f'.repeat(40)};
+  await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+  await expect(page.getByRole('status').filter({hasText:'Hay una actualización'})).toBeVisible();
+  await expect(draft).toHaveValue('borrador-sintetico');
+  assert.equal(navigations,initial,'Se recargo sin autorizacion');
+  page.once('dialog',d=>d.dismiss());
+  await page.getByRole('button',{name:'Recargar esta pestaña'}).click();
+  await expect(draft).toHaveValue('borrador-sintetico');
+  assert.equal(navigations,initial);
+  page.once('dialog',d=>d.accept());
+  await Promise.all([page.waitForEvent('load'),page.getByRole('button',{name:'Recargar esta pestaña'}).click()]);
+  assert.equal(navigations,initial+1);
+  assert.equal(context.pages().length,1,'Se abrio otra pestaña');
+  console.log('Navegador real: aviso, borrador conservado, cancelar seguro y recarga explicita en una sola pestaña. API real y SQLite sintetica en memoria.');
+  await context.close();
+}finally{
+  await browser.close();
+  await new Promise(r=>web.close(r));
+  await new Promise(r=>backend.close(r));
+  await pool.end();
+}
