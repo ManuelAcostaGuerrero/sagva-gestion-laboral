@@ -1,0 +1,287 @@
+1/4 Preparando y probando sin detener el sistema...
+Preparing worktree (detached HEAD fd1405d)
+HEAD is now at fd1405d Admitir seguimiento seguro en clones single-branch (#6) [skip ci]
+
+added 225 packages in 21s
+
+39 packages are looking for funding
+  run `npm fund` for details
+Sintaxis y manifiestos correctos: 150 archivos (local).
+
+> asistencia-huella-4500@1.19.2 test:server
+> npm test --workspace server
+
+
+> attendance-fingerprint-server@1.19.2 test
+> node --test
+
+✔ Cliente API distingue una conexión fallida de una contraseña incorrecta sin reenviar el login (138.4297ms)
+✔ calcula permanencia descontando colacion cerrada con marcas opuestas (9.5375ms)
+✔ acepta colacion iniciada con entrada_colacion y cerrada con salida_colacion (2.485ms)
+✔ filtra por fecha y tipo despues de calcular pares (1.6978ms)
+(node:4576) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Eliminar áreas y cargos: lista de activos/inactivos, liberación y protección de horarios (779.5344ms)
+(node:10252) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Preparación del contrato requiere identidad y fechas válidas, sin habilitar generación prematura (5.3034ms)
+✔ PDF de contrato/anexo: autenticación, vinculación, revisión, historial, auditoría y respaldo en SQLite (834.1112ms)
+(node:10836) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ normaliza visualmente alias y clasifica sin escribir (4.2237ms)
+✔ GET auditoría detecta faltantes, incompletos y patrón IRL sin modificar documentos (612.9991ms)
+(node:14900) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Catálogo de documentos: roles, asignación, corrección de reglas, bloqueo de borrado e historial (1013.1778ms)
+(node:18600) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Contratos 0/1/2 anexos, fechas reales, prórroga posterior y orden (19.8328ms)
+✔ Migración aditiva idempotente conserva registros históricos y verifica claves foráneas (55.5053ms)
+✔ Guardar anexos es atómico, auditado y concurrente; conserva históricos, estado inactivo y término inicial (338.5378ms)
+✔ Avisos del informe muestran etiqueta y ambos valores; avisos antiguos se presentan sin reescribirlos (1.1405ms)
+(node:11092) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Vencimiento automático calcula meses de calendario, años y días correctamente (7.6686ms)
+✔ Catálogo inicial y anexos financieros; administración crea tipos y cada renovación conserva fechas/PDF (966.1775ms)
+✔ Exporta lista mínima de trabajadores, incluidos inactivos, sin datos privados extra (5.3724ms)
+✔ XLSX es un ZIP OOXML con hoja Trabajadores y texto literal, no fórmulas (6.4311ms)
+✔ Nombres de archivos consistentes en ambos sistemas y formato validado (75.6562ms)
+✔ Guardar correctamente elimina la advertencia de la ficha general (5.8155ms)
+✔ Solo hay advertencia si quedaron cambios reales en otra pestaña (0.6283ms)
+✔ Al completar y validar se cierra la ficha si no hay cambios ajenos sin guardar (0.5363ms)
+✔ Control de revisión temporal: aparece solo en fichas aún no validadas (4.0027ms)
+(node:6432) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Migración de fichas preserva IDs, marcas, huellas, historial y referencias; admite varios RUT vacíos (23.8038ms)
+✔ Migración rechaza duplicados de RUT normalizado y revierte sin borrar historial (18.832ms)
+✔ Ficha API: persistencia, revisión suave, filtros, RUT único, concurrencia y auditoría atómica (855.007ms)
+✔ Importación A–F: faltantes reales, fechas dudosas, finiquitado, jornadas y repetición sin sobrescribir correcciones (14.9384ms)
+✔ Guardar ficha persiste todas las secciones modificadas, en orden (9.6848ms)
+✔ Desde cualquier pestaña guarda solo los datos que cambiaron (1.6004ms)
+✔ Al validar guarda primero ficha general y luego datos pendientes (1.493ms)
+✔ Error parcial detiene las secciones siguientes y conserva aviso de lo ya guardado (2.0076ms)
+✔ Un formulario sin cambios no emite escrituras (0.5651ms)
+(node:6216) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Entrega 1: empresas y domicilios encadenados, RUT y fichas históricas (835.6498ms)
+(node:9788) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Entrega 1: buscador independiente del formato RUT sin modificar búsqueda textual (4.3664ms)
+✔ Entrega 1: catálogo encadenado completo y selectores sin localidades inventadas (8.9305ms)
+✔ Entrega 1: payload empresarial normaliza para validación sin inventar RUT (1.1608ms)
+✔ fecha DD/MM/AAAA siempre limita el año a cuatro dígitos (4.1216ms)
+✔ fecha rechaza días, meses y límites inválidos antes de actualizar el valor ISO (0.8834ms)
+(node:6380) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Reglas independientes: RUT, composición de nombres y teléfono (3.9264ms)
+✔ Empresa, ficha provisional/validada y condiciones contractuales preservan historial y permisos (976.8528ms)
+(node:17148) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Identifica anexos financieros sin confundir contratos ni documentos generales (2.7309ms)
+✔ Aumento y bono guardan montos por entrega, validan importes y preservan históricos, permisos y sueldo base (984.8843ms)
+(node:14752) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Fechas de licencia son inclusivas y excluyen calendarios inválidos (3.6984ms)
+✔ Licencia no borra turno preexistente, devuelve fechas sin diagnósticos y bloquea asignación nueva (1062.9915ms)
+(node:2708) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ La ficha médica es privada, editable, auditada y se guarda sin invadir la ficha laboral (598.8677ms)
+✔ Ojo de clave: se muestra solo durante pulsación y vuelve a ocultarse al soltar, salir o perder foco (4.6546ms)
+✔ Crear usuario exige confirmación idéntica antes de enviar y no expone la confirmación al API (1.3204ms)
+✔ Deshacer conserva la revision actual incluso despues de guardar y mantiene mas de cinco movimientos (20.394ms)
+✔ Copiar horario conserva semana destino, crea filas nuevas y elimina indisponibilidad historica (5.5594ms)
+✔ Cambiar una persona de fila la mueve solo dentro de la semana y deja la anterior por asignar (0.5356ms)
+✔ URL API: localhost, red y HTTPS usan el mismo enlace aunque el .env conserve direcciones antiguas (3.8531ms)
+✔ Web publica: API conserva autenticación/cuerpo y no publica fuentes ni archivos privados (384.2764ms)
+(node:6392) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Buscar trabajadores a demanda, emitir lote sin revocar QR y limitarlo a admin (1102.4516ms)
+(node:852) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Login por la web local, Rotativo común a todas las áreas y CRUD de turnos/horarios conservan referencias (1771.7569ms)
+✔ Normalizar Rotativo consolida duplicados sin alterar horas ni referencias armadas (30.6727ms)
+(node:17316) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ API SQLite: login, empleados, identificación QR/PIN, marcacion, reportes, horarios y auditoria (2237.2939ms)
+✔ SQLite conserva restricciones, ids, parametros y configura fechas locales (18.0606ms)
+✔ Una transaccion fallida revierte y las consultas concurrentes esperan su final (6.6137ms)
+✔ Respaldo SQLite incorpora WAL y permite recuperar datos sin duplicarlos (136.3486ms)
+(node:14320) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Terminal-empresa-trabajador: QR/PIN aislados, vista previa sin escrituras, cámara autorizada e idempotencia (2184.2667ms)
+(node:14996) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ QR/PIN: terminal obligatoria, activación única, credenciales hash, rotación/revocación, auditoría e idempotencia (3840.3761ms)
+✔ Prevalidación detecta JSX truncado y JavaScript/manifiestos incorrectos antes de instalar (1368.0928ms)
+(node:16612) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Modelos: normal, nocturno y partido descuentan una sola colacion (10.2682ms)
+✔ Reportes: noche y tramos partidos excluyen el intervalo, mantienen atrasos e incompletos (10.3185ms)
+✔ Migracion conserva asignaciones anteriores y aplica cada modelo una sola vez (44.3218ms)
+✔ Planificador API: borrador, cobertura, conflictos, revision, publicacion atomica y reporte nocturno (1046.2745ms)
+✔ Migración de cargos idempotente, nombres mayúsculos y referencias conservadas (26.1206ms)
+(node:19296) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ RUT módulo 11 local: puntos, guion, K/k, faltantes y formatos incorrectos (4.7978ms)
+✔ Migración conserva nombre legal literal, IDs, historial y propuestas conocidas sin inventar apellidos (31.6339ms)
+✔ Ficha: partes independientes, legal literal, vacíos protegidos, revisión atribuida y provisional seguro (494.3519ms)
+(node:2496) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Nombre corto usa primer nombre y apellido, conservando nombres completos y abreviaciones anteriores (3.287ms)
+✔ Enriquecer completa vacíos, preserva RUT/fechas/inactivos/revisión y usa la última fila duplicada (226.7098ms)
+(node:8468) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/.local/update-staging/7f0c60c9bdee4d3ea4435b7b2387cc18/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\.local\update-staging\7f0c60c9bdee4d3ea4435b7b2387cc18\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ RUT con puntos mantiene la validación y el correo en mayúsculas se valida correctamente (3.6646ms)
+✔ Normalización histórica es idempotente, conserva originales, nombre legal y RUT, e invalida revisiones antiguas (7.0955ms)
+✔ Guardar normaliza nombres/correo y corregir RUT sin campo de motivo conserva historial automático (279.7137ms)
+ℹ tests 75
+ℹ suites 0
+ℹ pass 75
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12474.8037
+
+> attendance-fingerprint-client@1.19.2 build
+> vite build
+
+vite v6.4.5 building for production...
+transforming...
+✓ 1627 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/local-version.json           0.07 kB │ gzip:   0.09 kB
+dist/index.html                   0.60 kB │ gzip:   0.35 kB
+dist/assets/index-B2NHz-2v.css   68.54 kB │ gzip:  14.25 kB
+dist/assets/index-BEDoGvwS.js   407.22 kB │ gzip: 118.20 kB
+✓ built in 5.80s
+found 0 vulnerabilities
+El proyecto ya esta iniciado y responde correctamente. No se duplicaron procesos.
+Deteniendo SAGVA Gestion Laboral PID 101
+Deteniendo SAGVA Gestion Laboral PID 102
+13 controles aprobados: identidad, permisos, PID reutilizado, inicio repetido y aislamiento. Dobles sin bases reales.
+Ya esta actualizado: bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb. Sin reinicio ni pestanas nuevas.
+1/4 Preparando y probando sin detener el sistema...
+Fallo antes de detener: la instalacion anterior permanece intacta.
+1/4 Preparando y probando sin detener el sistema...
+Fallo antes de detener: la instalacion anterior permanece intacta.
+1/4 Preparando y probando sin detener el sistema...
+2/4 Activando solo este proyecto...
+Inicio bloqueado hasta revisar el registro y el respaldo. No se restauro ni borro la base.
+1/4 Preparando y probando sin detener el sistema...
+2/4 Activando solo este proyecto...
+3/4 Migrando con respaldo previo verificado...
+Inicio bloqueado hasta revisar el registro y el respaldo. No se restauro ni borro la base.
+1/4 Preparando y probando sin detener el sistema...
+2/4 Activando solo este proyecto...
+3/4 Migrando con respaldo previo verificado...
+4/4 Verificando instalacion y estado previo...
+Inicio bloqueado hasta revisar el registro y el respaldo. No se restauro ni borro la base.
+1/4 Preparando y probando sin detener el sistema...
+2/4 Activando solo este proyecto...
+3/4 Migrando con respaldo previo verificado...
+4/4 Verificando instalacion y estado previo...
+Actualizacion completada: main bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.
+Sistema funcionando en http://localhost:5183. Conserva tu pestana; guarda tus cambios y recargala cuando corresponda.
+1/4 Preparando y probando sin detener el sistema...
+2/4 Activando solo este proyecto...
+3/4 Migrando con respaldo previo verificado...
+4/4 Verificando instalacion y estado previo...
+Actualizacion completada: main bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.
+El sistema estaba detenido y permanece detenido. Usa Iniciar.bat cuando lo necesites.
+24 aserciones correctas: ramas, no-op, errores, bloqueo, orden y estado previo. Sin DB ni procesos operativos.
+Initialized empty Git repository in C:/Users/Admin/AppData/Local/Temp/sagva-git-test-316bcde4352e416ab5cd9a1d70c52696/origin.git/
+Initialized empty Git repository in C:/Users/Admin/AppData/Local/Temp/sagva-git-test-316bcde4352e416ab5cd9a1d70c52696/seed/.git/
+[main (root-commit) 854ab75] base
+ 1 file changed, 1 insertion(+)
+ create mode 100644 archivo.txt
+[main 4c0e6d7] candidato
+ 1 file changed, 1 insertion(+)
+To <USUARIO>\AppData\Local\Temp\sagva-git-test-316bcde4352e416ab5cd9a1d70c52696\origin.git
+ * [new branch]      main -> main
+ * [new branch]      int001-huella-codigo -> int001-huella-codigo
+Cloning into 'instalacion'...
+done.
+From <USUARIO>\AppData\Local\Temp\sagva-git-test-316bcde4352e416ab5cd9a1d70c52696\origin
+ * [new branch]      main       -> origin/main
+Switched to a new branch 'main'
+branch 'main' set up to track 'origin/main'.
+Switched to branch 'int001-huella-codigo'
+Your branch is up to date with 'origin/int001-huella-codigo'.
+[int001-huella-codigo a428739] no integrado
+ 1 file changed, 1 insertion(+)
+Git real: clon single-branch convertido a main, upstream correcto, rama anterior conservada y divergencia rechazada.
+archivo procesado: <PROYECTOS>\sagva-gestion-laboral\.local\backups\20261108-142620-72a928a7
+Se procesaron correctamente 1 archivos; error al procesar 0 archivos
+Respaldo SQLite verificado.
+Respaldo: <PROYECTOS>\sagva-gestion-laboral\.local\backups\20261108-142620-72a928a7
+2/4 Activando solo este proyecto...
+Already on 'main'
+Updating ae49ee7..fd1405d
+Fast-forward
+ docs/23-ACTUALIZADOR-LOCAL-20261108.md |  6 ++++
+ tools/test-update-git.ps1              | 50 ++++++++++++++++++++++++++++++++++
+ tools/update-local.ps1                 |  6 ++++
+ 3 files changed, 62 insertions(+)
+ create mode 100644 tools/test-update-git.ps1
+branch 'main' set up to track 'origin/main'.
+
+added 225 packages in 23s
+
+39 packages are looking for funding
+  run `npm fund` for details
+3/4 Migrando con respaldo previo verificado...
+SQLite listo; migraciones aplicadas una sola vez.
+(node:12580) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<PROYECTOS>/sagva-gestion-laboral/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<PROYECTOS>\sagva-gestion-laboral\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+Base SQLite correcta: <PROYECTOS>\sagva-gestion-laboral\data\asistencia.db
+4/4 Verificando instalacion y estado previo...
+Actualizacion completada: main fd1405d5d0fb1defaf6cd6d3860998e107a65759.
+El sistema estaba detenido y permanece detenido. Usa Iniciar.bat cuando lo necesites.

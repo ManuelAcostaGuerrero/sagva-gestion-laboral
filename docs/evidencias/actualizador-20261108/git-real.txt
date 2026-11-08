@@ -1,0 +1,21 @@
+Initialized empty Git repository in C:/Users/Admin/AppData/Local/Temp/sagva-git-test-072c27be180f44ecb1376d390a0e2417/origin.git/
+Initialized empty Git repository in C:/Users/Admin/AppData/Local/Temp/sagva-git-test-072c27be180f44ecb1376d390a0e2417/seed/.git/
+[main (root-commit) 9c54be1] base
+ 1 file changed, 1 insertion(+)
+ create mode 100644 archivo.txt
+[main da790fd] candidato
+ 1 file changed, 1 insertion(+)
+To <USUARIO>\AppData\Local\Temp\sagva-git-test-072c27be180f44ecb1376d390a0e2417\origin.git
+ * [new branch]      main -> main
+ * [new branch]      int001-huella-codigo -> int001-huella-codigo
+Cloning into 'instalacion'...
+done.
+From <USUARIO>\AppData\Local\Temp\sagva-git-test-072c27be180f44ecb1376d390a0e2417\origin
+ * [new branch]      main       -> origin/main
+Switched to a new branch 'main'
+branch 'main' set up to track 'origin/main'.
+Switched to branch 'int001-huella-codigo'
+Your branch is up to date with 'origin/int001-huella-codigo'.
+[int001-huella-codigo b643365] no integrado
+ 1 file changed, 1 insertion(+)
+Git real: clon single-branch convertido a main, upstream correcto, rama anterior conservada y divergencia rechazada.

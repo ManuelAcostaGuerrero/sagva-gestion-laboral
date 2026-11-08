@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-08T17:29:09.315Z",
+  "installedSha": "fd1405d5d0fb1defaf6cd6d3860998e107a65759",
+  "branch": "main",
+  "upstreamMain": true,
+  "clean": true,
+  "ready": 200,
+  "realBrowserLogin": true,
+  "visibleCommit": true,
+  "previousBusinessRowsAndColumnsPreserved": true,
+  "oneAdditiveMigration": true,
+  "sqliteIntegrityAndForeignKeys": true,
+  "configurationUnchanged": true,
+  "secondUsualBatNoRestart": true,
+  "otherProjectsPidsUnchanged": true,
+  "initialFailureReviewedBeforeMigration": true
+}
