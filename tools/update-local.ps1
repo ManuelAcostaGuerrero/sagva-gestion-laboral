@@ -72,6 +72,7 @@ function PrepareUpdate([string]$Sha) {
     Run 'npm.cmd' @('audit','--audit-level=high') | Out-Host
     Run 'powershell.exe' @('-NoProfile','-ExecutionPolicy','Bypass','-File','tools/test-control-local.ps1') | Out-Host
     Run 'powershell.exe' @('-NoProfile','-ExecutionPolicy','Bypass','-File','tools/test-update-local.ps1') | Out-Host
+    Run 'powershell.exe' @('-NoProfile','-ExecutionPolicy','Bypass','-File','tools/test-update-git.ps1') | Out-Host
     if ((GitText @('status','--porcelain'))) { throw 'La preparacion modifico archivos versionados.' }
     $version = Get-Content -LiteralPath 'client\dist\local-version.json' -Raw | ConvertFrom-Json
     if ($version.commit -ne $Sha) { throw 'Candidato compilado con otro SHA.' }
@@ -81,6 +82,11 @@ function PrepareUpdate([string]$Sha) {
 function ActivateMain($Plan) {
   if (GitRefExists 'refs/heads/main') { Run 'git.exe' @('switch','main'); Run 'git.exe' @('merge','--ff-only',$Plan.Target) }
   else { Run 'git.exe' @('switch','-c','main',$Plan.Target) }
+  # Clones --single-branch no relacionan origin/main con origin hasta ampliar el refspec.
+  $fetchSpecs=(GitText @('config','--get-all','remote.origin.fetch')) -split "`n"
+  if ($fetchSpecs -notcontains '+refs/heads/main:refs/remotes/origin/main' -and $fetchSpecs -notcontains '+refs/heads/*:refs/remotes/origin/*') {
+    Run 'git.exe' @('config','--add','remote.origin.fetch','+refs/heads/main:refs/remotes/origin/main')
+  }
   Run 'git.exe' @('branch','--set-upstream-to=origin/main','main')
   if ((GitText @('rev-parse','HEAD')) -ne $Plan.Target) { throw 'No se activo el SHA fijado.' }
 }
