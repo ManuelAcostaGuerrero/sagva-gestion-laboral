@@ -6,7 +6,7 @@ export function matchesEmployeeSearch(file, rawSearch) {
   const lower = text.toLocaleLowerCase('es-CL');
   if ([file.fullName, file.company, file.documentId].some(value =>
     String(value ?? '').toLocaleLowerCase('es-CL').includes(lower))) return true;
-  if (!/^[\d.\s-kK]+$/.test(text)) return false;
+  if (!/^[\d.\skK-]+$/.test(text)) return false;
   const lookup = normalizeRut(text);
   return Boolean(lookup) && normalizeRut(file.documentId).includes(lookup);
 }

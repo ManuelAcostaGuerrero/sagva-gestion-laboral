@@ -3,6 +3,7 @@ import { pool } from "./db.js";
 import { recordAudit } from "./auditLog.js";
 import { workerName } from './workerNames.js';
 import { normalizeRut, checkRut } from './rut.js';
+import {territoryPathValid} from '../../shared/chileTerritory.js';
 import { currentContractEnd, validateContract, validContractDate } from './employeeContracts.js';
 import { importDifference } from './importReview.js';
 import { resolvePosition } from './workPositions.js';
@@ -62,6 +63,10 @@ export const fileSchema = z.object({
       hierarchyUnit: text,
       costCenter: text,
     branch: text,
+    region: text,
+    province: text,
+    commune: text,
+    city: text,
     sourceContractCode: text,
     companyDocumentId: text,
     })
@@ -221,6 +226,12 @@ export async function saveEmployeeFile(id, data, admin) {
     const incomingExtra = data.extra || {};
     data.extra = {...previousExtra};
     for (const [key,value] of Object.entries(incomingExtra)) if (empty(value)) data.extra[key] = value;
+    // Al cambiar de Región/Provincia se limpian las selecciones dependientes.
+    // No se borran campos históricos ajenos al domicilio.
+    for(const key of ['region','province','commune','city']) {
+      if(Object.prototype.hasOwnProperty.call(incomingExtra,key)) data.extra[key]=normalizeLabel(incomingExtra[key])||null;
+    }
+    if(!territoryPathValid(data.extra))throw problem('Revisa la Región, Provincia y Comuna del domicilio particular.',400);
     data.extra.firstName = [data.firstName,data.secondName,data.otherNames].filter(Boolean).join(' ') || null;
     data.extra.paternalLastName = data.firstLastName || null;
     for(const key of ['sex','nationality','civilStatus','hierarchyUnit','costCenter','branch','afp','healthSystem']){

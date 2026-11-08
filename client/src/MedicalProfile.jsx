@@ -3,6 +3,7 @@ import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'rea
 import { api } from './services/api.js';
 import { MEDICAL_GROUPS, BLOOD_TYPES, emptyMedicalProfile } from '../../server/src/medicalProfileFields.js';
 import './medicalProfile.css';
+import {formatRut} from '../../server/src/rut.js';
 
 const MedicalProfile = forwardRef(function MedicalProfile({ employeeId, fullName, documentId, onDirtyChange },ref) {
   const [draft, setDraft] = useState(emptyMedicalProfile);
@@ -78,7 +79,7 @@ const MedicalProfile = forwardRef(function MedicalProfile({ employeeId, fullName
       </div>
       <div className="mp-identity">
         <div><span>Trabajador</span><strong>{fullName || 'Nombre pendiente'}</strong></div>
-        <div><span>RUT / documento</span><strong>{documentId || 'Sin informar'}</strong></div>
+        <div><span>RUT / documento</span><strong>{formatRut(documentId) || 'Sin informar'}</strong></div>
         <label>Fecha de la ficha
           <DateField  value={draft.filledOn} disabled={loading || busy}
             onChange={event => change('filledOn', event.target.value)} />
