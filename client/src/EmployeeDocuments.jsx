@@ -236,10 +236,20 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
                 </label>}
                 {expiryMode === 'MANUAL' && <label>Fecha de vencimiento<DateField  value={entryDraft.expiresOn} onChange={e => changeEntry('expiresOn', e.target.value)} /></label>}
                 {expiryMode === 'EVENT' && type.financialKind!=='SALARY_INCREASE' && <label>Versión del documento<input value={entryDraft.versionLabel} onChange={e => changeEntry('versionLabel', e.target.value)} placeholder="Ej. Reglamento 2026-02" /></label>}
-                {type.financialKind==='SALARY_INCREASE' && <label>El monto corresponde a<select value={entryDraft.amountMeaning} onChange={e=>changeEntry('amountMeaning',e.target.value)}>
+                {type.financialKind==='SALARY_INCREASE' && <div className="ed-full ef-note">
+                   <strong>Nuevo sueldo base</strong> establece la cifra total; <strong>Monto del aumento</strong> se suma una sola vez al sueldo vigente al aprobar el anexo. Registrar la entrega no modifica el sueldo.
+                   {canApprove&&<p>Sueldo actual: {currentSalary==null?'Sin registrar':new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP'}).format(currentSalary)}</p>}
+                 </div>}
+                 {type.financialKind==='SALARY_INCREASE' && <label>El monto corresponde a<select value={entryDraft.amountMeaning} onChange={e=>changeEntry('amountMeaning',e.target.value)}>
                   <option value="">Seleccionar</option><option value="NEW_BASE">Nuevo sueldo base</option><option value="INCREASE">Monto del aumento</option>
                 </select></label>}
-                {!!type.financialKind && <label>{type.financialKind==='BONUS'?'Monto del bono acordado':'Monto acordado'} (CLP)<input type="number" min="1" max="1000000000000" step="1" value={entryDraft.agreedAmount} onChange={e=>changeEntry('agreedAmount',e.target.value)} placeholder="Monto en pesos, sin puntos" /></label>}
+                {type.financialKind==='SALARY_INCREASE'&&entryDraft.amountMeaning&&entryDraft.agreedAmount&&(()=>{
+                   try{
+                     const proposed=calculateApprovedSalary({currentSalary,amountMeaning:entryDraft.amountMeaning,agreedAmount:Number(entryDraft.agreedAmount)});
+                     return <p className="ed-full ef-note" role="status">Sueldo resultante al aprobar: {new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP'}).format(proposed)}.</p>;
+                   }catch(err){return <p className="ed-full ef-note" role="status">{err.message}</p>;}
+                 })()}
+                 {!!type.financialKind && <label>{type.financialKind==='BONUS'?'Monto del bono acordado':'Monto acordado'} (CLP)<input type="number" min="1" max="1000000000000" step="1" value={entryDraft.agreedAmount} onChange={e=>changeEntry('agreedAmount',e.target.value)} placeholder="Monto en pesos, sin puntos" /></label>}
                 {type.financialKind==='SALARY_INCREASE' && <>
                   <label>¿Tiene retroactivo?<select value={entryDraft.retroactive?'SI':'NO'} onChange={e=>setEntryDraft(old=>({...old,retroactive:e.target.value==='SI',retroactiveAmount:'',retroactiveMonths:[],retroactiveMonth:''}))}><option value="NO">No</option><option value="SI">Sí</option></select></label>
                   {entryDraft.retroactive && <>
@@ -265,7 +275,9 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
                     <span>{modes[entry.expiryMode]}</span>
                     {entry.startOn && <span>Inicio: {readable(entry.startOn)}</span>}
                     {entry.expiresOn && <span>Vencimiento: {readable(entry.expiresOn)}</span>}
-                    {entry.agreedAmount!=null && <span>{entry.amountMeaning==='NEW_BASE'?'Nuevo sueldo base':entry.amountMeaning==='INCREASE'?'Monto del aumento':'Bono'}: {new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP'}).format(entry.agreedAmount)}</span>}
+                    {entry.salaryApprovedAt&&<span>Anexo aprobado y aplicado: {readable(entry.salaryApprovedAt?.slice(0,10))}</span>}
+                     {entry.approvedSalary!=null&&<span>Sueldo base aprobado: {new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP'}).format(entry.approvedSalary)}</span>}
+                     {entry.agreedAmount!=null && <span>{entry.amountMeaning==='NEW_BASE'?'Nuevo sueldo base':entry.amountMeaning==='INCREASE'?'Monto del aumento':'Bono'}: {new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP'}).format(entry.agreedAmount)}</span>}
                     {entry.financialKind && entry.agreedAmount==null && ['admin','supervisor'].includes(role) && <span>Monto no registrado en este documento histórico</span>}
                     {entry.retroactive!=null && <span>Retroactivo: {entry.retroactive?'Sí':'No'}</span>}
                     {entry.retroactiveAmount!=null && <span>Total retroactivo: {new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP'}).format(entry.retroactiveAmount)}</span>}
@@ -281,7 +293,14 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
                       <button type="button" onClick={() => downloadFile(file.id)}>Descargar PDF</button>
                     </div>
                   ))}
-                  <div className="ed-upload">
+                  {entry.financialKind==='SALARY_INCREASE'&&canApprove&&!entry.salaryApprovedAt&&
+                     <div className="ed-full">
+                       {entry.attachments.some(file=>file.signedPhysical)
+                         ? <button type="button" disabled={busy||hasUnsavedChanges||hasLocalDraft}
+                             onClick={()=>approveSalary(entry)}>Aprobar anexo firmado y aplicar sueldo base</button>
+                         : <p className="ed-footnote">Para aplicar el sueldo, adjunta primero un PDF firmado y confirma su firma.</p>}
+                     </div>}
+                   <div className="ed-upload">
                     <label>Adjuntar respaldo PDF (máx. 8 MB)<input type="file" accept=".pdf,application/pdf" disabled={busy || hasUnsavedChanges}
                       onChange={e => uploadChange(entry.id, 'file', e.target.files?.[0] || null)} /></label>
                     <label className="ed-checkbox"><input type="checkbox" checked={!!upload.signed} disabled={busy || hasUnsavedChanges}
