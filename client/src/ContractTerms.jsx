@@ -46,7 +46,7 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
    {suggestedWorkplace&&<div className="ef-field-wide">
     <button type="button" disabled={draft.workplace===suggestedWorkplace} onClick={()=>change('workplace',suggestedWorkplace)}>Usar sucursal sugerida: {suggestedWorkplace}</button>
     <p className="ef-note">Sugerencia opcional; no modifica el lugar histórico sin confirmación.</p>
-   </div>
+   </div>}
    <label className="ef-field-wide">Distribución contractual de jornada / turnos
     <textarea rows={3} maxLength={2000} value={draft.shiftDistribution}
      onChange={e=>change('shiftDistribution',e.target.value)}/></label>
