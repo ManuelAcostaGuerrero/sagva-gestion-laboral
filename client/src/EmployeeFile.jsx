@@ -427,7 +427,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                 {draft.extra?.healthSystem==='ISAPRE'&&<label>Nombre de Isapre
                   <input maxLength={150} value={draft.extra?.isapreName||''}
                     onChange={e=>change('extra',{...draft.extra,isapreName:normalizeLabel(e.target.value)})}/>
-                </label>
+                </label>}
                 {draft.extra?.workerNumber&&workerNumberFromRut(draft.documentId)&&draft.extra.workerNumber!==workerNumberFromRut(draft.documentId)&&<p className="ef-note ef-field-wide">Número histórico diferente: {draft.extra.workerNumber}. Se conservará como referencia al guardar.</p>}
               </div>
             </fieldset>
