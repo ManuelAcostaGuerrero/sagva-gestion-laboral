@@ -3,7 +3,7 @@
 
 **Rama:** `feature/bl001-bl005-ficha-beneficios-20261109`  
 **PR:** [#9](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/9)  
-**Estado de GitHub al 09-11-2026:** código integrado en rama del PR #9 con CI verificado (servidor, build y QR móvil) en SHA `d323d6db95e5ff2a3ea4469ecec20e9fa945e1e8`. **No probado todavía en el PC del propietario ni aprobado para producción.**
+**Estado de GitHub al 09-11-2026:** PR #9 **fusionado en `main`** mediante commit `5113d205b3347c7c0e6f22e7a591c308d63dd020`, con CI verificado (servidor, build y QR móvil) en SHA `d323d6db95e5ff2a3ea4469ecec20e9fa945e1e8`. **No probado todavía en el PC del propietario ni aprobado para producción.**
 
 ## Secuencia de trabajo realizada
 

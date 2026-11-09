@@ -76,3 +76,5 @@ Este documento debe mantenerse al día **después de resultados observados**, nu
 - Validación GitHub **real** del último commit de funcionalidad `d323d6db95e5ff2a3ea4469ecec20e9fa945e1e8`: `42689884990` y `42689885021` = success. Último cambio corrige guardado si solamente cambia cuenta o cargas y conserva historia privada cifrada/snapshots.
 - **No equivale** a ensayo de restauración de SQLite productiva, verificación del cifrado/custodia de claves en PC, revisión de datos bancarios con contadora ni acceso móvil físico. Producción continúa sin autorización.
 - [Informe técnico, permisos transitorios y límites](28-BL001-BL005-IMPLEMENTACION-EN-REVISION-20261109.md).
+
+- **Fusión confirmada:** PR #9 se integró a `main` como `5113d205b3347c7c0e6f22e7a591c308d63dd020`. Ambos CI del último SHA de rama `35202246cfb4c3bc1775044558065ed859e68971` (runs `42690318421` y `42690318497`) finalizaron `success`. La prueba física y el uso de cuentas reales siguen pendientes.

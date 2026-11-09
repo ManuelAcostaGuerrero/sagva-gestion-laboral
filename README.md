@@ -49,7 +49,7 @@ Cada fase tiene puertas de salida; el orden no autoriza saltar pruebas. Las fase
 
 **Planificación, no implementación:** no se han instalado estas funcionalidades, y la bitácora operativa existente requiere ampliar su cobertura.
 
-**En revisión:** [BL-001 a BL-005: ficha, bancos, cargas familiares y parámetros](docs/28-BL001-BL005-IMPLEMENTACION-EN-REVISION-20261109.md). Código con CI correcto en PR #9; pendiente validación física y acceso Root futuro.
+**Integrado en `main` (PR #9):** [BL-001 a BL-005: ficha, bancos, cargas familiares y parámetros](docs/28-BL001-BL005-IMPLEMENTACION-EN-REVISION-20261109.md). CI correcto; pendiente validación física y panel Root futuro.
 
 ## Datos y seguridad
 
