@@ -1,11 +1,10 @@
 import {blankContractTerms} from './contractTerms.js';
 import {recordAudit} from './auditLog.js';
 import {validContractDate} from './employeeContracts.js';
+import {calculateApprovedSalary} from '../../shared/salaryAnnex.js';
 
 export const SALARY_APPROVAL_MIGRATION='20261109_021_salary_annex_approval';
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
-const salaryLimit=1000000000000;
-
 export async function migrateSalaryAnnexApprovals(db){
   if((await db.execute('SELECT id FROM schema_migrations WHERE id=?',[SALARY_APPROVAL_MIGRATION]))[0].length)return;
   await db.execScript(`
@@ -22,20 +21,6 @@ export async function migrateSalaryAnnexApprovals(db){
     CREATE INDEX employee_salary_annex_approvals_worker ON employee_salary_annex_approvals(employee_id,effective_on,entry_id);
   `);
   await db.execute('INSERT INTO schema_migrations(id) VALUES(?)',[SALARY_APPROVAL_MIGRATION]);
-}
-
-// Independiente de React y de la base de datos, para compartir una sola regla.
-export function calculateApprovedSalary({currentSalary,amountMeaning,agreedAmount}){
-  if(!Number.isSafeInteger(agreedAmount)||agreedAmount<=0||agreedAmount>salaryLimit)
-    throw fail('El monto del anexo debe ser un entero positivo en pesos.');
-  if(amountMeaning==='NEW_BASE')return agreedAmount;
-  if(amountMeaning!=='INCREASE')throw fail('Indica nuevo sueldo base o monto de aumento.');
-  if(!Number.isSafeInteger(currentSalary)||currentSalary<=0)
-    throw fail('Para sumar un aumento primero registra el sueldo base vigente.');
-  const total=currentSalary+agreedAmount;
-  if(!Number.isSafeInteger(total)||total>salaryLimit)
-    throw fail('El nuevo sueldo supera el máximo permitido.');
-  return total;
 }
 
 export async function approveSalaryAnnex(db,{entryId,admin}){
