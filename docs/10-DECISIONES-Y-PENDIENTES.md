@@ -117,3 +117,17 @@ Las decisiones D-034/D-035/D-036 y D-032 del registro previo pasaron a implement
 [Especificación, matriz de roles, tareas y criterios de aceptación](25-PLAN-CONTABILIDAD-LABORAL-CAMPOS-Y-PERMISOS-20261110.md). El plan es **documental**, no evidencia de código ejecutado ni aprobación de fases INT.
 
 - **D-050 (acordada como requisito de diseño, aún no implementada):** Root podrá conceder y revocar **permisos individuales** por usuario específico, módulo, submódulo, campo, acción (ver/crear/editar/aprobar/exportar/configurar) y ámbito de empresa/local, con plantilla heredada del rol y excepciones ALLOW/DENY, caducidad opcional, auditoría y revocación inmediata. No cambiar los permisos de toda la categoría cuando se conceda acceso singular a una contadora; no permitir que excepciones ignoren restricciones de seguridad obligatorias. [Especificación y caso de prueba](25-PLAN-CONTABILIDAD-LABORAL-CAMPOS-Y-PERMISOS-20261110.md#9-permisos-individuales-dentro-del-mismo-rol-ampliación-acordada-el-09-11-2026).
+
+## Nuevos acuerdos de ficha, bancos, auditoría y plan (09-11-2026)
+
+| ID | Estado | Decisión |
+|---|---|---|
+| D-051 | Requisito de diseño | Mantener **una ficha única subdividida** para identificación/contacto, domicilio particular, vínculo empresarial, contratos, previsión/beneficios, medio de pago y documentación; conservar datos e históricos y no duplicar información maestra de empresa. |
+| D-052 | Planificado | Agregar cuenta bancaria del trabajador (banco, tipo, número, titularidad, modalidad solicitada, autorización y vigencia) con **permisos por campo**, protección reforzada y auditoría sin exponer números completos. |
+| D-053 | Planificado | Incorporar catálogo editable de bancos chilenos en Contabilidad Laboral, con referencia CMF, agregar/renombrar/desactivar y mantener identidad técnica e historial; solo Root o Contabilidad expresamente autorizada modifica catálogo. |
+| D-054 | Planificado | Incorporar **cargas familiares condicionales** en ficha y tramos/montos/versiones de asignación familiar en Contabilidad Laboral. Declaración no equivale a acreditación ni autoriza pago. |
+| D-055 | Planificado | Ofrecer enlace seguro, temporal y revocable para que el propio trabajador capture datos inicialmente, incluyendo medio de pago opcional, sujeto a validación y aprobación antes de consolidar. |
+| D-056 | Planificado | **Ampliar**, no duplicar, auditoría existente `audit_logs`/`recordAudit()`: cubrir Root, bancos, permisos, datos bancarios, configuración y eventos sensibles, con historial, integridad y restricción de consulta; evitar almacenar secretos en logs. |
+| D-057 | Planificado | Crear capa declarativa autoadaptable de edición para metadatos, etiquetas, opciones, catálogos y parámetros vigentes, sin dar edición arbitraria de código/SQL; ficha y contratos reflejan esquema publicado. |
+
+**Registro y alcance:** [Bitácora](26-BITACORA-FICHA-BANCOS-CARGAS-AUDITORIA-20261109.md) · [Plan de acción](27-PLAN-ACCION-FICHA-CAMPOS-BANCOS-CARGAS-AUDITORIA-20261109.md). Ninguno de D-051 a D-057 está implementado por escribir esta documentación.

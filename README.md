@@ -42,6 +42,13 @@ Cada fase tiene puertas de salida; el orden no autoriza saltar pruebas. Las fase
 
 **Estado y cierre recientes:** [Fase 3 aprobada y pendientes](docs/24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md). Empieza en [docs/00-INDICE-Y-ESTADO.md](docs/00-INDICE-Y-ESTADO.md). Para el primer trabajo técnico, sigue [docs/11-INT-001-PASO-A-PASO.md](docs/11-INT-001-PASO-A-PASO.md). Agentes, colaboradores y Work deben leer [AGENTS.md](AGENTS.md).
 
+## Plan vigente de próximas mejoras (09-11-2026)
+
+- [Bitácora de decisiones: ficha, cuenta bancaria, bancos, cargas y auditoría](docs/26-BITACORA-FICHA-BANCOS-CARGAS-AUDITORIA-20261109.md).
+- [Plan de acción: seguridad Root, auditoría, formularios y autoregistro](docs/27-PLAN-ACCION-FICHA-CAMPOS-BANCOS-CARGAS-AUDITORIA-20261109.md).
+
+**Planificación, no implementación:** no se han instalado estas funcionalidades, y la bitácora operativa existente requiere ampliar su cobertura.
+
 ## Datos y seguridad
 
 Este es un **repositorio público solo de código y documentación no sensible**. Las bases SQLite reales, la conciliación nominal de trabajadores, contratos, RUT, antecedentes médicos, PDFs, imágenes de documentos, sesiones, secretos, exportaciones y respaldos **jamás se suben aquí**, ni a incidencias, PR, CI o logs. La fuente real vive en almacenamiento privado autorizado.

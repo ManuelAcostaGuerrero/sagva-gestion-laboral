@@ -46,6 +46,8 @@
 21. [Contabilidad Laboral y previsión](23-CONTABILIDAD-LABORAL-20261109.md).
 22. [Cierre funcional reciente, pruebas móviles y hoja de ruta](24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md).
 23. [Plan para 10-11-2026: configurador de campos y segregación root/contabilidad/admin local](25-PLAN-CONTABILIDAD-LABORAL-CAMPOS-Y-PERMISOS-20261110.md).
+24. [Bitácora consolidada de ficha, cuentas, bancos, cargas y auditoría](26-BITACORA-FICHA-BANCOS-CARGAS-AUDITORIA-20261109.md).
+25. [Plan de acción por entregas: roles, bitácora, ficha, catálogos y autoregistro](27-PLAN-ACCION-FICHA-CAMPOS-BANCOS-CARGAS-AUDITORIA-20261109.md).
 
 Operación de asistentes: [AGENTS.md](../AGENTS.md). Cambios: [CONTRIBUTING.md](../CONTRIBUTING.md).
 

@@ -1,9 +1,10 @@
 # 25. Plan para la próxima sesión: Contabilidad Laboral, campos y permisos
 
-**Plan previsto para el martes 10-11-2026.**  
+**Plan original previsto para el martes 10-11-2026; ampliado con acuerdos del 09-11.**  
 **Producto:** SAGVA Gestión Laboral, repositorio `ManuelAcostaGuerrero/sagva-gestion-laboral`.  
 **Estado:** planificación autorizada para preparar trabajo posterior; **no se implementan aún cambios de usuarios, tablas, roles, contratos ni parámetros** con este documento.  
 **Base verificada al redactar:** `main` commit `0caa8607e1389d0325301d9d098dd64a18e8af3e`.  
+**Continuación vigente:** [bitácora completa](26-BITACORA-FICHA-BANCOS-CARGAS-AUDITORIA-20261109.md) y [plan de acción por entregas](27-PLAN-ACCION-FICHA-CAMPOS-BANCOS-CARGAS-AUDITORIA-20261109.md), que incorporan bancos, ficha subdividida, cargas, autoregistro y ampliación de auditoría.  
 **Relación:** [cierre funcional reciente](24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md), [Contabilidad Laboral actual](23-CONTABILIDAD-LABORAL-20261109.md), [fases INT](02-PLAN-DE-INTEGRACION.md).
 
 ## 1. Decisión de producto y alcance
