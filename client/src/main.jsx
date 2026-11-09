@@ -9,6 +9,7 @@ import EmployeeFile from './EmployeeFile.jsx';
 import DocumentCatalog from './DocumentCatalog.jsx';
 import DocumentAudit from './DocumentAudit.jsx';
 import Companies from './Companies.jsx';
+import LaborAccounting from './LaborAccounting.jsx';
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -1570,6 +1571,7 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
     shifts: ['Turnos', 'Biblioteca central de horarios organizada por grupo.'],
     records: ['Marcaciones', 'Consulta, correccion y permanencia efectiva.'],
     reports: ['Reportes', 'Exportacion y lectura ejecutiva de asistencia.'],
+    laborAccounting: ['Contabilidad Laboral', 'Parámetros previsionales, AFP, salud, aportes y vigencias auditadas.'],
     calendar: ['Calendario', 'Revision mensual por empleado o grupo.'],
     weekly: ['Horario semanal', 'Planificacion visual por area y cobertura.'],
     security: ['Seguridad', 'Claves, recuperacion, roles e historial.'],
@@ -1672,6 +1674,10 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
             <CalendarDays size={18} /> Armar horario
           </button>
           <p>Gestion</p>
+           {['admin','supervisor'].includes(adminRole)&&
+             <button className={adminModule === 'laborAccounting' ? 'active' : ''} onClick={() => setAdminModule('laborAccounting')}>
+               <BriefcaseBusiness size={18} /> Contabilidad Laboral
+             </button>}
           <button className={adminModule === 'reports' ? 'active' : ''} onClick={() => setAdminModule('reports')}>
             <FileText size={18} /> Reportes
           </button>
@@ -1983,6 +1989,7 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
       )}
 
       {adminModule === 'companies' && canManageDocumentCatalog && <Companies areas={areas} positions={positions} onMessage={setMessage} />}
+      {adminModule === 'laborAccounting' && ['admin','supervisor'].includes(adminRole) && <LaborAccounting role={adminRole} onMessage={setMessage} />}
 
       {adminModule === 'documents' && canManageDocumentCatalog && (
         <DocumentCatalog employees={employees} onMessage={setMessage} onOpenWorker={goToAssignedWorker} />
