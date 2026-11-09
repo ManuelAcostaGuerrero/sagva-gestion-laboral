@@ -3,12 +3,13 @@ import React, { useEffect, useState } from 'react';
 import { api } from './services/api.js';
 import './employeeDocuments.css';
 import MonthField from './MonthField.jsx';
+import {calculateApprovedSalary} from '../../shared/salaryAnnex.js';
 
 const localDate = () => {
   const now = new Date();
   return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 };
-const newEntry = () => ({ deliveredOn: localDate(), startOn: localDate(), expiresOn: '', expiryMode: 'DEFAULT', agreedAmount:'', amountMeaning:'', retroactive:false, retroactiveAmount:'', retroactiveMonths:[], retroactiveMonth:'', versionLabel: '', notes: '' });
+const newEntry = () => {const today=localDate();return {deliveredOn:today,startOn:today,expiresOn:'',expiryMode:'DEFAULT',agreedAmount:'',amountMeaning:'',retroactive:false,retroactiveAmount:'',retroactiveMonths:[],retroactiveMonth:'',versionLabel:'',notes:''};};
 const periodNames = { DAYS: 'días', WEEKS: 'semanas', MONTHS: 'meses', YEARS: 'años' };
 const modes = {
   NONE: 'Sin vencimiento',
@@ -38,7 +39,7 @@ function entryStatus(entry) {
   return { text: 'Respaldo firmado registrado', kind: 'success' };
 }
 
-export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = false, role, onMessage }) {
+export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = false, role, onMessage, onDirtyChange, onSalaryApplied }) {
   const [types, setTypes] = useState([]);
   const [entries, setEntries] = useState([]);
   const [error, setError] = useState('');
@@ -46,6 +47,26 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
   const [editing, setEditing] = useState(null);
   const [entryDraft, setEntryDraft] = useState(newEntry);
   const [uploads, setUploads] = useState({});
+  const [startEdited,setStartEdited]=useState(false);
+  const [currentSalary,setCurrentSalary]=useState(null);
+  const canApprove=['admin','supervisor'].includes(role);
+  const hasLocalDraft=editing!==null||Object.values(uploads).some(upload=>Boolean(upload?.file));
+  useEffect(()=>{onDirtyChange?.(hasLocalDraft);},[hasLocalDraft,onDirtyChange]);
+  useEffect(()=>()=>onDirtyChange?.(false),[onDirtyChange]);
+  async function reloadSalary(){
+    if(!canApprove)return;
+    const result=await api('/contract-terms/workers/'+employeeId);
+    const value=result.terms?.monthlyBaseSalary;
+    setCurrentSalary(Number.isSafeInteger(value)&&value>0?value:null);
+  }
+  useEffect(()=>{
+    if(!employeeId||!canApprove){setCurrentSalary(null);return;}
+    let active=true;
+    api('/contract-terms/workers/'+employeeId).then(result=>{
+      if(active){const value=result.terms?.monthlyBaseSalary;setCurrentSalary(Number.isSafeInteger(value)&&value>0?value:null);}
+    }).catch(e=>{if(active)setError(e.message);});
+    return ()=>{active=false;};
+  },[employeeId,role]);
 
   async function reload() {
     const [catalog, history] = await Promise.all([
@@ -78,7 +99,12 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
     return () => window.removeEventListener('attendance:document-catalog-changed', onChanged);
   }, [employeeId]);
 
-  const changeEntry = (key, value) => setEntryDraft(old => ({ ...old, [key]: value }));
+  const changeEntry = (key, value) => {
+    if(key==='startOn')setStartEdited(true);
+    setEntryDraft(old => key==='deliveredOn'
+      ? {...old,deliveredOn:value,...(!startEdited?{startOn:value}:{})}
+      : {...old,[key]:value});
+  };
   async function addEntry(type) {
     if (hasUnsavedChanges) return setError('Guarda primero los cambios de la ficha.');
     setBusy(true);
@@ -91,12 +117,24 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
       await reload();
       setEditing(null);
       setEntryDraft(newEntry());
+      setStartEdited(false);
       onMessage?.('Entrega o renovación registrada. Ahora puedes adjuntar el PDF.');
     } catch (err) {
       setError(err.message);
     } finally {
       setBusy(false);
     }
+  }
+  async function approveSalary(entry){
+    if(hasUnsavedChanges||hasLocalDraft)return setError('Guarda o cancela los otros cambios pendientes antes de aprobar el sueldo.');
+    setBusy(true);setError('');
+    try{
+      const result=await api('/employee-documents/entries/'+entry.id+'/approve-salary',{method:'POST'});
+      try{await Promise.all([reload(),reloadSalary()]);}
+      catch(refreshError){setError('Sueldo aplicado pero no se pudo refrescar la ficha: '+refreshError.message);}
+      onSalaryApplied?.();
+      onMessage?.(result.message);
+    }catch(err){setError(err.message);}finally{setBusy(false);}
   }
   const uploadChange = (id, key, value) => setUploads(old => ({
     ...old, [id]: { ...old[id], [key]: value }
@@ -179,6 +217,7 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
               <span>{history.length ? history.length + ' entrega(s) y renovación(es)' : '¿Tiene este documento? No registrado'}</span>
               <button type="button" disabled={busy || hasUnsavedChanges || (!type.canRegister || !canRecordAmount)} onClick={() => {
                 setEditing(isEditing ? null : type.id);
+                setStartEdited(false);
                 setEntryDraft(newEntry());
               }}>{isEditing ? 'Cancelar' : history.length ? 'Registrar renovación / nueva entrega' : 'Sí, registrar entrega'}</button>
             </div>
