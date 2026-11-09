@@ -55,6 +55,8 @@ export const fileSchema = z.object({
       afp: text,
       healthSystem: text,
       isapreName: text,
+      healthPlanAmount: text,
+      healthPlanUnit: text,
       temporaryDocument: text,
       firstName: text,
       paternalLastName: text,
@@ -243,6 +245,22 @@ export async function saveEmployeeFile(id, data, admin) {
     for(const key of ['sex','nationality','civilStatus','hierarchyUnit','costCenter','branch','afp','healthSystem','isapreName']){
       if(!before || empty(incomingExtra[key])!==empty(previousExtra[key]))
         if(empty(incomingExtra[key]))data.extra[key]=normalizeLabel(incomingExtra[key]);
+    }
+    // Permitir vaciar expresamente los datos previsionales al cambiar de institución
+    // sin borrar otros datos históricos ni reemplazar campos no enviados.
+    for(const key of ['afp','healthSystem','isapreName','healthPlanAmount','healthPlanUnit']){
+      if(Object.prototype.hasOwnProperty.call(incomingExtra,key)&&!empty(incomingExtra[key]))
+        data.extra[key]=null;
+    }
+    const plan=empty(incomingExtra.healthPlanAmount);
+    const previousPlan=empty(previousExtra.healthPlanAmount);
+    if(plan!==previousPlan && plan!==null){
+      const unit=empty(incomingExtra.healthPlanUnit)||empty(data.extra.healthPlanUnit)||'UF';
+      const number=Number(plan);
+      if(!['UF','CLP'].includes(unit)||!Number.isFinite(number)||number<=0||
+         number>100000000||Math.abs(number*100-Math.round(number*100))>1e-6||
+         (unit==='CLP'&&!Number.isInteger(number)))
+        throw problem('El precio del plan Isapre debe ser mayor a cero: UF con hasta 2 decimales o CLP enteros.',400);
     }
     data.extra.maternalLastName = data.secondLastName || null;
     const doc = empty(data.documentId);

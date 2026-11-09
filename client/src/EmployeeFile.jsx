@@ -90,6 +90,9 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   const [contractReload,setContractReload]=useState(0);
   const [role,setRole]=useState(null);
   const [companies,setCompanies]=useState([]);
+  const [previsionCatalog,setPrevisionCatalog]=useState([]);
+  const afpEntities=previsionCatalog.filter(item=>item.kind==='AFP');
+  const isapreEntities=previsionCatalog.filter(item=>item.kind==='ISAPRE');
   const dirty = Boolean(draft) && JSON.stringify(draft) !== saved;
   const pendingSections = pendingFileSections({general:dirty, medical:medicalDirty, contract:contractDirty, documents:documentsDirty});
   const showContractDetails = ['INDEFINIDO', 'PLAZO_FIJO'].includes(draft?.contractType);
@@ -107,6 +110,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     if(!active)return;
     let current=true;
     api('/companies').then(result=>{if(current)setCompanies(result.companies||[]);}).catch(e=>{if(current)setError(e.message);});
+    api('/labor-accounting/catalog').then(result=>{if(current)setPrevisionCatalog(result.entities||[]);}).catch(e=>{if(current)setError('No se pudo cargar el catálogo previsional: '+e.message);});
     return ()=>{current=false;};
   },[active]);
   useEffect(() => {
@@ -415,19 +419,44 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                 {draft.extra?.nationality==='OTRA'&&renderExtra(['nationalityDetail','Especificar nacionalidad'])}
                 {renderSelectExtra('civilStatus','Estado civil',CIVIL_STATUS_OPTIONS)}
                 <label>AFP
-                  <input maxLength={150} value={draft.extra?.afp||''}
-                    onChange={e=>change('extra',{...draft.extra,afp:normalizeLabel(e.target.value)})} placeholder="AFP del trabajador"/>
-                </label>
-                <label>Sistema de salud
-                  <select value={draft.extra?.healthSystem||''} onChange={e=>change('extra',{...draft.extra,healthSystem:e.target.value,...(e.target.value==='FONASA'?{isapreName:''}:{})})}>
-                    <option value="">Sin informar</option><option value="FONASA">FONASA</option><option value="ISAPRE">ISAPRE</option>
-                    {draft.extra?.healthSystem&&!['FONASA','ISAPRE'].includes(draft.extra.healthSystem)&&<option value={draft.extra.healthSystem}>{draft.extra.healthSystem} (histórico)</option>}
+                  <select value={draft.extra?.afp||''} aria-label="AFP" onChange={e=>change('extra',{...draft.extra,afp:e.target.value})}>
+                    <option value="">Sin informar</option>
+                    {afpEntities.map(item=><option key={item.id} value={item.name}>{item.name}</option>)}
+                    {draft.extra?.afp&&!afpEntities.some(item=>item.name===draft.extra.afp)&&
+                      <option value={draft.extra.afp}>{draft.extra.afp} (registro histórico)</option>}
                   </select>
                 </label>
-                {draft.extra?.healthSystem==='ISAPRE'&&<label>Nombre de Isapre
-                  <input maxLength={150} value={draft.extra?.isapreName||''}
-                    onChange={e=>change('extra',{...draft.extra,isapreName:normalizeLabel(e.target.value)})}/>
-                </label>}
+                <label>Sistema de salud
+                  <select value={draft.extra?.healthSystem||''} onChange={e=>change('extra',{...draft.extra,healthSystem:e.target.value,
+                    ...(e.target.value==='FONASA'?{isapreName:'',healthPlanAmount:'',healthPlanUnit:''}:{})})}>
+                    <option value="">Sin informar</option><option value="FONASA">FONASA</option><option value="ISAPRE">ISAPRE</option>
+                    {draft.extra?.healthSystem&&!['FONASA','ISAPRE'].includes(draft.extra.healthSystem)&&
+                      <option value={draft.extra.healthSystem}>{draft.extra.healthSystem} (histórico)</option>}
+                  </select>
+                </label>
+                {draft.extra?.healthSystem==='ISAPRE'&&<>
+                  <label>Isapre
+                    <select value={draft.extra?.isapreName||''} aria-label="Isapre" onChange={e=>change('extra',{...draft.extra,isapreName:e.target.value})}>
+                      <option value="">Seleccionar Isapre</option>
+                      {isapreEntities.map(item=><option key={item.id} value={item.name}>{item.name}</option>)}
+                      {draft.extra?.isapreName&&!isapreEntities.some(item=>item.name===draft.extra.isapreName)&&
+                        <option value={draft.extra.isapreName}>{draft.extra.isapreName} (registro histórico)</option>}
+                    </select>
+                  </label>
+                  <label>Precio pactado del plan de Isapre
+                    <input type="number" min="0" step={draft.extra?.healthPlanUnit==='CLP'?'1':'0.01'}
+                      value={draft.extra?.healthPlanAmount||''} placeholder="Valor individual del trabajador"
+                      onChange={e=>change('extra',{...draft.extra,healthPlanAmount:e.target.value,
+                        healthPlanUnit:draft.extra?.healthPlanUnit||'UF'})}/>
+                  </label>
+                  <label>Unidad del plan de salud
+                    <select value={draft.extra?.healthPlanUnit||'UF'}
+                      onChange={e=>change('extra',{...draft.extra,healthPlanUnit:e.target.value})}>
+                      <option value="UF">UF</option><option value="CLP">Pesos chilenos (CLP)</option>
+                    </select>
+                  </label>
+                  <p className="ef-note ef-field-wide">El plan de Isapre es individual. La cotización legal y las tasas de la institución se consultan desde Gestión → Contabilidad Laboral.</p>
+                </>}
                 {draft.extra?.workerNumber&&workerNumberFromRut(draft.documentId)&&draft.extra.workerNumber!==workerNumberFromRut(draft.documentId)&&<p className="ef-note ef-field-wide">Número histórico diferente: {draft.extra.workerNumber}. Se conservará como referencia al guardar.</p>}
               </div>
             </fieldset>
