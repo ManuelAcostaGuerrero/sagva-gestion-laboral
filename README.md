@@ -2,7 +2,7 @@
 
 **Sistema modular de gestión de personal y control de asistencia.** El módulo de Propinas es complementario, no el núcleo del producto.
 
-> **Estado al 09-11-2026:** Huella base, Entregas 1 y 2 y Contabilidad Laboral integradas en `main`, con CI aprobado; el propietario reportó pruebas Windows y acceso móvil HTTPS y aprobó la fase funcional reciente. **No** se ha acreditado la restauración/paridad completa `INT-002`, ni integrado Propinas/PostgreSQL, ni autorizado producción o versión `v1.0.0`. [Cierre y hoja de ruta](docs/24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md).
+> **Estado al 09-11-2026:** Huella base, Entregas 1 y 2 y Contabilidad Laboral integradas en `main`, con CI aprobado; el propietario reportó pruebas Windows y acceso móvil HTTPS y aprobó la fase funcional reciente. **No** se ha acreditado la restauración/paridad completa `INT-002`, ni integrado Propinas/PostgreSQL, ni autorizado producción o versión `v1.0.0`. [Cierre y hoja de ruta](docs/24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md). [Plan de trabajo del 10-11-2026: campos, root y contabilidad](docs/25-PLAN-CONTABILIDAD-LABORAL-CAMPOS-Y-PERMISOS-20261110.md).
 
 ## Objetivo
 

@@ -106,3 +106,12 @@ Cada nueva decisión agrega ID, fecha, problema, opciones, decisión aprobada, i
 | D-045 | Restricción vigente | Túnel Cloudflare temporal sirve para prueba HTTPS móvil; no dejarlo expuesto como publicación definitiva ni compartir enlaces temporales. |
 
 Las decisiones D-034/D-035/D-036 y D-032 del registro previo pasaron a implementación en las entregas citadas. Sus antiguas casillas de pendientes **no representan el estado vigente**. La lista informal de puntos 1–21 y los IDs D-NNN son numeraciones distintas.
+
+## Plan de permisos y campos para la próxima sesión — 10-11-2026
+
+- **D-046 (nueva propuesta):** Contabilidad Laboral pasa a ser la fuente única de configuración de campos, catálogos, parámetros y valores versionados. Ficha y contratos reflejan solo definiciones publicadas y capturan **valores individuales o pactados**, según permisos. No se implementan liquidaciones ni pagos.
+- **D-047 (nuevo criterio autorizado por propietario):** un **administrador de local** nunca podrá modificar **definiciones de campos ni valores legales globales**. Solo `root` o `contabilidad` expresamente habilitada podrá modificar la configuración. La cuenta `root` antes aplazada queda ahora **incluida en el diseño del próximo trabajo**, pero aún no implementada.
+- **D-048 (propuesta técnica):** RBAC + permisos granulares + ámbito por local, con verificaciones del backend, auditoría y transición segura desde `admin`. La ficha separa modificar definiciones de registrar valores del trabajador.
+- **D-049 (orden de trabajo):** primero auditar y proteger permisos, después crear configurador de campos y completar parámetros y fichas. No migrar identidades ni registrar salarios/pagos automáticos.
+
+[Especificación, matriz de roles, tareas y criterios de aceptación](25-PLAN-CONTABILIDAD-LABORAL-CAMPOS-Y-PERMISOS-20261110.md). El plan es **documental**, no evidencia de código ejecutado ni aprobación de fases INT.

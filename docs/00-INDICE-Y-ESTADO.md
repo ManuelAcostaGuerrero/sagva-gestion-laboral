@@ -45,6 +45,7 @@
 20. [Actualizador local manual](23-ACTUALIZADOR-LOCAL-20261108.md).
 21. [Contabilidad Laboral y previsión](23-CONTABILIDAD-LABORAL-20261109.md).
 22. [Cierre funcional reciente, pruebas móviles y hoja de ruta](24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md).
+23. [Plan para 10-11-2026: configurador de campos y segregación root/contabilidad/admin local](25-PLAN-CONTABILIDAD-LABORAL-CAMPOS-Y-PERMISOS-20261110.md).
 
 Operación de asistentes: [AGENTS.md](../AGENTS.md). Cambios: [CONTRIBUTING.md](../CONTRIBUTING.md).
 
