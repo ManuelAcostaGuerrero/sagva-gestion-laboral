@@ -13,7 +13,7 @@ import ContractTerms from "./ContractTerms.jsx";
 import {assembledWorkerName,normalizeLabel,workerNumberFromRut,completeFileMissing,SEX_OPTIONS,CIVIL_STATUS_OPTIONS,NATIONALITIES} from "../../server/src/workerFileStandards.js";
 import {checkRut,formatRut} from '../../server/src/rut.js';
 import {currentContractEnd, validContractDate} from '../../server/src/employeeContracts.js';
-import {pendingFileSections, canCloseAfterValidation, showReviewAction} from './employeeFileReview.js';
+import {pendingFileSections, canCloseAfterSuccessfulSave, showReviewAction} from './employeeFileReview.js';
 import {saveEmployeeSections} from './saveEmployeeSections.js';
 
 const fresh = () => ({
@@ -86,10 +86,12 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   const medicalRef = useRef(null);
   const contractRef = useRef(null);
   const [contractDirty,setContractDirty]=useState(false);
+  const [documentsDirty,setDocumentsDirty]=useState(false);
+  const [contractReload,setContractReload]=useState(0);
   const [role,setRole]=useState(null);
   const [companies,setCompanies]=useState([]);
   const dirty = Boolean(draft) && JSON.stringify(draft) !== saved;
-  const pendingSections = pendingFileSections({general:dirty, medical:medicalDirty, contract:contractDirty});
+  const pendingSections = pendingFileSections({general:dirty, medical:medicalDirty, contract:contractDirty, documents:documentsDirty});
   const showContractDetails = ['INDEFINIDO', 'PLAZO_FIJO'].includes(draft?.contractType);
   async function load() {
     const result = await api("/employee-files");
@@ -108,14 +110,14 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     return ()=>{current=false;};
   },[active]);
   useEffect(() => {
-    if (!dirty && !medicalDirty && !contractDirty) return;
+    if (!dirty && !medicalDirty && !contractDirty && !documentsDirty) return;
     const guard = (e) => {
       e.preventDefault();
       e.returnValue = "";
     };
     window.addEventListener("beforeunload", guard);
     return () => window.removeEventListener("beforeunload", guard);
-  }, [dirty,medicalDirty,contractDirty]);
+  }, [dirty,medicalDirty,contractDirty,documentsDirty]);
   const open = (file) => {
     if (file?.id && file.id === draft?.id) return;
     if (pendingSections.length) {
@@ -125,7 +127,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     select(file);
   };
   const select = (file) => {
-    if (file.id !== draft?.id) {setMedicalDirty(false);setContractDirty(false);}
+    if (file.id !== draft?.id) {setMedicalDirty(false);setContractDirty(false);setDocumentsDirty(false);}
     const value = structuredClone(file);
     value.hasAnnexes = !!value.annexes?.length;
     value.employmentStatus ||= value.isActive === 0 ? "INACTIVO" : "ACTIVO";
@@ -140,7 +142,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   useEffect(() => {
     if (!next || busy || pendingSections.length > 0) return;
     select(next);
-  }, [next, busy, dirty, medicalDirty, contractDirty]);
+  }, [next, busy, dirty, medicalDirty, contractDirty, documentsDirty]);
   useEffect(() => {
     if (!workerNavigation?.id) return;
     const target = files.find(file => Number(file.id) === Number(workerNavigation.id));
@@ -174,6 +176,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   async function save(event,complete=false) {
     event?.preventDefault();
     if (!draft || busy) return;
+    if(documentsDirty){setError('Termina o cancela el documento laboral en preparación antes de cerrar la ficha.');return;}
     setBusy(true);
     setError('');
     let resultFile = null;
@@ -209,8 +212,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
           return contractRef.current.saveChanges();
         }
       });
-      const validated = complete && resultFile?.validationStatus === 'VALIDADO';
-      const closed = canCloseAfterValidation({completed:complete,validated,medical:false,contract:false});
+      const closed = canCloseAfterSuccessfulSave({savedSections:completed,documents:documentsDirty});
       if (closed) {
         if (next) select(next);
         else {
@@ -230,7 +232,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
           setError('Datos guardados, pero no se pudo refrescar la lista: '+refreshError.message);
         }
       }
-      onMessage?.(closed ? 'Ficha validada y cerrada.'
+      onMessage?.(closed ? 'Cambios guardados. Ficha cerrada correctamente.'
         : completed.length ? 'Cambios guardados: '+completed.join(', ')+'.'
         : 'La ficha ya está guardada, sin cambios pendientes.');
     } catch (e) {
@@ -412,6 +414,20 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                 {renderSelectExtra('nationality','Nacionalidad',NATIONALITIES)}
                 {draft.extra?.nationality==='OTRA'&&renderExtra(['nationalityDetail','Especificar nacionalidad'])}
                 {renderSelectExtra('civilStatus','Estado civil',CIVIL_STATUS_OPTIONS)}
+                <label>AFP
+                  <input maxLength={150} value={draft.extra?.afp||''}
+                    onChange={e=>change('extra',{...draft.extra,afp:normalizeLabel(e.target.value)})} placeholder="AFP del trabajador"/>
+                </label>
+                <label>Sistema de salud
+                  <select value={draft.extra?.healthSystem||''} onChange={e=>change('extra',{...draft.extra,healthSystem:e.target.value,...(e.target.value==='FONASA'?{isapreName:''}:{})})}>
+                    <option value="">Sin informar</option><option value="FONASA">FONASA</option><option value="ISAPRE">ISAPRE</option>
+                    {draft.extra?.healthSystem&&!['FONASA','ISAPRE'].includes(draft.extra.healthSystem)&&<option value={draft.extra.healthSystem}>{draft.extra.healthSystem} (histórico)</option>}
+                  </select>
+                </label>
+                {draft.extra?.healthSystem==='ISAPRE'&&<label>Nombre de Isapre
+                  <input maxLength={150} value={draft.extra?.isapreName||''}
+                    onChange={e=>change('extra',{...draft.extra,isapreName:normalizeLabel(e.target.value)})}/>
+                </label>
                 {draft.extra?.workerNumber&&workerNumberFromRut(draft.documentId)&&draft.extra.workerNumber!==workerNumberFromRut(draft.documentId)&&<p className="ef-note ef-field-wide">Número histórico diferente: {draft.extra.workerNumber}. Se conservará como referencia al guardar.</p>}
               </div>
             </fieldset>
@@ -467,7 +483,9 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                   {renderClear('contractType')}
                 </label>
                 {showContractDetails && renderField('hireDate','Fecha de inicio')}
-                {draft.contractType === 'INDEFINIDO' && (draft.employmentStatus === 'INACTIVO' || draft.employmentStatus === 'FINIQUITADO' || draft.isActive === 0 || draft.terminationDate) && renderField('terminationDate','Fecha de término')}
+                {draft.contractType === 'INDEFINIDO' && (draft.employmentStatus === 'INACTIVO' || draft.employmentStatus === 'FINIQUITADO' || draft.isActive === 0) && renderField('terminationDate','Fecha de término efectivo')}
+                {draft.contractType === 'INDEFINIDO' && draft.employmentStatus==='ACTIVO' && draft.isActive!==0 &&
+                  <p className="ef-note ef-field-wide">Contrato indefinido vigente: sin fecha de vencimiento. Una fecha anterior, si existe, se conserva como historial.</p>}
                 {draft.contractType === 'PLAZO_FIJO' && <>
                   {renderField('terminationDate','Fecha de término inicial')}
                   <label>¿Tiene anexos?
@@ -494,7 +512,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                   <p>{draft.contractType === 'INDEFINIDO' ? 'Contrato indefinido' + (draft.employmentStatus === 'ACTIVO' && draft.isActive !== 0 ? ' vigente' : ' · trabajador inactivo') + (currentContractEnd(draft) ? ' · Término: ' + currentContractEnd(draft).split('-').reverse().join('/') : '') : currentContractEnd(draft)?.split('-').reverse().join('/') || 'Fecha de término pendiente'}</p>
                 </div>}
                 <ContractFiles file={draft} dirty={dirty} onMessage={onMessage} />
-                {["admin","supervisor"].includes(role)&& (draft.id ? <ContractTerms ref={contractRef} key={draft.id} employeeId={draft.id}
+                {["admin","supervisor"].includes(role)&& (draft.id ? <ContractTerms ref={contractRef} key={draft.id+'-'+contractReload} employeeId={draft.id} suggestedWorkplace={draft.extra?.branch||selectedCompany?.defaultBranch||''}
                   positionName={draft.positionName} positions={positions}
                   onDirtyChange={setContractDirty} /> : <p className="ef-note ef-field-wide">Guarda primero al trabajador para registrar condiciones contractuales.</p>)}
                 <div className="ef-field-wide"><strong>Estado laboral</strong></div>
@@ -536,7 +554,10 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
             </div>
             </div>
             <div className="ef-tab-content" hidden={tab!=='documents'}>
-              <EmployeeDocuments role={role} key={draft.id || 'new'} employeeId={draft.id} hasUnsavedChanges={Boolean(dirty)} onMessage={onMessage} />
+              <EmployeeDocuments role={role} key={draft.id || 'new'} employeeId={draft.id}
+                 hasUnsavedChanges={Boolean(dirty||medicalDirty||contractDirty)}
+                 onDirtyChange={setDocumentsDirty}
+                 onSalaryApplied={()=>setContractReload(n=>n+1)} onMessage={onMessage} />
             </div>
             {['admin','supervisor'].includes(role)&&<div className="ef-tab-content" hidden={tab!=='medical'}>
               {draft.id ? <MedicalLeaves key={draft.id} employeeId={draft.id} hasUnsavedChanges={Boolean(dirty)} onMessage={onMessage} />
