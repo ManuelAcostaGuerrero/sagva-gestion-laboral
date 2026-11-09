@@ -3,7 +3,7 @@
 
 **Rama:** `feature/bl001-bl005-ficha-beneficios-20261109`  
 **PR:** [#9](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/9)  
-**Estado inicial:** implementado en rama; **no declarar aceptado ni instalado** hasta CI y pruebas de Windows/móvil, revisión de seguridad y aprobación.
+**Estado de GitHub al 09-11-2026:** código integrado en rama del PR #9 con CI verificado (servidor, build y QR móvil) en SHA `d323d6db95e5ff2a3ea4469ecec20e9fa945e1e8`. **No probado todavía en el PC del propietario ni aprobado para producción.**
 
 ## Secuencia de trabajo realizada
 
@@ -25,13 +25,17 @@ Estos env vars son una **barrera transitoria deliberada**, no el panel visual Ro
 
 - La solicitud de transferencia a cuenta del trabajador debe documentarse (art. 54 Código del Trabajo). La captura de cuenta es opcional y el usuario puede operar sin ella.
 - En el formulario la entrada está enmascarada por defecto; solo se desenmascara mientras se mantiene pulsado el control.
-- Los datos bancarios NO se guardan en `employee_files.extra_json` ni se incluyen en `fileSelect` o la auditoría genérica de la ficha.
-- El acceso de familia es por endpoint separado y denegado a operadores; los detalles familiares no se incluyen en listas generales ni trazas de auditoría. No hay pagos.
+- Los datos bancarios NO se guardan en `employee_files.extra_json` ni se incluyen en `fileSelect` o la auditoría genérica de la ficha. Las versiones anteriores quedan cifradas en `employee_bank_account_history` sin mostrar valores en bitácora.
+- El acceso de familia es por endpoint separado y denegado a operadores; los detalles familiares no se incluyen en listas generales ni trazas de auditoría, pero se conservan snapshots privados por revisión. No hay pagos.
 
 ## Pruebas y límites
 
 La prueba en `server/src/__tests__/labor-benefits.test.js` usa SQLite en memoria y personas sintéticas, verifica precarga, idempotencia, restricciones, vigencias, reconocimiento, concurrencia, cifrado y redacción de logs.
 
-**Antes del merge:** esperar resultado real de GitHub CI, compilar React, corregir fallos; luego revisar la UI, seguridad transitoria, migraciones y visualización en teléfono. Ninguna ejecución sobre base real ni Windows se da por realizada desde GitHub.
+**Evidencia CI del SHA `d323d6db95e5ff2a3ea4469ecec20e9fa945e1e8`:** [Verificar proyecto 42689884990](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/actions/runs/42689884990) = `success`; [Validar mejoras QR móvil 42689885021](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/actions/runs/42689885021) = `success`. El commit posterior solo cambia documentación; comprobar nuevamente estado y SHA antes de fusionar.
+
+**Aún pendientes de validación física antes de uso productivo:** actualización manual Windows con respaldo recuperable, previsualización responsiva móvil HTTPS, uso y caducidad de permisos, pruebas de acceso bancario configurado con usuarios autorizados, restauración de copia y revisión de la política de datos personales. No hay ensayo con datos reales desde GitHub.
+
+**Límites conocidos de este lote:** la cuenta bancaria almacena una referencia de autorización, no genera todavía un PDF firmado; las cargas guardan referencia de reconocimiento, sin añadir en esta entrega un cargador PDF por causante. El panel Root y la delegación granular siguen siendo BL-007; el mecanismo transitorio exige IDs explícitos y clave externa. No configurar claves bancarias sobre repositorios públicos.
 
 **Fuera de esta entrega:** BL-006 motor autoadaptable general, BL-007 Root y permisos individuales, BL-008 auditoría transversal, BL-009 enlaces de alta; no cambiar Huella original ni Propinas.
