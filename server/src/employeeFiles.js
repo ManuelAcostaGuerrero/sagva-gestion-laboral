@@ -54,6 +54,7 @@ export const fileSchema = z.object({
       nationalityDetail: text,
       afp: text,
       healthSystem: text,
+      isapreName: text,
       temporaryDocument: text,
       firstName: text,
       paternalLastName: text,
@@ -208,6 +209,11 @@ export async function saveEmployeeFile(id, data, admin) {
     for (const [key,label] of [['birthDate','nacimiento']])
       if (changed(key) && empty(data[key]) && !validContractDate(data[key])) throw problem(`Revisa la fecha de ${label}. Usa una fecha válida del calendario.`,400);
     if (oldAnnexes.length && !empty(data.terminationDate)) throw problem('La fecha de término inicial debe conservarse junto al historial de anexos.',400);
+    // No programar vencimiento en un indefinido activo; conservar fechas históricas no editadas.
+    if(data.contractType==='INDEFINIDO' && data.employmentStatus==='ACTIVO' &&
+      before?.isActive!==0 && empty(data.terminationDate) &&
+      empty(data.terminationDate)!==empty(before?.terminationDate))
+      throw problem('Un contrato indefinido activo no admite una nueva fecha de término.',400);
     const sameAnnexes = JSON.stringify(data.annexes) === JSON.stringify(oldAnnexes);
     const contractChanged = ['contractType','hireDate','terminationDate'].some(changed) || !sameAnnexes;
     if (contractChanged) validateContract({...data, birthDate:undefined,
@@ -234,7 +240,7 @@ export async function saveEmployeeFile(id, data, admin) {
     if(!territoryPathValid(data.extra))throw problem('Revisa la Región, Provincia y Comuna del domicilio particular.',400);
     data.extra.firstName = [data.firstName,data.secondName,data.otherNames].filter(Boolean).join(' ') || null;
     data.extra.paternalLastName = data.firstLastName || null;
-    for(const key of ['sex','nationality','civilStatus','hierarchyUnit','costCenter','branch','afp','healthSystem']){
+    for(const key of ['sex','nationality','civilStatus','hierarchyUnit','costCenter','branch','afp','healthSystem','isapreName']){
       if(!before || empty(incomingExtra[key])!==empty(previousExtra[key]))
         if(empty(incomingExtra[key]))data.extra[key]=normalizeLabel(incomingExtra[key]);
     }

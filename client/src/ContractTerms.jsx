@@ -2,7 +2,7 @@ import React,{forwardRef,useEffect,useImperativeHandle,useState} from 'react';
 import {api} from './services/api.js';
 import {blankContractTerms} from '../../server/src/contractTerms.js';
 
-const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName,positions=[],onDirtyChange},ref){
+const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName,positions=[],suggestedWorkplace='',onDirtyChange},ref){
  const [draft,setDraft]=useState(blankContractTerms),[saved,setSaved]=useState(null);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[loading,setLoading]=useState(true);
  const dirty=saved!==null&&JSON.stringify(saved)!==JSON.stringify(draft);
@@ -42,7 +42,11 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
    <label>Medio de pago<select value={draft.paymentMethod} onChange={e=>change('paymentMethod',e.target.value)}>
     <option value="">Por definir</option>{['TRANSFERENCIA','EFECTIVO','CHEQUE','OTRO'].map(v=><option key={v} value={v}>{v}</option>)}</select></label>
    <label>Lugar habitual de prestación
-    <input value={draft.workplace} maxLength={500} onChange={e=>change('workplace',e.target.value.toLocaleUpperCase('es-CL'))}/></label>
+    <input value={draft.workplace} maxLength={500} onChange={e=>change('workplace',e.target.value.toLocaleUpperCase('es-CL'))} placeholder={suggestedWorkplace||'Por definir'}/></label>
+   {suggestedWorkplace&&<div className="ef-field-wide">
+    <button type="button" disabled={draft.workplace===suggestedWorkplace} onClick={()=>change('workplace',suggestedWorkplace)}>Usar sucursal sugerida: {suggestedWorkplace}</button>
+    <p className="ef-note">Sugerencia opcional; no modifica el lugar histórico sin confirmación.</p>
+   </div>
    <label className="ef-field-wide">Distribución contractual de jornada / turnos
     <textarea rows={3} maxLength={2000} value={draft.shiftDistribution}
      onChange={e=>change('shiftDistribution',e.target.value)}/></label>
