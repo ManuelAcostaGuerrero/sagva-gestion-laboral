@@ -22,6 +22,8 @@ import { companiesRouter } from './routes/companies.routes.js';
 import { contractTermsRouter } from './routes/contractTerms.routes.js';
 import { tokenRouter } from './routes/token.routes.js';
 import { laborAccountingRouter } from './routes/laborAccounting.routes.js';
+import { laborBenefitsRouter } from './routes/laborBenefits.routes.js';
+import { employeeBenefitsRouter } from './routes/employeeBenefits.routes.js';
 
 export const app = express();
 const allowedOrigins = String(process.env.CLIENT_ORIGIN || 'http://localhost:5183')
@@ -85,6 +87,8 @@ app.use('/api/medical-leaves', medicalLeavesRouter);
 app.use('/api/medical-profiles', medicalProfilesRouter);
 app.use('/api/companies', companiesRouter);
 app.use('/api/labor-accounting', laborAccountingRouter);
+app.use('/api/labor-benefits', laborBenefitsRouter);
+app.use('/api/employee-benefits', employeeBenefitsRouter);
 app.use('/api/contract-terms', contractTermsRouter);
 app.use('/api/tokens', tokenRouter);
 app.use('/api/attendance', attendanceRouter);
