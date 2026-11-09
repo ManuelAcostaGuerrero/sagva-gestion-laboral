@@ -69,3 +69,10 @@ Este documento debe mantenerse al día **después de resultados observados**, nu
 - **No ejecutado en esta actualización documental:** migración, restauración, cambios de SQLite, nuevos tests en PC, despliegue, integración Propinas o creación del perfil root.
 
 [Checklist y hoja de ruta consolidada](24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md).
+
+## 09-11-2026 — Ejecución BL-001 a BL-005
+
+- Se creó PR #9 con BL-003 (catálogo de bancos), BL-004 (cargas), BL-001 (subdivisión ficha), BL-002 (cuenta bancaria cifrada) y BL-005 (tramos versionados), en una sola integración.
+- Validación GitHub **real** del último commit de funcionalidad `d323d6db95e5ff2a3ea4469ecec20e9fa945e1e8`: `42689884990` y `42689885021` = success. Último cambio corrige guardado si solamente cambia cuenta o cargas y conserva historia privada cifrada/snapshots.
+- **No equivale** a ensayo de restauración de SQLite productiva, verificación del cifrado/custodia de claves en PC, revisión de datos bancarios con contadora ni acceso móvil físico. Producción continúa sin autorización.
+- [Informe técnico, permisos transitorios y límites](28-BL001-BL005-IMPLEMENTACION-EN-REVISION-20261109.md).

@@ -10,6 +10,8 @@ import TerritoryFields from './TerritoryFields.jsx';
 import {matchesEmployeeSearch} from './employeeSearch.js';
 import PhoneField from "./PhoneField.jsx";
 import ContractTerms from "./ContractTerms.jsx";
+import EmployeeFamilyBenefits from './EmployeeFamilyBenefits.jsx';
+import EmployeeBankDetails from './EmployeeBankDetails.jsx';
 import {assembledWorkerName,normalizeLabel,workerNumberFromRut,completeFileMissing,SEX_OPTIONS,CIVIL_STATUS_OPTIONS,NATIONALITIES} from "../../server/src/workerFileStandards.js";
 import {checkRut,formatRut} from '../../server/src/rut.js';
 import {currentContractEnd, validContractDate} from '../../server/src/employeeContracts.js';
@@ -82,6 +84,10 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     [error, setError] = useState(""),
     [next, setNext] = useState(null);
   const [tab,setTab]=useState('general');
+  const [subTab,setSubTab]=useState('personal');
+  const [familyDirty,setFamilyDirty]=useState(false);
+  const [bankDirty,setBankDirty]=useState(false);
+  const familyRef=useRef(null),bankRef=useRef(null);
   const [medicalDirty,setMedicalDirty]=useState(false);
   const medicalRef = useRef(null);
   const contractRef = useRef(null);
@@ -94,7 +100,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   const afpEntities=previsionCatalog.filter(item=>item.kind==='AFP');
   const isapreEntities=previsionCatalog.filter(item=>item.kind==='ISAPRE');
   const dirty = Boolean(draft) && JSON.stringify(draft) !== saved;
-  const pendingSections = pendingFileSections({general:dirty, medical:medicalDirty, contract:contractDirty, documents:documentsDirty});
+  const pendingSections = pendingFileSections({general:dirty, medical:medicalDirty, contract:contractDirty, documents:documentsDirty, family:familyDirty,bank:bankDirty});
   const showContractDetails = ['INDEFINIDO', 'PLAZO_FIJO'].includes(draft?.contractType);
   async function load() {
     const result = await api("/employee-files");
@@ -114,14 +120,14 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     return ()=>{current=false;};
   },[active]);
   useEffect(() => {
-    if (!dirty && !medicalDirty && !contractDirty && !documentsDirty) return;
+    if (!dirty && !medicalDirty && !contractDirty && !documentsDirty && !familyDirty && !bankDirty) return;
     const guard = (e) => {
       e.preventDefault();
       e.returnValue = "";
     };
     window.addEventListener("beforeunload", guard);
     return () => window.removeEventListener("beforeunload", guard);
-  }, [dirty,medicalDirty,contractDirty,documentsDirty]);
+  }, [dirty,medicalDirty,contractDirty,documentsDirty,familyDirty,bankDirty]);
   const open = (file) => {
     if (file?.id && file.id === draft?.id) return;
     if (pendingSections.length) {
@@ -131,7 +137,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     select(file);
   };
   const select = (file) => {
-    if (file.id !== draft?.id) {setMedicalDirty(false);setContractDirty(false);setDocumentsDirty(false);}
+    if (file.id !== draft?.id) {setMedicalDirty(false);setContractDirty(false);setDocumentsDirty(false);setFamilyDirty(false);setBankDirty(false);}
     const value = structuredClone(file);
     value.hasAnnexes = !!value.annexes?.length;
     value.employmentStatus ||= value.isActive === 0 ? "INACTIVO" : "ACTIVO";
@@ -140,13 +146,14 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     setError("");
     setNext(null);
     setTab("general");
+    setSubTab('personal');
   };
   // Si el usuario ya había solicitado otro trabajador, continuar solo cuando
   // se hayan guardado TODAS las secciones pendientes; nunca descartar datos.
   useEffect(() => {
     if (!next || busy || pendingSections.length > 0) return;
     select(next);
-  }, [next, busy, dirty, medicalDirty, contractDirty, documentsDirty]);
+  }, [next, busy, dirty, medicalDirty, contractDirty, documentsDirty, familyDirty,bankDirty]);
   useEffect(() => {
     if (!workerNavigation?.id) return;
     const target = files.find(file => Number(file.id) === Number(workerNavigation.id));
@@ -191,6 +198,8 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
         generalDirty: dirty,
         medicalDirty: medicalDirty || Boolean(medicalRef.current?.isDirty()),
         contractDirty: contractDirty || Boolean(contractRef.current?.isDirty()),
+        familyDirty: familyDirty || Boolean(familyRef.current?.isDirty()),
+        bankDirty: bankDirty || Boolean(bankRef.current?.isDirty()),
         completing: complete,
         saveGeneral: async () => {
           const result = await api(
@@ -206,6 +215,14 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
           // No usar select(): cambia de pestaña y destruye el estado de edición.
           setDraft(value);
           setSaved(JSON.stringify(value));
+        },
+        saveFamily: () => {
+          if(!familyRef.current)throw new Error('La sección de cargas aún no está lista.');
+          return familyRef.current.saveChanges();
+        },
+        saveBank: () => {
+          if(!bankRef.current)throw new Error('La cuenta bancaria aún no está lista.');
+          return bankRef.current.saveChanges();
         },
         saveMedical: () => {
           if (!medicalRef.current) throw new Error('La pestaña médica aún no está preparada.');
@@ -224,6 +241,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
           setSaved('');
           setNext(null);
           setTab('general');
+          setSubTab('personal');
         }
       } else if (next) {
         select(next);
@@ -388,7 +406,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
             </nav>
             <div className="ef-shared-save" role="group" aria-label="Guardar cambios del trabajador">
               <button className="primary" type="submit"
-                disabled={busy || (!dirty && !medicalDirty && !contractDirty && !!draft.id)}>
+                disabled={busy || (!dirty && !medicalDirty && !contractDirty && !familyDirty && !bankDirty && !!draft.id)}>
                 {busy ? 'Guardando…' : draft.id ? 'Guardar ficha' : 'Guardar ficha provisional'}
               </button>
               {showReviewAction({status:draft.validationStatus}) &&
@@ -405,8 +423,15 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
             </p>
             <p>El nombre completo se calcula al editar nombres y apellidos. El nombre legal histórico se conserva para revisión. El botón de guardado provisional no exige completar toda la ficha.</p>
             {!!completeFileMissing(draft).length&&<p className="ef-note">Para validar la ficha faltan: {completeFileMissing(draft).join(', ')}.</p>}
+            <nav className="ef-tabs ef-subtabs" aria-label="Secciones de la ficha general">
+              {[
+                ['personal','Datos personales'],['prevision','Previsión'],['laboral','Empresa y contrato'],
+                ['family','Cargas familiares'],['bank','Cuenta bancaria']
+              ].map(([id,label])=><button type="button" key={id} className={subTab===id?'selected':''} onClick={()=>setSubTab(id)}>{label}</button>)}
+            </nav>
+            <div hidden={subTab!=='personal'}>
             <fieldset className="ef-section">
-              <legend>Datos del trabajador</legend>
+              <legend>Datos personales y contacto</legend>
               <div className="ef-grid">
                 {fields.filter(([key])=>!['mobile','phone'].includes(key)).map(([key,label])=>renderField(key,label))}
                 <TerritoryFields prefix="Trabajador" value={draft.extra||{}} onChange={changes=>change('extra',{...draft.extra,...changes})}/>
@@ -418,6 +443,14 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                 {renderSelectExtra('nationality','Nacionalidad',NATIONALITIES)}
                 {draft.extra?.nationality==='OTRA'&&renderExtra(['nationalityDetail','Especificar nacionalidad'])}
                 {renderSelectExtra('civilStatus','Estado civil',CIVIL_STATUS_OPTIONS)}
+                {draft.extra?.workerNumber&&workerNumberFromRut(draft.documentId)&&draft.extra.workerNumber!==workerNumberFromRut(draft.documentId)&&<p className="ef-note ef-field-wide">Número histórico diferente: {draft.extra.workerNumber}. Se conservará como referencia al guardar.</p>}
+              </div>
+            </fieldset>
+            </div>
+            <div hidden={subTab!=='prevision'}>
+              <fieldset className="ef-section">
+                <legend>Datos previsionales</legend>
+                <div className="ef-grid">
                 <label>AFP
                   <select value={draft.extra?.afp||''} aria-label="AFP" onChange={e=>change('extra',{...draft.extra,afp:e.target.value})}>
                     <option value="">Sin informar</option>
@@ -457,11 +490,12 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                   </label>
                   <p className="ef-note ef-field-wide">El plan de Isapre es individual. La cotización legal y las tasas de la institución se consultan desde Gestión → Contabilidad Laboral.</p>
                 </>}
-                {draft.extra?.workerNumber&&workerNumberFromRut(draft.documentId)&&draft.extra.workerNumber!==workerNumberFromRut(draft.documentId)&&<p className="ef-note ef-field-wide">Número histórico diferente: {draft.extra.workerNumber}. Se conservará como referencia al guardar.</p>}
-              </div>
-            </fieldset>
+                </div>
+              </fieldset>
+            </div>
+            <div hidden={subTab!=='laboral'}>
             <fieldset className="ef-section">
-              <legend>Datos laborales</legend>
+              <legend>Vinculación con la empresa y condiciones laborales</legend>
               <div className="ef-grid">
                 <label>Empresa<select aria-label="Empresa" value={draft.companyId||''} onChange={e=>chooseCompany(e.target.value)}>
                   <option value="" disabled>{draft.company ? draft.company + ' (histórica / no vinculada)' : 'Seleccionar empresa'}</option>
@@ -557,6 +591,8 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                 {extras.filter(([key]) => ['hierarchyUnit','costCenter','branch'].includes(key)).map(renderExtra)}
               </div>
             </fieldset>
+            </div>
+            <div hidden={subTab!=='personal'}>
             <label>
               Observaciones
               <textarea
@@ -580,6 +616,15 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
             )}
             <div className="ef-actions">
               <span>{draft.updatedAt ? 'Última actualización: '+draft.updatedAt : 'Ficha nueva'}</span>
+            </div>
+            </div>
+            <div hidden={subTab!=='family'}>
+              <EmployeeFamilyBenefits ref={familyRef} key={draft.id||'new'} employeeId={draft.id} role={role} onDirtyChange={setFamilyDirty}/>
+            </div>
+            <div hidden={subTab!=='bank'}>
+              <EmployeeBankDetails ref={bankRef} key={draft.id||'new'} employeeId={draft.id}
+                workerName={draft.legalFullName||draft.fullName} workerRut={draft.documentId}
+                onDirtyChange={setBankDirty}/>
             </div>
             </div>
             <div className="ef-tab-content" hidden={tab!=='documents'}>

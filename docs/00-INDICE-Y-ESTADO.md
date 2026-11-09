@@ -46,6 +46,7 @@
 21. [Contabilidad Laboral y previsión](23-CONTABILIDAD-LABORAL-20261109.md).
 22. [Cierre funcional reciente, pruebas móviles y hoja de ruta](24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md).
 23. [Plan para 10-11-2026: configurador de campos y segregación root/contabilidad/admin local](25-PLAN-CONTABILIDAD-LABORAL-CAMPOS-Y-PERMISOS-20261110.md).
+26. [BL-001 a BL-005: implementación, pruebas CI y límites operativos](28-BL001-BL005-IMPLEMENTACION-EN-REVISION-20261109.md).
 24. [Bitácora consolidada de ficha, cuentas, bancos, cargas y auditoría](26-BITACORA-FICHA-BANCOS-CARGAS-AUDITORIA-20261109.md).
 25. [Plan de acción por entregas: roles, bitácora, ficha, catálogos y autoregistro](27-PLAN-ACCION-FICHA-CAMPOS-BANCOS-CARGAS-AUDITORIA-20261109.md).
 
@@ -62,3 +63,7 @@ Operación de asistentes: [AGENTS.md](../AGENTS.md). Cambios: [CONTRIBUTING.md](
 - **Estudio futuro:** superadministrador `root`, cargas familiares, maternidad/subsidios y remuneraciones automáticas. **No implementados**.
 
 **No confundir aprobación funcional reciente con aceptación técnica integral de las etapas INT.** Detalle y evidencias: [documento 24](24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md).
+
+## Actualización de implementación BL-001 a BL-005 (09-11-2026)
+
+La [integración por PR #9](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/9) contiene nueva ficha subdividida, bancos, datos bancarios cifrados, cargas familiares y tramos históricos. Las pruebas GitHub fueron verdes en el SHA funcional `d323d6db95e5ff2a3ea4469ecec20e9fa945e1e8`. **Esta anotación describe código y CI, NO aceptación física Windows/móvil ni despliegue productivo**. [Informe](28-BL001-BL005-IMPLEMENTACION-EN-REVISION-20261109.md).
