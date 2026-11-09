@@ -201,3 +201,9 @@
 /* El nombre calculado se presenta solo como referencia y no recibe foco. */
 .ef input.ef-readonly{background:#e7ebef;color:#616b76;border-color:#cfd7df;cursor:default}
 .ef details>summary{cursor:pointer;font-weight:600;margin:3px 0 8px}
+
+/* Subdivisiones de una única ficha; nunca duplicar formularios ni registros. */
+.ef-subtabs{display:flex;gap:7px;flex-wrap:wrap;border-bottom:1px solid #dce5e3;padding:8px 0}
+.ef-subtabs button{flex:0 1 auto;white-space:normal}
+.ef-tab-body>[hidden],.ef-tab-body [hidden]{display:none!important}
+@media(max-width:650px){.ef-subtabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.ef-subtabs button{min-width:0}}

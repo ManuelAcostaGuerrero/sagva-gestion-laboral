@@ -1,13 +1,15 @@
 export async function saveEmployeeSections({
   needsCreation = false, generalDirty = false, medicalDirty = false,
-  contractDirty = false, completing = false,
-  saveGeneral, saveMedical, saveContract
+  contractDirty = false, familyDirty = false, bankDirty = false, completing = false,
+  saveGeneral, saveMedical, saveContract, saveFamily, saveBank
 }) {
   const completed = [];
   const tasks = [
     [needsCreation || generalDirty || completing, 'Ficha general', saveGeneral],
     [medicalDirty, 'Ficha médica', saveMedical],
-    [contractDirty, 'Condiciones contractuales', saveContract]
+    [contractDirty, 'Condiciones contractuales', saveContract],
+    [familyDirty, 'Cargas familiares', saveFamily],
+    [bankDirty, 'Cuenta bancaria', saveBank]
   ];
   for (const [required, label, action] of tasks) {
     if (!required) continue;
