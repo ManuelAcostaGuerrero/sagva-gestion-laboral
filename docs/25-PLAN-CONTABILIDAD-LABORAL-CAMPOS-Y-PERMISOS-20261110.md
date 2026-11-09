@@ -139,7 +139,9 @@ Ubicación propuesta: `Gestión → Contabilidad Laboral → Configuración de c
 ## 7. Criterios de aceptación imprescindibles
 
 - [ ] `admin_local` no puede crear/modificar campos, instituciones, tasas, tramos o permisos **ni por URL ni por solicitud API directa**.
-- [ ] `root` administra políticas y asignaciones; `contabilidad` solo configura ámbitos/recursos explícitamente delegados.
+- [ ] `root` administra políticas, permisos por rol y excepciones individuales; `contabilidad` solo configura ámbitos/recursos explícitamente delegados. Dos usuarios del mismo rol pueden tener permisos efectivos distintos sin cambiar la plantilla de todos.
+- [ ] Denegaciones individuales prevalecen sobre concesiones ordinarias; reglas no delegables y ámbito por local siguen vigentes; lectura y escritura por subcampo se verifican en API, no solo en UI.
+- [ ] Root puede conceder/revocar un permiso puntual con motivo y vencimiento; se aplica inmediatamente sin exigir cierre de sesión ni elevar a todos los usuarios del rol.
 - [ ] Trabajadores y datos de un local no aparecen ni se alteran desde otro local sin autorización.
 - [ ] Al degradar/revocar un usuario, la autorización cambia en solicitudes posteriores sin necesitar que expire un JWT antiguo.
 - [ ] Ficha y contratos solo muestran configuraciones publicadas y capturan valores propios según permisos; cambios globales no reescriben datos previos.
@@ -157,6 +159,62 @@ Ubicación propuesta: `Gestión → Contabilidad Laboral → Configuración de c
 
 **Pendiente de revisión inicial:** confirmar con el propietario el alcance del rol Contabilidad (global o por empresas) y los permisos de edición estructural delegados. Como valor seguro por defecto, **permiso granular, alcance asignado y denegación si no hay autorización expresa**.
 
-## 9. Instrucción para retomar el 10-11-2026
+## 9. Permisos individuales dentro del mismo rol (ampliación acordada el 09-11-2026)
 
-> Trabajar exclusivamente en `ManuelAcostaGuerrero/sagva-gestion-laboral`. Leer `AGENTS.md`, `docs/24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md` y este documento 25. Iniciar auditando roles, accesos y ámbito por local (bloque A), seguido de diseño/migración de seguridad (bloque B). Prioridad absoluta: un administrador de local **no puede modificar definiciones globales ni parámetros**; un usuario `root` o uno de `contabilidad` explícitamente autorizado sí. Preservar usuarios, contraseñas, registros, esquemas históricos y las apps originales. Separar configuración central de datos personales/contractuales visibles en ficha. No iniciar liquidaciones ni pagos. Validar con pruebas y PR antes de actualización local manual.
+### Principio funcional
+
+El propietario propone reutilizar una idea del sistema de ventas: **Root puede gestionar permisos individuales para un usuario específico**, desglosados por **módulo, submódulo, acción y campo**, además de los permisos base del rol. Esto no cambia el rol ni todos los usuarios que lo comparten.
+
+Por ejemplo, `Contabilidad` podría tener la plantilla estándar de lectura de parámetros contables. Root habilita a **una sola contadora** la visualización de `Personal → Contratos` para uno o varios locales definidos, sin dar permiso de editar contratos ni extenderlo al resto de contadores.
+
+**Decisión de arquitectura:** mantener roles como plantillas y combinar una capa de **autorizaciones/denegaciones individuales**, con alcance explícito y vencimiento opcional. La atribución final se calcula **en el servidor**, nunca solo desde el menú. Una concesión no debe modificar los datos, cambiar un contrato ni crear un documento por sí misma.
+
+### Modelo mínimo
+
+- **Identidad:** usuario estable `user_id`, rol predeterminado y estado activo.
+- **Registro de recursos/acciones:** nombres técnicos inmutables y jerárquicos, p. ej. `personal.workers.read`, `personal.contracts.read`, `personal.contracts.write`, `personal.contracts.export`, `labor.parameters.read`, `labor.parameters.manage`, `labor.fields.manage`, `labor.worker-values.write`, `documents.medical.read`. Para cada acción, especificar ámbito y clasificación de sensibilidad.
+- **Plantilla por rol:** conjunto de permisos base, revisable y versionado. Cambiarla afecta a ese rol **solo después de una confirmación explícita** y no modifica las concesiones individuales existentes.
+- **Excepción individual:** `user_id`, `permission_key`, `effect=ALLOW|DENY`, `scope_type=GLOBAL|COMPANY|BRANCH`, `scope_id` cuando corresponda, `valid_from`, `valid_until` opcional, `reason`, `granted_by`, `revoked_by`, fechas y revisión para concurrencia. Historial **append-only**, sin eliminación de autorizaciones previas.
+- **Permiso sobre campos:** acciones distintas para `field.read`, `field.write`, `field.export` y `field.definition.manage`. Si el campo requiere una restricción especial, esa condición también debe validarse en el backend por campo y por operación. Un usuario con `personal.contracts.read` no recibe automáticamente `personal.contracts.write` ni descarga de PDFs.
+- **Ámbito efectivo:** la excepción individual solo actúa dentro de los locales/empresas autorizados, salvo un permiso global explícito concedido por Root a funciones que admitan alcance global. Las restricciones de privacidad y segregación que son invariables **no se pueden anular** con una excepción individual corriente.
+- **Control anti-escalada:** solamente Root (o mecanismo extraordinario con autorización separada que se diseñe después) administra concesiones; el beneficiario no puede editar sus propias concesiones ni delegar permisos a terceros. El rol `contabilidad` no se convierte en administrador de usuarios por recibir acceso a un submódulo.
+- **Revisión y caducidad:** Root puede ver acceso efectivo, permisos heredados, permisos individuales, origen y fecha de vencimiento. Revocar se aplica en la próxima petición sensible, incluso si la sesión ya estaba abierta. Emplear relectura de permisos/versiones en DB, en vez de confiar en un JWT con un rol o claims anteriores.
+
+### Precedencia y denegación por defecto
+
+1. Rechazar usuario inactivo, sesión inválida o sin pertenencia/alcance válido.
+2. Aplicar **reglas no delegables**: segregación de datos, límites de acceso clínico y prohibición definida para `admin_local` de modificar configuraciones normativas globales, salvo que el propietario **cambie expresamente la política estructural en otra decisión**.
+3. Si existe un `DENY` individual vigente y aplicable, **denegar**.
+4. Si existe un `ALLOW` individual vigente, autorizado y compatible con reglas anteriores, **permitir**.
+5. En otro caso, usar permiso del rol base, dentro del ámbito autorizado; de lo contrario, **denegar**.
+
+Para campos personales, agregar validación de lectura **y de escritura**: una API no debe aceptar valores de campos ocultos/no autorizados aunque un cliente malicioso los envíe. No usar un comodín implícito de "ver módulo" como acceso a todos los datos médicos, financieros o bancarios que ese módulo pueda exponer.
+
+### Interfaz de Root
+
+**Administración → Usuarios y permisos → Seleccionar usuario → Permisos particulares**:
+
+- Árbol: `Módulo → Submódulo → Sección/campo` con controles `Ver`, `Crear`, `Editar`, `Aprobar`, `Exportar`, `Configurar` según naturaleza del recurso. **No mostrar acciones que no tengan significado en ese recurso.**
+- Filtros por empresa/local, búsqueda, vista de permisos heredados del rol y permisos individuales; estado final visible: permitido, denegado, heredado o fuera de ámbito.
+- Concesión puntual con motivo obligatorio, vencimiento y vista previa del cambio. Para permiso sensible, solicitar confirmación reforzada; no habilitar todos los campos de una sección automáticamente.
+- Revocación con confirmación, auditoría de quién/cuándo/qué/para quién/por qué; revisiones periódicas de accesos temporales.
+
+### Ejemplo de aceptación
+
+Dos usuarios con `role='contabilidad'` poseen exactamente la misma plantilla inicial. Root concede solo al primero `personal.contracts.read` para **un local autorizado** y no `personal.contracts.write` ni acceso a documentos clínicos. Resultado comprobable:
+
+- Contadora A puede **ver** contratos de ese local, sin editar ni exportar datos no autorizados.
+- Contadora B conserva permisos base, no ve ese submódulo.
+- Un intento de editar, entrar por URL oculta o llamar directamente a una ruta API con permiso faltante recibe `403`.
+- Tras revocar el permiso, Contadora A deja de ver el recurso y la API lo rechaza **sin esperar el vencimiento de la sesión**.
+- Otras contadoras y otros locales **no cambian**. El historial registra concesión y revocación.
+
+### Dependencia y orden
+
+Este diseño **amplía el Bloque B (seguridad) y precede a la interfaz de configuración de campos (Bloque C)**. Primero implementar inventario de recursos y pruebas de roles/ámbitos; luego concesiones/denegaciones individuales y su UI; finalmente conectar tanto Contabilidad Laboral como ficha/contratos a la autorización efectiva. **No hacer concesiones mediante un campo JSON sin validación por API** ni modificar códigos del rol en muchos lugares sin centralizar permisos.
+
+**Estado:** especificación aprobada conceptualmente por el propietario para diseñar; no implementada, sin migraciones, cuentas, asignaciones ni cambios a datos operativos.
+
+## 10. Instrucción para retomar el 10-11-2026
+
+> Trabajar exclusivamente en `ManuelAcostaGuerrero/sagva-gestion-laboral`. Leer `AGENTS.md`, `docs/24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md` y este documento 25. Iniciar auditando roles, accesos y ámbito por local (bloque A), seguido del modelo de seguridad (bloque B): **roles como plantillas, excepciones ALLOW/DENY por usuario, módulo/submódulo/campo, acción y ámbito por local**, con registro de auditoría y revocación efectiva inmediata. Prioridad absoluta: un administrador de local **no puede modificar definiciones globales ni parámetros**; un usuario `root` o uno de `contabilidad` explícitamente autorizado sí. Preservar usuarios, contraseñas, registros, esquemas históricos y las apps originales. Separar configuración central de datos personales/contractuales visibles en ficha. No iniciar liquidaciones ni pagos. Validar con pruebas y PR antes de actualización local manual.
