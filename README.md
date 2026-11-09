@@ -2,7 +2,7 @@
 
 **Sistema modular de gestión de personal y control de asistencia.** El módulo de Propinas es complementario, no el núcleo del producto.
 
-> **Estado verificado al 01-11-2026: documentación fundacional (INT-000).** Este repositorio todavía NO contiene una copia operativa de Huella, base de datos real, trabajadores migrados, integración de Propinas ni pruebas funcionales ejecutadas. No confundir documentación con implementación.
+> **Estado al 09-11-2026:** Huella base, Entregas 1 y 2 y Contabilidad Laboral integradas en `main`, con CI aprobado; el propietario reportó pruebas Windows y acceso móvil HTTPS y aprobó la fase funcional reciente. **No** se ha acreditado la restauración/paridad completa `INT-002`, ni integrado Propinas/PostgreSQL, ni autorizado producción o versión `v1.0.0`. [Cierre y hoja de ruta](docs/24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md).
 
 ## Objetivo
 
@@ -40,7 +40,7 @@ Cada fase tiene puertas de salida; el orden no autoriza saltar pruebas. Las fase
 
 ## Índice de documentación
 
-Empieza en [docs/00-INDICE-Y-ESTADO.md](docs/00-INDICE-Y-ESTADO.md). Para el primer trabajo técnico, sigue [docs/11-INT-001-PASO-A-PASO.md](docs/11-INT-001-PASO-A-PASO.md). Agentes, colaboradores y Work deben leer [AGENTS.md](AGENTS.md).
+**Estado y cierre recientes:** [Fase 3 aprobada y pendientes](docs/24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md). Empieza en [docs/00-INDICE-Y-ESTADO.md](docs/00-INDICE-Y-ESTADO.md). Para el primer trabajo técnico, sigue [docs/11-INT-001-PASO-A-PASO.md](docs/11-INT-001-PASO-A-PASO.md). Agentes, colaboradores y Work deben leer [AGENTS.md](AGENTS.md).
 
 ## Datos y seguridad
 

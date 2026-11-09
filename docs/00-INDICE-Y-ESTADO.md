@@ -1,6 +1,6 @@
 # 00. Índice maestro y estado del proyecto
 
-**Actualizado: 03-11-2026.** Estado declarado aquí = hechos verificados, no intención ni calendario.
+**Actualizado: 09-11-2026.** Se distingue evidencia del repositorio, pruebas reportadas por el propietario y puertas INT todavía abiertas. [Cierre funcional y hoja de ruta](24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md).
 
 | Campo | Situación |
 |---|---|
@@ -14,12 +14,12 @@
 | Base original de Huella | SQLite, carpeta privada local `data/asistencia.db` |
 | Base original de Propinas | SQLite, carpeta privada local `data/propinas.db` |
 | Base objetivo final | **Una PostgreSQL** con dominios separados y persona maestra única |
-| Versión de integración | Código de `INT-001` fusionado a `main` mediante PR #1; aceptación funcional todavía pendiente |
-| Aplicación copiada al repo nuevo | **SÍ, disponible en `main`** tras merge `a23de9b4164b975d2589091782c7a5d4a538f0f5` (03-11-2026); tres recursos originales se provisionan solo en PC |
+| Versión de integración | Huella INT-001 + Entrega 1 + Entrega 2 + Contabilidad Laboral integradas a `main`; último SHA de funcionalidad `281b9182d186` |
+| Aplicación copiada al repo nuevo | **SÍ:** Huella base integrada en PR #1; mejoras PR #4, #7 y #8. Recursos privados permanecen solo en PC |
 | Datos reales importados | **NO** |
-| Paridad funcional acreditada | **NO** |
-| Pruebas CI acreditadas en repo nuevo | **SÍ, servidor/compilación y QR móvil** en `fccf017d3` (Actions `41663786088`, `41663785995`); no equivalen a validación funcional integral |
-| Instalación local del repo nuevo | **Instalación/arranque reportados por el propietario; paridad y pruebas locales completas aún no acreditadas** |
+| Paridad funcional acreditada | **Parcialmente reportada** por propietario para las entregas recientes; paridad completa con Huella original y restauración independiente `INT-002` **no acreditadas** |
+| Pruebas CI acreditadas en repo nuevo | **SÍ:** últimas verificaciones de servidor/web y QR móvil correctas en `281b9182d186` (Actions `42560860962`, `42560860965`); CI no demuestra restauración privada ni paridad total |
+| Instalación local del repo nuevo | El propietario **reportó** pruebas de Windows, datos persistentes y módulos laborales; verificó acceso móvil mediante HTTPS y aprobó la Fase 3 funcional reciente. Falta acta de paridad/restore INT completa |
 | Despliegue productivo | **NO AUTORIZADO** |
 
 ## Documentos obligatorios
@@ -40,17 +40,22 @@
 15. [Hallazgos de empresa, RUT médico, fechas y direcciones del trabajador D-028 a D-031](18-HALLAZGOS-FICHAS-EMPRESAS-DOCUMENTOS-20261104.md).
 16. [Anexo de aumento salarial, lugar de prestación y RUT en Áreas D-032 y D-033](19-ANEXOS-SUELDO-LUGAR-PRESTACION-RUT-AREAS-20261104.md).
 17. [Aclaración salarial, sucursal, previsión y planificación legal D-034 a D-038](20-ETIQUETAS-SUELDO-SUCURSAL-PREVISION-Y-PLANIFICACION-20261104.md).
+18. [Entrega 1 integrada: Personal/Empresas](21-ENTREGA1-IMPLEMENTACION-20261108.md).
+19. [Entrega 2 integrada: Contratos/anexos](22-ENTREGA2-CONTRATOS-20261109.md).
+20. [Actualizador local manual](23-ACTUALIZADOR-LOCAL-20261108.md).
+21. [Contabilidad Laboral y previsión](23-CONTABILIDAD-LABORAL-20261109.md).
+22. [Cierre funcional reciente, pruebas móviles y hoja de ruta](24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md).
 
 Operación de asistentes: [AGENTS.md](../AGENTS.md). Cambios: [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-## Semáforo de avance
-- `INT-000` Documentación y gobernanza: **publicada y verificada en `main`**, pendiente de revisión del propietario. Evidencia: commit `fe08da0c6cc89e80f25a8bacfcb01580fa7109a3`.
-- `INT-001` Huella base: **código incorporado a `main`, CI aprobado y PR #1 fusionado**, por solicitud expresa del propietario; **pruebas funcionales integrales y aceptación del hito pendientes**.
-- `INT-002` Ensayo privado y paridad integral Huella: **NO INICIADO FORMALMENTE ni acreditado**; no confundir apertura del sistema o CI verde con este hito.
-- `INT-003` Identidad/conciliación Propinas: **BLOQUEADO hasta cerrar INT-002**; la coincidencia de personas requiere validación privada del propietario.
-- `INT-004` PostgreSQL único y migración: pendiente.
-- `INT-005` Propinas integrada y paridad monetaria: pendiente.
-- `INT-006` Rescate y validación general: pendiente.
-- `v1.0.0`: no liberada.
+## Semáforo de avance — corte 09-11-2026
+- **Entregas funcionales 1 y 2 y Contabilidad Laboral:** integradas y aprobadas en la revisión funcional reciente; PR #4, #7, #8.
+- **Fase 3 de validación reciente:** **aprobada por propietario** para Windows, módulos laborales y apertura móvil HTTPS; detalles responsivos menores pendientes.
+- `INT-000`: documentación publicada; mantenimiento de trazabilidad continuo.
+- `INT-001`: código de Huella y mejoras integrado; falta acta de aceptación de puerta INT original.
+- `INT-002`: pruebas funcionales parciales comunicadas, pero **faltan matriz de paridad frente a Huella y restauración privada independiente**, por lo que no está cerrado.
+- `INT-003` a `INT-005`: **aplazados expresamente**; no conciliación Propinas ni migración PostgreSQL.
+- `INT-006`: pendiente. `v1.0.0`: **no liberada**. Producción: **no autorizada**.
+- **Estudio futuro:** superadministrador `root`, cargas familiares, maternidad/subsidios y remuneraciones automáticas. **No implementados**.
 
-**No marcar un hito terminado por abrir un PR, fusionarlo, compilar o enseñar una pantalla.** El hito exige pruebas y conformidad explícita de lo que involucra.
+**No confundir aprobación funcional reciente con aceptación técnica integral de las etapas INT.** Detalle y evidencias: [documento 24](24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md).

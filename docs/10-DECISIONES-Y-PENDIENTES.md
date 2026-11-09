@@ -1,5 +1,7 @@
 # 10. Registro de decisiones (ADR simplificado) y pendientes
 
+> **Actualización al 09-11-2026:** varias casillas y expresiones «pendiente de implementar» de abajo son una **fotografía histórica del 04-11**, anterior a Entrega 1, Entrega 2 y Contabilidad Laboral. Para el estado vigente y la separación entre aprobación funcional y etapas INT, consultar el [cierre consolidado](24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md). No cambiar el registro histórico sin documentar la transición.
+
 Todas las decisiones de esta tabla se refieren al **diseño acordado**, no a una implementación ya realizada.
 
 | ID | Fecha | Decisión aprobada | Motivo |
@@ -90,3 +92,17 @@ Todas las decisiones de esta tabla se refieren al **diseño acordado**, no a una
 
 ## Protocolo de cambios de decisión
 Cada nueva decisión agrega ID, fecha, problema, opciones, decisión aprobada, impacto, pruebas y reversión. No inferir una decisión a partir de código viejo o una conversación incompleta. No incluir nombres ni RUT ni información confidencial en este registro público.
+
+## Decisiones posteriores — corte 09-11-2026
+
+| ID | Estado | Decisión / alcance |
+|---|---|---|
+| D-039 | Implementada / probada por propietario | Ubicar `Contabilidad Laboral → Parámetros Previsionales` dentro de **Gestión**, con AFP/FONASA/Isapres y parámetros precargados, modificables por administrador con motivo, vigencia, historial y auditoría. No sustituye cálculo oficial de liquidaciones. |
+| D-040 | Pospuesta | Crear futuro perfil `root` de administración global de parámetros; **no implementarlo ahora**. Los roles actuales siguen vigentes. |
+| D-041 | Aceptada en revisión funcional | Dar por **aprobada** Fase 3 funcional reciente tras pruebas Windows, funciones administrativas y apertura móvil HTTPS reportadas; conservar ajustes visuales móviles como mejora. No equiparar con cierre formal de `INT-001/002`. |
+| D-042 | En estudio / congelada | Aplazar conciliación/integración de Propinas, base maestra PostgreSQL y dependencias hasta investigación y decisión posterior. No iniciar migración ni mezclar identidades. |
+| D-043 | En estudio / congelada | Aplazar cargas familiares, maternidad y subsidios hasta documentar normativa, privacidad, modelos y responsables. |
+| D-044 | Mejora futura | Revisar diseño responsivo y aviso de recarga después de `Actualizar.bat`, conservando actualización manual y protección de formularios. |
+| D-045 | Restricción vigente | Túnel Cloudflare temporal sirve para prueba HTTPS móvil; no dejarlo expuesto como publicación definitiva ni compartir enlaces temporales. |
+
+Las decisiones D-034/D-035/D-036 y D-032 del registro previo pasaron a implementación en las entregas citadas. Sus antiguas casillas de pendientes **no representan el estado vigente**. La lista informal de puntos 1–21 y los IDs D-NNN son numeraciones distintas.

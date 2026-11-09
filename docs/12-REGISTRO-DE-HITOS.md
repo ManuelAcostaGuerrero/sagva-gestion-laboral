@@ -1,8 +1,10 @@
 # 12. Registro de avances verificables
 
+**Corte vigente: 09-11-2026.** El primer cuadro conserva el estado histórico del 03-11. El avance actual se documenta en la actualización final de este archivo y en el [documento 24](24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md).
+
 Este documento debe mantenerse al día **después de resultados observados**, nunca para declarar un trabajo futuro como realizado. Un PR puede formar parte de un hito, pero no equivale a haberlo completado.
 
-| Hito | Estado al 03-11-2026 | Evidencia disponible | Responsable de aceptación |
+| Hito | Estado original (histórico al 03-11-2026) | Evidencia disponible | Responsable de aceptación |
 |---|---|---|---|
 | INT-000 Documentación y reglas | Publicada; revisión del propietario pendiente | Commit `fe08da0c6cc89e80f25a8bacfcb01580fa7109a3` y readback en main | Propietario (revisión) |
 | INT-001 Huella base | **Código fusionado a main; hito funcional NO APROBADO** | PR #1 fusionado a `a23de9b4`; dos CI verdes en `fccf017d3`; tres recursos privados solo en PC; pruebas funcionales/visuales completas pendientes | Propietario |
@@ -54,3 +56,16 @@ Este documento debe mantenerse al día **después de resultados observados**, nu
 - Huella original: PR #13 fusionado en `main` con commit `0ad30d002b3d6dc2315cd8f89fb39e672c4185ba`; ojo de contraseña con pulsación temporal. CI del HEAD del PR verde.
 - SAGVA Gestión Laboral: PR #1 fusionado en `main` con commit `a23de9b4164b975d2589091782c7a5d4a538f0f5`; incluye Huella base, ojo de contraseñas y exportación XLSX/XML; CI del HEAD `fccf017d3` verde.
 - **Estado de hitos sin cambio**: INT-001 pendiente aceptación funcional completa; INT-002 no certificado; INT-003 bloqueado. Merge no ejecutó cambios en Windows ni bases de producción; `Actualizar.bat` de Gestión Laboral permanece no habilitado durante INT-001.
+
+## Actualización vigente — 09-11-2026: entregas funcionales y fase 3
+
+- **Entrega 1:** PR #4 fusionado, código de Personal/Empresas/Identidad. CI correcto en `162b8f4a797f`. [Detalle](21-ENTREGA1-IMPLEMENTACION-20261108.md).
+- **Entrega 2:** PR #7 fusionado como `f1cff679539e`; contratos, anexos, AFP/Isapre, cierres de ficha y borradores. CI servidor/web + QR móvil correcto. [Detalle](22-ENTREGA2-CONTRATOS-20261109.md).
+- **Contabilidad Laboral:** PR #8 fusionado como `281b9182d186`; gestión y edición versionada de previsión, permisos, auditoría y selección en ficha. CI `42560860962` y `42560860965` correctos. [Detalle](23-CONTABILIDAD-LABORAL-20261109.md).
+- **Prueba Windows reportada por propietario:** `Actualizar.bat`, respaldos, migraciones, persistencia, ficha, AFP/Isapres, sueldo base, anexos, historial y permisos. **Sin log privado de esta instalación adjunto al repositorio**, por privacidad.
+- **Prueba móvil reportada:** API LAN `/api/health` accesible; web en HTTP desde teléfono blanca; mediante enlace HTTPS temporal de Cloudflare la web abrió y funcionó, con detalles visuales. Confirmado verbalmente por propietario, sin prueba de cámara QR/terminal atribuible a esta verificación.
+- **Aprobación expresa:** el propietario declaró **aprobada la Fase 3 de validación funcional reciente**. Diseño móvil menor pendiente no bloqueante. **Esta aprobación no cierra `INT-002` ni el lanzamiento**.
+- **Hitos INT no cerrados:** `INT-001` requiere aceptación formal del hito original; `INT-002` requiere matriz de paridad y restauración aislada; `INT-003/004/005` aplazados; `INT-006` no iniciado; `v1.0.0` no liberada.
+- **No ejecutado en esta actualización documental:** migración, restauración, cambios de SQLite, nuevos tests en PC, despliegue, integración Propinas o creación del perfil root.
+
+[Checklist y hoja de ruta consolidada](24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md).

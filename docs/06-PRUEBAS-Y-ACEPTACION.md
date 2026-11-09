@@ -40,3 +40,11 @@ El proyecto anterior aprobó ciertas pruebas de código pero no acreditó la exp
 **Actualización 02-11-2026 (histórica):** ya existía código en la rama `int001-huella-codigo` y GitHub Actions acreditó pruebas del servidor y compilación del frontend en `652a1783`.
 
 **Actualización 03-11-2026:** el propietario solicitó integrar PR #1 y este se fusionó en `main` como `a23de9b4164b975d2589091782c7a5d4a538f0f5`. El commit PR `fccf017d3` tenía dos CI verdes. Esto **no certifica** experiencia visual, funcionamiento en PC ni paridad con los originales. INT-001 aún exige cierre funcional y aceptación; INT-002 sigue sin acreditarse y bloquea INT-003. El merge **no autoriza** despliegue de producción, cambio de base privada ni ejecutar `Actualizar.bat` de Gestión Laboral.
+
+## Estado añadido — 09-11-2026
+
+El propietario confirmó en conversación las pruebas de Windows, funcionalidad de fichas/contratos/parámetros y conectividad móvil HTTPS, y **aprobó la fase funcional reciente (Fase 3)**. CI del último commit funcional `281b9182d186`: servidor/compilación y validación QR móvil correctas; los resultados de esas suites no demuestran uso real de cámara ni paridad completa.
+
+**La aprobación comunicada no anula las puertas originales `INT-001/INT-002`**: siguen pendientes una matriz comparativa completa con Huella original, ensayo privado de restauración aislada e inspección verificable de integridad/accesos. Se mantiene la restricción de no publicar evidencia sensible en Git.
+
+[Registro detallado, alcance aprobado, límites y siguientes pasos](24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md).
