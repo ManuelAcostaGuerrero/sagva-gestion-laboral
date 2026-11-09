@@ -406,7 +406,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
             </nav>
             <div className="ef-shared-save" role="group" aria-label="Guardar cambios del trabajador">
               <button className="primary" type="submit"
-                disabled={busy || (!dirty && !medicalDirty && !contractDirty && !!draft.id)}>
+                disabled={busy || (!dirty && !medicalDirty && !contractDirty && !familyDirty && !bankDirty && !!draft.id)}>
                 {busy ? 'Guardando…' : draft.id ? 'Guardar ficha' : 'Guardar ficha provisional'}
               </button>
               {showReviewAction({status:draft.validationStatus}) &&

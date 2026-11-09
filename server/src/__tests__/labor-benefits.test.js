@@ -96,6 +96,15 @@ test('BL-003/004/005: bancos CMF, bandas SUSESO, cargas auditables y cuenta cifr
     assert.equal(read.data.account.accountNumber,'000123456789');
     assert.equal((await call('/employee-benefits/'+w+'/bank','GET',undefined,'supervisor')).status,403);
     assert.equal((await call('/employee-benefits/'+w+'/bank','PUT',account)).status,409);
+    const updatedBank=await call('/employee-benefits/'+w+'/bank','PUT',{...account,revision:1,accountNumber:'000987654321'});
+    assert.equal(updatedBank.status,200);
+    const [oldBanks]=await pool.execute('SELECT payload_ciphertext AS payload FROM employee_bank_account_history WHERE employee_id=?',[w]);
+    assert.equal(oldBanks.length,1);
+    assert.equal(decryptBank(oldBanks[0].payload).accountNumber,'000123456789');
+    const [familyVersions]=await pool.execute('SELECT snapshot_before_json AS beforeJson,snapshot_after_json AS afterJson FROM employee_family_history WHERE employee_id=? ORDER BY id',[w]);
+    assert.equal(familyVersions.length,2);
+    assert.equal(JSON.parse(familyVersions[1].beforeJson)[0].recognitionStatus,'PENDING');
+    assert.equal(JSON.parse(familyVersions[1].afterJson)[0].recognitionStatus,'RECOGNIZED');
     const [logs]=await pool.execute("SELECT details FROM audit_logs WHERE entity_type IN ('employee_bank_account','employee_family')");
     assert.ok(logs.length>=3);
     assert.ok(!JSON.stringify(logs).includes('000123456789'));

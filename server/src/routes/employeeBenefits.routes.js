@@ -65,7 +65,8 @@ employeeBenefitsRouter.put('/:id/family',requireRoles('admin'),asyncHandler(asyn
   const [s]=await db.execute('SELECT status,revision FROM employee_family_state WHERE employee_id=?',[id]);
   const current=s[0]?.revision||0;
   if(current!==d.revision)throw fail('Las cargas cambiaron en otra sesión.',409);
-  const [existing]=await db.execute('SELECT id FROM employee_family_dependents WHERE employee_id=?',[id]);
+  const [previousSnapshot]=await db.execute('SELECT id,full_name AS fullName,relationship,recognition_status AS recognitionStatus,institution,recognition_date AS recognitionDate,valid_from AS validFrom,valid_until AS validUntil,reference_code AS referenceCode FROM employee_family_dependents WHERE employee_id=? ORDER BY id',[id]);
+  const existing=previousSnapshot;
   if(existing.some(x=>!ids.includes(x.id)))throw fail('No se permite eliminar cargas históricas: marca estado finalizado.',400);
   const changes=[];
   for(const x of d.dependents){
@@ -80,7 +81,8 @@ employeeBenefitsRouter.put('/:id/family',requireRoles('admin'),asyncHandler(asyn
    }
   }
   await db.execute('INSERT INTO employee_family_state(employee_id,status,revision,updated_by) VALUES(?,?,?,?) ON CONFLICT(employee_id) DO UPDATE SET status=excluded.status,revision=excluded.revision,updated_by=excluded.updated_by,updated_at=CURRENT_TIMESTAMP',[id,d.status,current+1,req.admin.id]);
-  await db.execute('INSERT INTO employee_family_history(employee_id,revision,before_status,after_status,changed_ids_json,changed_by) VALUES(?,?,?,?,?,?)',[id,current+1,s[0]?.status||null,d.status,JSON.stringify(changes),req.admin.id]);
+  const [nextSnapshot]=await db.execute('SELECT id,full_name AS fullName,relationship,recognition_status AS recognitionStatus,institution,recognition_date AS recognitionDate,valid_from AS validFrom,valid_until AS validUntil,reference_code AS referenceCode FROM employee_family_dependents WHERE employee_id=? ORDER BY id',[id]);
+  await db.execute('INSERT INTO employee_family_history(employee_id,revision,before_status,after_status,changed_ids_json,snapshot_before_json,snapshot_after_json,changed_by) VALUES(?,?,?,?,?,?,?,?)',[id,current+1,s[0]?.status||null,d.status,JSON.stringify(changes),JSON.stringify(previousSnapshot),JSON.stringify(nextSnapshot),req.admin.id]);
   await recordAudit(req.admin,'update','employee_family',id,{statusBefore:s[0]?.status||'NONE',statusAfter:d.status,changedIds:changes,revision:current+1},db);
   await db.commit();res.json({message:'Cargas familiares guardadas con historial.',revision:current+1});
  }catch(e){await db.rollback();throw e;}finally{db.release();}
@@ -110,11 +112,13 @@ employeeBenefitsRouter.put('/:id/bank',restricted(mayAccessBank),asyncHandler(as
     throw fail('La cuenta debe estar a nombre del trabajador registrado.');
   const [banks]=await db.execute('SELECT id FROM labor_banks WHERE id=? AND active=1',[d.bankId]);
   if(!banks.length)throw fail('Banco no activo o no encontrado.');
-  const [previous]=await db.execute('SELECT revision FROM employee_bank_accounts WHERE employee_id=?',[id]);
+  const [previous]=await db.execute('SELECT revision,payload_ciphertext AS payload FROM employee_bank_accounts WHERE employee_id=?',[id]);
   const revision=previous[0]?.revision||0;
   if(revision!==d.revision)throw fail('La cuenta se modificó en otra sesión.',409);
   const {revision:ignored,...payload}=d;
   const encrypted=encryptBank(payload);
+  if(previous.length)await db.execute('INSERT INTO employee_bank_account_history(employee_id,revision,payload_ciphertext,superseded_by) VALUES(?,?,?,?)',
+    [id,revision,previous[0].payload,req.admin.id]);
   await db.execute('INSERT INTO employee_bank_accounts(employee_id,payload_ciphertext,revision,updated_by) VALUES(?,?,?,?) ON CONFLICT(employee_id) DO UPDATE SET payload_ciphertext=excluded.payload_ciphertext,revision=excluded.revision,updated_by=excluded.updated_by,updated_at=CURRENT_TIMESTAMP',[id,encrypted,revision+1,req.admin.id]);
   await recordAudit(req.admin,'update','employee_bank_account',id,{changedFields:Object.keys(payload),revision:revision+1,encrypted:true},db);
   await db.commit();res.json({message:'Cuenta registrada con cifrado y auditoría.',revision:revision+1});
