@@ -10,6 +10,7 @@ import { validContractDate } from '../employeeContracts.js';
 import { calculateDocumentExpiry, normalizeDocumentName } from '../employeeDocuments.js';
 
 import {financialDocumentKind} from '../financialDocuments.js';
+import {approveSalaryAnnex} from '../employeeSalaryApprovals.js';
 
 export const employeeDocumentsRouter = Router();
 employeeDocumentsRouter.use(requireRoles('admin', 'supervisor', 'operator'));
@@ -92,7 +93,7 @@ employeeDocumentsRouter.get('/workers/:workerId', asyncHandler(async (req, res) 
   const [workers] = await pool.execute('SELECT id FROM employees WHERE id=?', [workerId]);
   if (!workers.length) throw fail('Trabajador no encontrado.', 404);
   const [entries] = await pool.execute(
-    'SELECT id,employee_id AS employeeId,document_type_id AS typeId,document_name AS documentName,expiry_mode AS expiryMode,delivered_on AS deliveredOn,start_on AS startOn,expires_on AS expiresOn,version_label AS versionLabel,financial_kind AS financialKind,agreed_amount AS agreedAmount,amount_meaning AS amountMeaning,is_retroactive AS retroactive,retroactive_amount AS retroactiveAmount,retroactive_months_json AS retroactiveMonthsJson,notes,created_at AS createdAt,created_by AS createdBy FROM employee_document_entries WHERE employee_id=? ORDER BY id DESC',
+    'SELECT id,employee_id AS employeeId,document_type_id AS typeId,document_name AS documentName,expiry_mode AS expiryMode,delivered_on AS deliveredOn,start_on AS startOn,expires_on AS expiresOn,version_label AS versionLabel,financial_kind AS financialKind,agreed_amount AS agreedAmount,amount_meaning AS amountMeaning,is_retroactive AS retroactive,retroactive_amount AS retroactiveAmount,retroactive_months_json AS retroactiveMonthsJson,notes,created_at AS createdAt,created_by AS createdBy, (SELECT approved_at FROM employee_salary_annex_approvals a WHERE a.entry_id=employee_document_entries.id) AS salaryApprovedAt, (SELECT new_salary FROM employee_salary_annex_approvals a WHERE a.entry_id=employee_document_entries.id) AS approvedSalary FROM employee_document_entries WHERE employee_id=? ORDER BY id DESC',
     [workerId]
   );
   let attachments = [];
@@ -110,6 +111,7 @@ employeeDocumentsRouter.get('/workers/:workerId', asyncHandler(async (req, res) 
     retroactiveMonths:JSON.parse(retroactiveMonthsJson||'[]'),
     retroactiveAmount:['admin','supervisor'].includes(req.admin.role)?entry.retroactiveAmount:null,
     agreedAmount:['admin','supervisor'].includes(req.admin.role) ? entry.agreedAmount : null,
+    approvedSalary:['admin','supervisor'].includes(req.admin.role) ? entry.approvedSalary : null,
     attachments: attachments.filter(file => file.entryId === entry.id).map(file => ({
       ...file, signedPhysical: Boolean(file.signedPhysical)
     }))
@@ -219,6 +221,24 @@ employeeDocumentsRouter.post('/entries/:entryId/pdf',
     } finally {
       db.release();
     }
+  })
+);
+
+
+// La firma del PDF por sí sola NO altera remuneraciones: requiere aprobación explícita.
+// Transacción única: aplicar monto, registrar historial, marcar aplicado y auditar.
+employeeDocumentsRouter.post('/entries/:entryId/approve-salary',
+  requireRoles('admin','supervisor'),asyncHandler(async(req,res)=>{
+    await runMigrations();
+    const entryId=idOf(req.params.entryId);
+    if(!entryId)throw fail('Anexo inválido.');
+    const db=await pool.getConnection();
+    try{
+      await db.beginTransaction();
+      const approved=await approveSalaryAnnex(db,{entryId,admin:req.admin});
+      await db.commit();
+      res.json({approved,message:'Anexo aprobado. El nuevo sueldo base fue guardado con historial.'});
+    }catch(error){await db.rollback();throw error;}finally{db.release();}
   })
 );
 

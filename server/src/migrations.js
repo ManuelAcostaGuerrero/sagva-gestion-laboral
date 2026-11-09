@@ -20,6 +20,7 @@ import { migrateContractFiles } from './contractFiles.js';
 import {migrateWorkerUppercase} from './workerUppercaseMigration.js';
 
 import {migrateFinancialDocuments,migrateSalaryRetroactive} from './financialDocuments.js';
+import {migrateSalaryAnnexApprovals} from './employeeSalaryApprovals.js';
 
 import {migrateTerminalCompanies} from './terminalCompanies.js';
 
@@ -151,6 +152,7 @@ async function migrate() {
     await migrateWorkerUppercase(connection);
     await migrateFinancialDocuments(connection);
     await migrateSalaryRetroactive(connection);
+    await migrateSalaryAnnexApprovals(connection);
     await migrateTerminalCompanies(connection);
     const [violations] = await connection.execute("PRAGMA foreign_key_check");
     if (violations.length)
