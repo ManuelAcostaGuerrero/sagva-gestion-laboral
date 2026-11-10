@@ -469,7 +469,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                   )}</div></>
                : <p>Los campos requeridos están completos; la validación administrativa sigue siendo una acción distinta.</p>}
               {draft.validatedAt&&<p>Última revisión: {draft.validatedAt}.</p>}
-            </div>}
+            </div>
             <nav className="ef-tabs ef-subtabs" aria-label="Secciones de la ficha general">
               {[
                 ['personal','Datos personales'],['prevision','Previsión'],['laboral','Empresa y contrato'],
