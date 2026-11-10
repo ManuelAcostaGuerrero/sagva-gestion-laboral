@@ -90,6 +90,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   const [familyDirty,setFamilyDirty]=useState(false);
   const [bankDirty,setBankDirty]=useState(false);
   const [configuredDirty,setConfiguredDirty]=useState(false),[configuredContractDirty,setConfiguredContractDirty]=useState(false);
+  const [missingConfigured,setMissingConfigured]=useState([]),[missingContractConfigured,setMissingContractConfigured]=useState([]);
   const familyRef=useRef(null),bankRef=useRef(null),configuredRef=useRef(null),configuredContractRef=useRef(null);
   const [medicalDirty,setMedicalDirty]=useState(false);
   const medicalRef = useRef(null);
@@ -104,9 +105,27 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   const isapreEntities=previsionCatalog.filter(item=>item.kind==='ISAPRE');
   const dirty = Boolean(draft) && JSON.stringify(draft) !== saved;
   const pendingSections = pendingFileSections({general:dirty, medical:medicalDirty, contract:contractDirty, documents:documentsDirty, family:familyDirty,bank:bankDirty,configured:configuredDirty,contractConfigured:configuredContractDirty});
-  const missingFields=draft?completeFileMissing(draft):[];
+  const missingFields=draft?[
+   ...completeFileMissing(draft),
+   ...missingConfigured.map(f=>'Campo de ficha: '+f.label),
+   ...missingContractConfigured.map(f=>'Campo contractual: '+f.label)
+  ]:[];
   const pendingClass=key=>fieldPending(missingFields,key)?' ef-pending-field':'';
   const goToMissing=label=>{
+   const configured=label.startsWith('Campo de ficha: ')
+    ? missingConfigured.find(x=>'Campo de ficha: '+x.label===label)
+    : label.startsWith('Campo contractual: ')
+    ? missingContractConfigured.find(x=>'Campo contractual: '+x.label===label)
+    : null;
+   if(configured){
+    setTab('general');setSubTab(configured.target==='FICHA'?'personal':'laboral');
+    requestAnimationFrame(()=>{
+     const el=document.querySelector('[data-configured-field-id="'+configured.id+'"]');
+     el?.scrollIntoView({behavior:'smooth',block:'center'});
+     el?.querySelector('input,select,textarea')?.focus({preventScroll:true});
+    });
+    return;
+   }
    const target=pendingTarget(label);
    if(!target)return;
    setTab('general');setSubTab(target[0]);
@@ -152,7 +171,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     select(file);
   };
   const select = (file) => {
-    if (file.id !== draft?.id) {setMedicalDirty(false);setContractDirty(false);setDocumentsDirty(false);setFamilyDirty(false);setBankDirty(false);setConfiguredDirty(false);setConfiguredContractDirty(false);}
+    if (file.id !== draft?.id) {setMedicalDirty(false);setContractDirty(false);setDocumentsDirty(false);setFamilyDirty(false);setBankDirty(false);setConfiguredDirty(false);setConfiguredContractDirty(false);setMissingConfigured([]);setMissingContractConfigured([]);}
     const value = structuredClone(file);
     value.hasAnnexes = !!value.annexes?.length;
     value.employmentStatus ||= value.isActive === 0 ? "INACTIVO" : "ACTIVO";
@@ -474,7 +493,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                 {draft.extra?.workerNumber&&workerNumberFromRut(draft.documentId)&&draft.extra.workerNumber!==workerNumberFromRut(draft.documentId)&&<p className="ef-note ef-field-wide">Número histórico diferente: {draft.extra.workerNumber}. Se conservará como referencia al guardar.</p>}
               </div>
             </fieldset>
-            <ConfiguredFields ref={configuredRef} key={(draft.id||'new')+'-ficha'} employeeId={draft.id} target="FICHA" onDirtyChange={setConfiguredDirty}/>
+            <ConfiguredFields ref={configuredRef} key={(draft.id||'new')+'-ficha'} employeeId={draft.id} target="FICHA" onDirtyChange={setConfiguredDirty} onPendingChange={setMissingConfigured}/>
             </div>
             <div hidden={subTab!=='prevision'}>
               <fieldset className="ef-section">
@@ -607,7 +626,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                 {["admin","supervisor"].includes(role)&& (draft.id ? <ContractTerms ref={contractRef} key={draft.id+'-'+contractReload} employeeId={draft.id} suggestedWorkplace={draft.extra?.branch||selectedCompany?.defaultBranch||''}
                   positionName={draft.positionName} positions={positions}
                   onDirtyChange={setContractDirty} /> : <p className="ef-note ef-field-wide">Guarda primero al trabajador para registrar condiciones contractuales.</p>)}
-                {["admin","supervisor"].includes(role)&&<ConfiguredFields ref={configuredContractRef} key={(draft.id||'new')+'-contract'} employeeId={draft.id} target="CONTRATO" onDirtyChange={setConfiguredContractDirty}/>}
+                {["admin","supervisor"].includes(role)&&<ConfiguredFields ref={configuredContractRef} key={(draft.id||'new')+'-contract'} employeeId={draft.id} target="CONTRATO" onDirtyChange={setConfiguredContractDirty} onPendingChange={setMissingContractConfigured}/>}
                 <div className="ef-field-wide"><strong>Estado laboral</strong></div>
                 <label>Estado laboral
                   <select aria-label="Estado laboral" value={draft.employmentStatus || ''} onChange={e => change('employmentStatus',e.target.value)}>
