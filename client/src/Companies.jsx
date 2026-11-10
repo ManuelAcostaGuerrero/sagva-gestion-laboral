@@ -4,7 +4,7 @@ import TerritoryFields from './TerritoryFields.jsx';
 import {checkRut,formatRut} from '../../server/src/rut.js';
 import './employeeFile.css';
 
-const empty=()=>({legalName:'',taxId:'',tradeName:'',address:'',region:'',province:'',commune:'',city:'',email:'',phone:'',representativeName:'',representativeRut:'',defaultBranch:'',defaultAreaId:null,defaultPositionName:'',defaultSchedule:'',revision:0});
+const empty=()=>({legalName:'',taxId:'',tradeName:'',address:'',region:'',province:'',commune:'',city:'',email:'',supportEmail:'',phone:'',representativeName:'',representativeRut:'',defaultBranch:'',defaultAreaId:null,defaultPositionName:'',defaultSchedule:'',revision:0});
 export default function Companies({areas=[],positions=[],onMessage}){
  const [companies,setCompanies]=useState([]);
  const [id,setId]=useState(null),[draft,setDraft]=useState(empty),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -32,7 +32,7 @@ export default function Companies({areas=[],positions=[],onMessage}){
   }catch(e){setError(e.message);}finally{setBusy(false);}
  }
  const inputs=[['legalName','Razón social'],['taxId','RUT empresa'],['tradeName','Nombre comercial'],
- ['address','Dirección'],['email','Correo institucional'],
+ ['address','Dirección'],['email','Correo institucional'],['supportEmail','Correo de soporte y notificaciones'],
  ['phone','Teléfono'],['representativeName','Representante legal'],['representativeRut','RUT representante legal'],
  ['defaultBranch','Sucursal predeterminada']];
  return <section className="ef module-content" aria-label="Empresas">
@@ -53,13 +53,14 @@ export default function Companies({areas=[],positions=[],onMessage}){
       {error&&<p className="ef-note" role="alert">{error}</p>}
       <fieldset className="ef-section"><legend>Datos empresariales</legend><div className="ef-grid">
        {inputs.map(([key,label])=><label key={key}>{label}<input
-         type={key==='email'?'email':'text'}
+         type={['email','supportEmail'].includes(key)?'email':'text'}
          value={['taxId','representativeRut'].includes(key)?formatRut(draft[key]):draft[key]||''}
          maxLength={250}
          required={key==='legalName'}
-         onChange={e=>change(key,['taxId','representativeRut'].includes(key)?formatRut(e.target.value):['email','phone'].includes(key)?e.target.value:e.target.value.toLocaleUpperCase('es-CL'))}/>
+         onChange={e=>change(key,['taxId','representativeRut'].includes(key)?formatRut(e.target.value):['email','supportEmail','phone'].includes(key)?e.target.value:e.target.value.toLocaleUpperCase('es-CL'))}/>
          {['taxId','representativeRut'].includes(key)&&draft[key]&&<small role="status">{checkRut(draft[key]).valid?'RUT válido':'Revisa RUT y dígito verificador'}</small>}
        </label>)}
+       <p className="ef-note ef-field-wide">El correo institucional identifica a la empresa. El correo de soporte se reservará para notificaciones futuras del personal asociado a esa empresa. Esta configuración no envía mensajes ni habilita recuperación de claves automáticamente.</p>
        <TerritoryFields prefix="Empresa" value={draft} onChange={changes=>setDraft(old=>({...old,...changes}))}/>
       </div></fieldset>
       <fieldset className="ef-section"><legend>Valores sugeridos para nuevas fichas</legend>

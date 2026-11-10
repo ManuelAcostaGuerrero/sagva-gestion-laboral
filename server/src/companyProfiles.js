@@ -34,12 +34,25 @@ export async function migrateCompanyTerritory(db){
   `);
   await db.execute('INSERT INTO schema_migrations(id) VALUES(?)',[COMPANY_TERRITORY_MIGRATION]);
 }
+export const COMPANY_CONTACT_EMAIL_MIGRATION='20261110_027_company_contact_emails';
+export async function migrateCompanyContactEmails(db){
+  if((await db.execute('SELECT id FROM schema_migrations WHERE id=?',[COMPANY_CONTACT_EMAIL_MIGRATION]))[0].length)return;
+  await db.execScript('ALTER TABLE company_profiles ADD COLUMN support_email TEXT;');
+  await db.execute('INSERT INTO schema_migrations(id) VALUES(?)',[COMPANY_CONTACT_EMAIL_MIGRATION]);
+}
+
 export function companyPayload(data){
   const legalName=normalizeLabel(data.legalName);
   const rut=String(data.taxId||'').trim().toUpperCase();
   const representativeRut=String(data.representativeRut||'').trim().toUpperCase();
+  const email=String(data.email||'').trim().toLowerCase();
+  const supportEmail=String(data.supportEmail||'').trim().toLowerCase();
   const problem=message=>{throw Object.assign(new Error(message),{status:400});};
   if(!legalName)problem('Indica la razón social.');
+  for(const [value,label] of [[email,'correo institucional'],[supportEmail,'correo de soporte']]){
+    if(value&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
+      problem('Revisa el formato del '+label+'.');
+  }
   if(rut&&!checkRut(rut).valid)problem('El RUT de la empresa no es válido.');
   if(representativeRut&&!checkRut(representativeRut).valid)problem('El RUT del representante no es válido.');
   const region=normalizeLabel(data.region)||null, province=normalizeLabel(data.province)||null, commune=normalizeLabel(data.commune)||null;
@@ -48,7 +61,7 @@ export function companyPayload(data){
     legalName,taxId:rut||null,tradeName:normalizeLabel(data.tradeName)||null,
     address:normalizeLabel(data.address)||null,region,province,commune,
     city:normalizeLabel(data.city)||null,
-    email:String(data.email||'').trim().toLowerCase()||null,
+    email:email||null,supportEmail:supportEmail||null,
     phone:String(data.phone||'').trim()||null,
     representativeName:normalizeLabel(data.representativeName)||null,
     representativeRut:representativeRut||null,

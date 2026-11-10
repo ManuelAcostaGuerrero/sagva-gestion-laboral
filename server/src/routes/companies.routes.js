@@ -13,7 +13,7 @@ companiesRouter.use(asyncHandler(async(_req,_res,next)=>{await runMigrations();n
 const maybe=z.string().trim().max(250).nullish();
 const schema=z.object({
   legalName:z.string().trim().min(1).max(250),taxId:maybe,tradeName:maybe,
-  address:maybe,region:maybe,province:maybe,commune:maybe,city:maybe,email:maybe,phone:maybe,
+  address:maybe,region:maybe,province:maybe,commune:maybe,city:maybe,email:maybe,supportEmail:maybe,phone:maybe,
   representativeName:maybe,representativeRut:maybe,defaultBranch:maybe,
   defaultAreaId:z.union([z.number().int().positive(),z.literal(''),z.null()]).optional(),
   defaultPositionName:maybe,
@@ -22,7 +22,7 @@ const schema=z.object({
 });
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
 const viewSql=`SELECT id, legal_name AS legalName,tax_id AS taxId,trade_name AS tradeName,
- address,region,province,commune,city,email,phone,representative_name AS representativeName,
+ address,region,province,commune,city,email,support_email AS supportEmail,phone,representative_name AS representativeName,
  representative_rut AS representativeRut,default_branch AS defaultBranch,
  default_area_id AS defaultAreaId,default_position_name AS defaultPositionName,
  default_schedule AS defaultSchedule,is_active AS isActive,revision,
@@ -49,8 +49,8 @@ companiesRouter.post('/',requireRoles('admin'),asyncHandler(async(req,res)=>{
   if(found.length)throw fail('La empresa ya está registrada.',409);
   if(data.taxId && (await db.execute("SELECT id FROM company_profiles WHERE upper(replace(replace(replace(trim(tax_id),'.',''),'-',''),' ',''))=upper(replace(replace(replace(trim(?),'.',''),'-',''),' ',''))",[data.taxId]))[0].length)
    throw fail('Este RUT ya pertenece a una empresa.',409);
-  const fields=['legalName','taxId','tradeName','address','region','province','commune','city','email','phone','representativeName','representativeRut','defaultBranch','defaultAreaId','defaultPositionName','defaultSchedule'];
-  const cols=['legal_name','tax_id','trade_name','address','region','province','commune','city','email','phone','representative_name','representative_rut','default_branch','default_area_id','default_position_name','default_schedule'];
+  const fields=['legalName','taxId','tradeName','address','region','province','commune','city','email','supportEmail','phone','representativeName','representativeRut','defaultBranch','defaultAreaId','defaultPositionName','defaultSchedule'];
+  const cols=['legal_name','tax_id','trade_name','address','region','province','commune','city','email','support_email','phone','representative_name','representative_rut','default_branch','default_area_id','default_position_name','default_schedule'];
   const [r]=await db.execute('INSERT INTO company_profiles('+cols.join(',')+',updated_by) VALUES('+fields.map(()=>'?').join(',')+',?)',
     [...fields.map(f=>data[f]),req.admin.id]);
   await recordAudit(req.admin,'create','company_profile',r.insertId,{fields:fields.filter(f=>data[f]!=null)},db);
@@ -71,7 +71,7 @@ companiesRouter.put('/:id',requireRoles('admin'),asyncHandler(async(req,res)=>{
   if((await db.execute('SELECT id FROM company_profiles WHERE legal_name=? AND id<>?',[data.legalName,id]))[0].length)throw fail('Ya existe una empresa con esa razón social.',409);
   if(data.taxId && (await db.execute("SELECT id FROM company_profiles WHERE upper(replace(replace(replace(trim(tax_id),'.',''),'-',''),' ',''))=upper(replace(replace(replace(trim(?),'.',''),'-',''),' ','')) AND id<>?",[data.taxId,id]))[0].length)
    throw fail('Este RUT ya pertenece a otra empresa.',409);
-  const pairs=[['legal_name','legalName'],['tax_id','taxId'],['trade_name','tradeName'],['address','address'],['region','region'],['province','province'],['commune','commune'],['city','city'],['email','email'],['phone','phone'],['representative_name','representativeName'],['representative_rut','representativeRut'],['default_branch','defaultBranch'],['default_area_id','defaultAreaId'],['default_position_name','defaultPositionName'],['default_schedule','defaultSchedule']];
+  const pairs=[['legal_name','legalName'],['tax_id','taxId'],['trade_name','tradeName'],['address','address'],['region','region'],['province','province'],['commune','commune'],['city','city'],['email','email'],['support_email','supportEmail'],['phone','phone'],['representative_name','representativeName'],['representative_rut','representativeRut'],['default_branch','defaultBranch'],['default_area_id','defaultAreaId'],['default_position_name','defaultPositionName'],['default_schedule','defaultSchedule']];
   if(data.defaultAreaId && !(await db.execute('SELECT id FROM work_areas WHERE id=? AND is_active=1',[data.defaultAreaId]))[0].length)
    throw fail('El área predeterminada no está activa.');
   const [result]=await db.execute('UPDATE company_profiles SET '+pairs.map(([db])=>db+'=?').join(',')+",revision=revision+1,updated_by=?,updated_at=datetime('now','localtime') WHERE id=? AND revision=?",
