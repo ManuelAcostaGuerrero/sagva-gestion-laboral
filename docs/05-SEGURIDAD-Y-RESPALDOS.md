@@ -32,3 +32,25 @@ Solo subir **código, tests sintéticos y documentación no sensible**. Son priv
 
 ## Política de archivos en Git
 `.gitignore` es una protección adicional, no suficiente. Fixtures solamente sintéticos. Los scripts de comprobación de secretos se incorporarán y verificarán al instalar el código en INT-001; no afirmar que CI ya los ejecuta.
+
+## Puerta obligatoria antes de producción: secretos, usuarios y sesiones (acordado 10-11-2026)
+
+**Estado: PENDIENTE PARA PRODUCCIÓN.** Este apartado es un requisito de transición y **no autoriza modificar ahora** la configuración local de pruebas, restablecer contraseñas, rotar claves, desplegar ni poner el sistema en producción.
+
+### Seguridad que debe quedar implementada desde desarrollo
+
+- El servidor **no puede usar** el valor predeterminado conocido `'desarrollo'` para `JWT_SECRET` ni arrancar sin un secreto seguro. Corregir el fallback en código y añadir tests de arranque con variable ausente, insegura y válida **antes de cualquier exposición productiva**. No confundir esa corrección de código con rotar una clave que ya es segura.
+- Los entornos de desarrollo/pruebas y producción usan secretos distintos. Los secretos y copias cifradas permanecen fuera de GitHub, CI público, documentación y capturas.
+- La presencia de un instalador que genera `JWT_SECRET` **no acredita que una instalación concreta esté configurada**; se comprobará de forma privada sin imprimir su valor.
+
+### Checklist de activación productiva
+
+- [ ] Cerrar puertas de seguridad (permisos Root y por empresa/sucursal, autorización por API, auditoría y datos bancarios/clinicos) y verificar restauraciones y pruebas de regresión.
+- [ ] Generar o asignar un **`JWT_SECRET` único y aleatorio de producción**, mediante gestión segura de secretos. Conservar una clave válida de pruebas sin exponerla. **Cambiar JWT invalida sesiones previas y exige volver a iniciar sesión**, pero no cambia las contraseñas almacenadas.
+- [ ] Inventariar las cuentas de usuarios. **Exigir cambio de contraseña solo** a quienes tengan credenciales iniciales, compartidas, débiles o de prueba; mantener las contraseñas personales seguras cuando corresponda. Evaluar MFA para administradores y Root.
+- [ ] Activar Root expresamente por el responsable, revisar privilegios, cuentas de Contabilidad, administradores de local y acceso sensible. No asignar privilegios universales por defecto ni activar el aislamiento por local hasta probarlo.
+- [ ] Configurar y resguardar la **clave definitiva de cifrado bancario** por separado de JWT. **No rotar ni reemplazar `SAGVA_BANK_DATA_KEY`** que ya protege datos reales sin migración criptográfica controlada, respaldo verificable y plan de recuperación. Con datos exclusivamente sintéticos, usar secretos de prueba independientes.
+- [ ] Realizar respaldo consistente y restauración ensayada, comprobar documentos y registros; ejecutar pruebas Windows, servidor, móvil HTTPS y autorización formal antes de cambiar a producción.
+- [ ] Registrar acta privada de fecha, responsable, versión/SHA desplegado, controles aprobados, rotación/autenticación y plan de recuperación. No registrar valores de claves, contraseñas ni datos personales.
+
+**No hay reestructuración obligatoria de todo el sistema por este punto**: son controles de código y configuración de despliegue. La decisión de ponerlo en producción queda pendiente de autorización explícita del propietario.
