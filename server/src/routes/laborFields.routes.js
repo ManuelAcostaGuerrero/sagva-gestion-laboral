@@ -127,6 +127,7 @@ laborFieldsRouter.put('/workers/:id',asyncHandler(async(req,res)=>{
    if(!canField(req.admin,field,true,scope))throw fail('Sin permiso para editar '+field.label,403);
    const checked=validFieldValue(field,item.value);
    if(!checked.ok)throw fail('Valor inválido para '+field.label);
+   if(field.required&&checked.value===null)throw fail('El campo '+field.label+' es obligatorio cuando se registra.');
    const [old]=await db.execute('SELECT revision,value_json AS valueJson FROM employee_config_field_values WHERE employee_id=? AND field_id=?',[id,field.id]);
    const revision=old[0]?.revision||0;
    if(revision!==item.revision)throw fail('Campo modificado en otra sesión. Recarga antes de guardar.',409);

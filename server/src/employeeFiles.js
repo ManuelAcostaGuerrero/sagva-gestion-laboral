@@ -272,6 +272,12 @@ export async function saveEmployeeFile(id, data, admin) {
     }
     if(data.completeProfile){
       const missing=completeFileMissing({...data,documentId:doc});
+      // Un campo configurado como obligatorio bloquea SOLO el cierre validado,
+      // no el guardado provisional.
+      const [requiredFields]=await connection.execute(
+        "SELECT d.label FROM labor_config_fields d LEFT JOIN employee_config_field_values v ON v.field_id=d.id AND v.employee_id=? WHERE d.active=1 AND d.required=1 AND d.target='FICHA' AND (v.value_json IS NULL OR v.value_json='null' OR v.value_json='\\\"\\\"') ORDER BY d.label",
+        [id||0]);
+      if(requiredFields.length)missing.push(...requiredFields.map(x=>x.label+' (campo configurado)'));
       if(missing.length)throw problem('No se puede validar la ficha. Campos pendientes: '+missing.join(', ')+'.',400);
       data.validationStatus='VALIDADO';
     }
