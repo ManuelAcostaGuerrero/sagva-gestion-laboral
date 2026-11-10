@@ -58,3 +58,5 @@ Este es un **repositorio público solo de código y documentación no sensible**
 **Sin afirmaciones falsas:** una copia de código no contiene por sí sola los empleados/empresas reales. Antes de integrar la información se necesita respaldo consistente y restauración comprobada. No tocar las bases operativas originales.
 
 - [Etapa 2 (PR en revisión): seguridad Root y permisos individuales](docs/30-ETAPA2-ROOT-PERMISOS-20261110.md).
+
+- [Etapa 3 (PR en revisión): configurador central y campos por ficha/contrato](docs/31-ETAPA3-CAMPOS-CONFIGURABLES-20261110.md).

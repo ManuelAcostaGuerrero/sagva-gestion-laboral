@@ -41,13 +41,17 @@ test('Etapa 2: Root concede permisos individuales; deniega y revoca sin esperar 
   await call('/admin/access/users/999999/profile','PUT',{profile:'accounting'},'root',404);
   await call('/admin/access/users/'+accounting.insertId+'/permissions','POST',{
    permission:'labor.parameters.manage',effect:'ALLOW',scopeKind:'COMPANY',companyId:1,
-   reason:'Permiso local pendiente de aislamiento'
+   reason:'Ámbitos por sucursal aún no validados'
   },'root',409);
   await call('/admin/access/users/'+accounting.insertId+'/permissions','POST',{
    permission:'labor.parameters.manage',effect:'ALLOW',scopeKind:'GLOBAL',validUntil:'2026-02-30',
-   reason:'Fecha que no existe en el calendario'
+   reason:'Fecha de calendario imposible'
   },'root',400);
   await call('/admin/access/users/'+accounting.insertId+'/profile','PUT',{profile:'accounting'});
+  await call('/admin/access/users/'+accounting.insertId+'/permissions','POST',{
+   permission:'custom_field.EXT_INEXISTENTE.write',effect:'ALLOW',scopeKind:'GLOBAL',
+   reason:'Campo que todavía no está publicado'
+  },'root',400);
   await call('/labor-accounting/','GET',undefined,'accounting');
   await call('/labor-accounting/parameters','POST',{
    metric:'SALUD_LEGAL',value:8,effectiveFrom:'2027-01-01',reason:'Intento sin autorización individual'

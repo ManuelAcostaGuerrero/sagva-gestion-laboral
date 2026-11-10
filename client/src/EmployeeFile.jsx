@@ -10,6 +10,7 @@ import TerritoryFields from './TerritoryFields.jsx';
 import {matchesEmployeeSearch} from './employeeSearch.js';
 import PhoneField from "./PhoneField.jsx";
 import ContractTerms from "./ContractTerms.jsx";
+import ConfiguredFields from './ConfiguredFields.jsx';
 import EmployeeFamilyBenefits from './EmployeeFamilyBenefits.jsx';
 import EmployeeBankDetails from './EmployeeBankDetails.jsx';
 import {assembledWorkerName,normalizeLabel,workerNumberFromRut,completeFileMissing,SEX_OPTIONS,CIVIL_STATUS_OPTIONS,NATIONALITIES} from "../../server/src/workerFileStandards.js";
@@ -88,7 +89,9 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   const [subTab,setSubTab]=useState('personal');
   const [familyDirty,setFamilyDirty]=useState(false);
   const [bankDirty,setBankDirty]=useState(false);
-  const familyRef=useRef(null),bankRef=useRef(null);
+  const [configuredDirty,setConfiguredDirty]=useState(false),[configuredContractDirty,setConfiguredContractDirty]=useState(false);
+  const [missingConfigured,setMissingConfigured]=useState([]),[missingContractConfigured,setMissingContractConfigured]=useState([]);
+  const familyRef=useRef(null),bankRef=useRef(null),configuredRef=useRef(null),configuredContractRef=useRef(null);
   const [medicalDirty,setMedicalDirty]=useState(false);
   const medicalRef = useRef(null);
   const contractRef = useRef(null);
@@ -101,10 +104,28 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   const afpEntities=previsionCatalog.filter(item=>item.kind==='AFP');
   const isapreEntities=previsionCatalog.filter(item=>item.kind==='ISAPRE');
   const dirty = Boolean(draft) && JSON.stringify(draft) !== saved;
-  const pendingSections = pendingFileSections({general:dirty, medical:medicalDirty, contract:contractDirty, documents:documentsDirty, family:familyDirty,bank:bankDirty});
-  const missingFields=draft?completeFileMissing(draft):[];
+  const pendingSections = pendingFileSections({general:dirty, medical:medicalDirty, contract:contractDirty, documents:documentsDirty, family:familyDirty,bank:bankDirty,configured:configuredDirty,contractConfigured:configuredContractDirty});
+  const missingFields=draft?[
+   ...completeFileMissing(draft),
+   ...missingConfigured.map(f=>'Campo de ficha: '+f.label),
+   ...missingContractConfigured.map(f=>'Campo contractual: '+f.label)
+  ]:[];
   const pendingClass=key=>fieldPending(missingFields,key)?' ef-pending-field':'';
   const goToMissing=label=>{
+   const configured=label.startsWith('Campo de ficha: ')
+    ? missingConfigured.find(x=>'Campo de ficha: '+x.label===label)
+    : label.startsWith('Campo contractual: ')
+    ? missingContractConfigured.find(x=>'Campo contractual: '+x.label===label)
+    : null;
+   if(configured){
+    setTab('general');setSubTab(configured.target==='FICHA'?'personal':'laboral');
+    requestAnimationFrame(()=>{
+     const el=document.querySelector('[data-configured-field-id="'+configured.id+'"]');
+     el?.scrollIntoView({behavior:'smooth',block:'center'});
+     el?.querySelector('input,select,textarea')?.focus({preventScroll:true});
+    });
+    return;
+   }
    const target=pendingTarget(label);
    if(!target)return;
    setTab('general');setSubTab(target[0]);
@@ -133,14 +154,14 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     return ()=>{current=false;};
   },[active]);
   useEffect(() => {
-    if (!dirty && !medicalDirty && !contractDirty && !documentsDirty && !familyDirty && !bankDirty) return;
+    if (!dirty && !medicalDirty && !contractDirty && !documentsDirty && !familyDirty && !bankDirty && !configuredDirty && !configuredContractDirty) return;
     const guard = (e) => {
       e.preventDefault();
       e.returnValue = "";
     };
     window.addEventListener("beforeunload", guard);
     return () => window.removeEventListener("beforeunload", guard);
-  }, [dirty,medicalDirty,contractDirty,documentsDirty,familyDirty,bankDirty]);
+  }, [dirty,medicalDirty,contractDirty,documentsDirty,familyDirty,bankDirty,configuredDirty,configuredContractDirty]);
   const open = (file) => {
     if (file?.id && file.id === draft?.id) return;
     if (pendingSections.length) {
@@ -150,7 +171,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     select(file);
   };
   const select = (file) => {
-    if (file.id !== draft?.id) {setMedicalDirty(false);setContractDirty(false);setDocumentsDirty(false);setFamilyDirty(false);setBankDirty(false);}
+    if (file.id !== draft?.id) {setMedicalDirty(false);setContractDirty(false);setDocumentsDirty(false);setFamilyDirty(false);setBankDirty(false);setConfiguredDirty(false);setConfiguredContractDirty(false);setMissingConfigured([]);setMissingContractConfigured([]);}
     const value = structuredClone(file);
     value.hasAnnexes = !!value.annexes?.length;
     value.employmentStatus ||= value.isActive === 0 ? "INACTIVO" : "ACTIVO";
@@ -166,7 +187,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   useEffect(() => {
     if (!next || busy || pendingSections.length > 0) return;
     select(next);
-  }, [next, busy, dirty, medicalDirty, contractDirty, documentsDirty, familyDirty,bankDirty]);
+  }, [next, busy, dirty, medicalDirty, contractDirty, documentsDirty, familyDirty,bankDirty,configuredDirty,configuredContractDirty]);
   useEffect(() => {
     if (!workerNavigation?.id) return;
     const target = files.find(file => Number(file.id) === Number(workerNavigation.id));
@@ -213,6 +234,8 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
         contractDirty: contractDirty || Boolean(contractRef.current?.isDirty()),
         familyDirty: familyDirty || Boolean(familyRef.current?.isDirty()),
         bankDirty: bankDirty || Boolean(bankRef.current?.isDirty()),
+        configuredDirty: configuredDirty || Boolean(configuredRef.current?.isDirty()),
+        contractConfiguredDirty: configuredContractDirty || Boolean(configuredContractRef.current?.isDirty()),
         completing: complete,
         saveGeneral: async () => {
           const result = await api(
@@ -236,6 +259,14 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
         saveBank: () => {
           if(!bankRef.current)throw new Error('La cuenta bancaria aún no está lista.');
           return bankRef.current.saveChanges();
+        },
+        saveConfigured: () => {
+          if(!configuredRef.current)throw new Error('Los campos configurados aún no están disponibles.');
+          return configuredRef.current.saveChanges();
+        },
+        saveContractConfigured: () => {
+          if(!configuredContractRef.current)throw new Error('Los campos contractuales configurados aún no están disponibles.');
+          return configuredContractRef.current.saveChanges();
         },
         saveMedical: () => {
           if (!medicalRef.current) throw new Error('La pestaña médica aún no está preparada.');
@@ -419,7 +450,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
             </nav>
             <div className="ef-shared-save" role="group" aria-label="Guardar cambios del trabajador">
               <button className="primary" type="submit"
-                disabled={busy || (!dirty && !medicalDirty && !contractDirty && !familyDirty && !bankDirty && !!draft.id)}>
+                disabled={busy || (!dirty && !medicalDirty && !contractDirty && !familyDirty && !bankDirty && !configuredDirty && !configuredContractDirty && !!draft.id)}>
                 {busy ? 'Guardando…' : draft.id ? 'Guardar ficha' : 'Guardar ficha provisional'}
               </button>
               {showReviewAction({status:draft.validationStatus}) &&
@@ -462,6 +493,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                 {draft.extra?.workerNumber&&workerNumberFromRut(draft.documentId)&&draft.extra.workerNumber!==workerNumberFromRut(draft.documentId)&&<p className="ef-note ef-field-wide">Número histórico diferente: {draft.extra.workerNumber}. Se conservará como referencia al guardar.</p>}
               </div>
             </fieldset>
+            <ConfiguredFields ref={configuredRef} key={(draft.id||'new')+'-ficha'} employeeId={draft.id} target="FICHA" onDirtyChange={setConfiguredDirty} onPendingChange={setMissingConfigured}/>
             </div>
             <div hidden={subTab!=='prevision'}>
               <fieldset className="ef-section">
@@ -594,6 +626,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                 {["admin","supervisor"].includes(role)&& (draft.id ? <ContractTerms ref={contractRef} key={draft.id+'-'+contractReload} employeeId={draft.id} suggestedWorkplace={draft.extra?.branch||selectedCompany?.defaultBranch||''}
                   positionName={draft.positionName} positions={positions}
                   onDirtyChange={setContractDirty} /> : <p className="ef-note ef-field-wide">Guarda primero al trabajador para registrar condiciones contractuales.</p>)}
+                {["admin","supervisor"].includes(role)&&<ConfiguredFields ref={configuredContractRef} key={(draft.id||'new')+'-contract'} employeeId={draft.id} target="CONTRATO" onDirtyChange={setConfiguredContractDirty} onPendingChange={setMissingContractConfigured}/>}
                 <div className="ef-field-wide"><strong>Estado laboral</strong></div>
                 <label>Estado laboral
                   <select aria-label="Estado laboral" value={draft.employmentStatus || ''} onChange={e => change('employmentStatus',e.target.value)}>

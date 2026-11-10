@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireRoles } from "../auth.js";
+import { requireAdmin,permitted } from "../auth.js";
 import { asyncHandler } from "../asyncHandler.js";
 import { pool } from "../db.js";
 import { runMigrations } from "../migrations.js";
@@ -11,7 +11,9 @@ import {
 } from "../employeeFiles.js";
 
 export const employeeFilesRouter = Router();
-employeeFilesRouter.use(requireRoles("admin", "supervisor", "operator"));
+employeeFilesRouter.use(requireAdmin);
+const fileScope=f=>({companyId:f.companyId||null,branch:f.extra?.branch||null});
+const allowed=(admin,file,write=false)=>permitted(admin,write?'personal.file.write':'personal.file.read',fileScope(file));
 employeeFilesRouter.get(
   "/",
   asyncHandler(async (req, res) => {
@@ -19,7 +21,7 @@ employeeFilesRouter.get(
     const [rows] = await pool.execute(
       `${fileSelect} ORDER BY e.is_active DESC,e.full_name`,
     );
-    const files = rows.map(presentFile);
+    const files = rows.map(presentFile).filter(f=>allowed(req.admin,f));
     const counts = {
       all: files.length,
       pending: files.filter((f) => f.validationStatus === "NO_VALIDADO").length,
@@ -47,6 +49,17 @@ const save = asyncHandler(async (req, res) => {
   const id = req.params.id ? Number(req.params.id) : null;
   if (req.params.id && (!Number.isInteger(id) || id < 1))
     return res.status(400).json({ message: "Trabajador inválido" });
+  if(id){
+    const [previous]=await pool.execute(`${fileSelect} WHERE e.id=?`,[id]);
+    if(!previous.length)return res.status(404).json({message:'Trabajador no encontrado'});
+    if(!allowed(req.admin,presentFile(previous[0]),true))
+      return res.status(403).json({message:'Sin autorización para editar este trabajador.'});
+  }
+  const target={companyId:data.data.companyId||null,extra:data.data.extra||{}};
+  if(!id||data.data.companyId){
+    if(!allowed(req.admin,target,true))
+      return res.status(403).json({message:'Sin autorización para crear o mover la ficha a este ámbito.'});
+  }
   const employeeId = await saveEmployeeFile(id, data.data, req.admin);
   const [rows] = await pool.execute(`${fileSelect} WHERE e.id=?`, [employeeId]);
   res

@@ -1,7 +1,7 @@
 import {Router} from 'express';
 import {z} from 'zod';
 import {pool} from '../db.js';
-import {requireAdmin,requirePermission} from '../auth.js';
+import {requireAdmin,requirePermission,permitted} from '../auth.js';
 import {asyncHandler} from '../asyncHandler.js';
 import {runMigrations} from '../migrations.js';
 import {recordAudit} from '../auditLog.js';
@@ -62,7 +62,7 @@ laborAccountingRouter.get('/',requirePermission('labor.parameters.read'),asyncHa
    entities,versions,current:laborValuesAt(versions,on),
    entityHistory:history[0].map(x=>({...x,before:x.beforeJson?JSON.parse(x.beforeJson):null,
      after:JSON.parse(x.afterJson),beforeJson:undefined,afterJson:undefined})),
-   metrics:laborMetrics,asOf:on
+   metrics:laborMetrics,asOf:on,canManage:permitted(req.admin,'labor.parameters.manage')
  });
 }));
 

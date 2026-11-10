@@ -58,7 +58,12 @@ adminRouter.get('/access/self',asyncHandler(async(req,res)=>{
  res.json({profile:req.admin.profile||null,hasRoot:req.admin.hasRoot===true});
 }));
 adminRouter.get('/access/catalog',rootOnly,asyncHandler(async(_req,res)=>{
- res.json({permissions:ACCESS_CATALOG.map(([key,group,label])=>({key,group,label}))});
+ const [fields]=await pool.execute('SELECT code,label,target FROM labor_config_fields ORDER BY target,label');
+ const custom=fields.flatMap(f=>['read','write'].map(action=>({
+  key:'custom_field.'+f.code+'.'+action,group:'Campos '+(f.target==='FICHA'?'de ficha':'contractuales'),
+  label:(action==='read'?'Ver ':'Editar ')+f.label
+ })));
+ res.json({permissions:[...ACCESS_CATALOG.map(([key,group,label])=>({key,group,label})),...custom]});
 }));
 adminRouter.get('/access/users',rootOnly,asyncHandler(async(_req,res)=>{
  const [rows]=await pool.execute('SELECT a.id,a.username,a.full_name AS fullName,a.role,p.profile FROM admins a LEFT JOIN security_user_profiles p ON p.user_id=a.id ORDER BY a.full_name');
@@ -99,9 +104,10 @@ adminRouter.post('/access/users/:id/permissions',rootOnly,asyncHandler(async(req
  if(!id||!parsed.success||!permissionKnown(parsed.data.permission)||parsed.data.permission==='security.access.manage')
   return res.status(400).json({message:'Concesión inválida o no delegable'});
  const d=parsed.data;
- // No habilitar ámbitos por empresa/sucursal hasta proteger todas las rutas y exportaciones.
+ // El ámbito de empresa/sucursal requiere proteger TODAS las APIs.
+ // Evitar conceder una seguridad de alcance que aún no está garantizada.
  if(d.scopeKind!=='GLOBAL')
-  return res.status(409).json({message:'Los permisos por empresa/sucursal están pendientes del aislamiento integral.'});
+  return res.status(409).json({message:'Los permisos por empresa/sucursal estarán disponibles después de validar el aislamiento completo.'});
  if(d.companyId||d.branch)
   return res.status(400).json({message:'Un permiso global no admite empresa o sucursal.'});
  if(d.validUntil&&(!Number.isFinite(Date.parse(d.validUntil+'T23:59:59Z'))||new Date(d.validUntil+'T23:59:59Z').toISOString().slice(0,10)!==d.validUntil||Date.parse(d.validUntil+'T23:59:59Z')<=Date.now()))
@@ -112,6 +118,13 @@ adminRouter.post('/access/users/:id/permissions',rootOnly,asyncHandler(async(req
   const [users]=await db.execute('SELECT a.id,p.profile FROM admins a LEFT JOIN security_user_profiles p ON p.user_id=a.id WHERE a.id=?',[id]);
   if(!users.length)return res.status(404).json({message:'Usuario inexistente'});
   if(users[0].profile==='root')throw Object.assign(new Error('Root administra acceso por perfil, no por excepciones'),{status:400});
+  // Solo se asignan permisos de campos ya publicados desde Contabilidad Laboral.
+  // Un ID futuro no puede heredar una autorización concedida por anticipado.
+  if(d.permission.startsWith('custom_field.')){
+   const code=d.permission.split('.')[1];
+   const [found]=await db.execute('SELECT id FROM labor_config_fields WHERE code=?',[code]);
+   if(!found.length)throw Object.assign(new Error('El campo solicitado no existe en el catálogo.'),{status:400});
+  }
   if(users[0].profile==='admin_local'&&d.permission.startsWith('labor.')&&d.permission.endsWith('.manage'))
    throw Object.assign(new Error('El administrador local no puede configurar parámetros globales'),{status:403});
   if(d.companyId){

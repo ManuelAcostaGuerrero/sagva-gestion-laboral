@@ -32,3 +32,7 @@
 ## Revisión de permisos de ejecución, 10-11-2026
 
 Se bloquean concesiones por empresa/sucursal hasta completar el aislamiento en todas las rutas y exportaciones, se verifican fechas de expiración reales y las respuestas de error de los cambios de permisos cierran su transacción mediante rollback. PR en borrador, sin instalar ni fusionar.
+
+## Integración
+
+La Etapa 2 se integró en `main` mediante PR #12, conservando el aislamiento por sucursal deshabilitado hasta completar su revisión. La actualización de Windows sigue siendo manual y requiere respaldo y validación física.
