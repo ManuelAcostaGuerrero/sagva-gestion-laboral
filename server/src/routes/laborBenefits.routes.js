@@ -82,3 +82,45 @@ laborBenefitsRouter.post('/family-brackets',restricted(mayConfigureLabor),asyncH
     await db.commit();res.status(201).json({groupCode:group});
   }catch(e){await db.rollback();throw e;}finally{db.release();}
 }));
+
+
+const bonusCreate=z.object({code:z.string().trim().toUpperCase().regex(/^[A-Z0-9_]{2,40}$/),name:label,kind:z.enum(['BONO_REMUNERACIONAL','ASIGNACION_PERDIDA_CAJA']),reason}).strict();
+const bonusEdit=z.object({name:label,active:z.boolean(),revision:z.number().int().positive(),reason}).strict();
+laborBenefitsRouter.get('/bonus-types',asyncHandler(async(req,res)=>{
+ const [rows]=await pool.execute('SELECT id,code,name,kind,active,revision FROM labor_bonus_types ORDER BY active DESC,name');
+ res.json({types:rows.map(x=>({...x,active:!!x.active})),canManage:mayConfigureLabor(req.admin)});
+}));
+laborBenefitsRouter.post('/bonus-types',restricted(mayConfigureLabor),asyncHandler(async(req,res)=>{
+ const parsed=bonusCreate.safeParse(req.body);if(!parsed.success)throw fail('Código, nombre, clase o motivo inválido.');
+ const d=parsed.data,db=await pool.getConnection();
+ try{
+  await db.beginTransaction();
+  if((await db.execute('SELECT id FROM labor_bonus_types WHERE code=? OR upper(name)=upper(?)',[d.code,d.name]))[0].length)throw fail('Concepto ya registrado.',409);
+  const name=d.name.toLocaleUpperCase('es-CL');
+  const [created]=await db.execute('INSERT INTO labor_bonus_types(code,name,kind) VALUES(?,?,?)',[d.code,name,d.kind]);
+  await db.execute('INSERT INTO labor_bonus_type_history(type_id,after_json,reason,changed_by) VALUES(?,?,?,?)',
+   [created.insertId,JSON.stringify({code:d.code,name,kind:d.kind,active:1,revision:1}),d.reason,req.admin.id]);
+  await recordAudit(req.admin,'create','labor_bonus_type',created.insertId,{code:d.code,kind:d.kind,reason:d.reason},db);
+  await db.commit();res.status(201).json({id:created.insertId});
+ }catch(e){await db.rollback();throw e;}finally{db.release();}
+}));
+laborBenefitsRouter.put('/bonus-types/:id',restricted(mayConfigureLabor),asyncHandler(async(req,res)=>{
+ const id=Number(req.params.id),parsed=bonusEdit.safeParse(req.body);
+ if(!Number.isSafeInteger(id)||id<1||!parsed.success)throw fail('Revisa el concepto y su motivo.');
+ const d=parsed.data,db=await pool.getConnection();
+ try{
+  await db.beginTransaction();
+  const [rows]=await db.execute('SELECT id,code,name,kind,active,revision FROM labor_bonus_types WHERE id=?',[id]);
+  if(!rows.length)throw fail('Concepto no encontrado.',404);
+  const old=rows[0];if(old.revision!==d.revision)throw fail('El concepto cambió en otra sesión.',409);
+  const name=d.name.toLocaleUpperCase('es-CL');
+  if((await db.execute('SELECT id FROM labor_bonus_types WHERE upper(name)=upper(?) AND id<>?',[name,id]))[0].length)throw fail('Nombre duplicado.',409);
+  const after={...old,name,active:d.active?1:0,revision:old.revision+1};
+  await db.execute('UPDATE labor_bonus_types SET name=?,active=?,revision=revision+1,updated_at=CURRENT_TIMESTAMP WHERE id=? AND revision=?',
+   [name,d.active?1:0,id,old.revision]);
+  await db.execute('INSERT INTO labor_bonus_type_history(type_id,before_json,after_json,reason,changed_by) VALUES(?,?,?,?,?)',
+   [id,JSON.stringify(old),JSON.stringify(after),d.reason,req.admin.id]);
+  await recordAudit(req.admin,'update','labor_bonus_type',id,{before:old,after,reason:d.reason},db);
+  await db.commit();res.json({message:'Concepto actualizado con historial.'});
+ }catch(e){await db.rollback();throw e;}finally{db.release();}
+}));

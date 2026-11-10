@@ -2,7 +2,7 @@ export const TERMS_MIGRATION='20261011_016_contract_terms';
 export const blankContractTerms=()=>({
  revision:0,monthlyBaseSalary:'',gratification:'',weeklyHours:'',
  shiftDistribution:'',breakMinutes:'',workplace:'',paymentMethod:'',
- jobDuties:'',additionalTerms:''
+ jobDuties:'',additionalTerms:'',bonuses:[]
 });
 export async function migrateContractTerms(db){
  if((await db.execute('SELECT id FROM schema_migrations WHERE id=?',[TERMS_MIGRATION]))[0].length)return;
