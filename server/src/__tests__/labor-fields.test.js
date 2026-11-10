@@ -52,10 +52,13 @@ test('Etapa 3: definición versionada, valores individuales, historial y permiso
   assert.equal(all.length,1);
   const workerPath='/labor-fields/workers/'+worker.insertId+'?target=FICHA';
   assert.equal((await req(workerPath)).fields[0].value,null);
-  await req('/labor-fields/workers/'+worker.insertId,'PUT',{target:'FICHA',values:[{fieldId:id,value:null,revision:0}]},'root',400);
-  await req('/labor-fields/workers/'+worker.insertId,'PUT',{target:'FICHA',values:[{fieldId:id,value:'ENTREGADO',revision:0}]});
+  // Borrador: permitir guardar null, pero continuar bloqueando ficha validada sin valor.
+  await req('/labor-fields/workers/'+worker.insertId,'PUT',{target:'FICHA',values:[{fieldId:id,value:null,revision:0}]});
+  assert.equal((await req(workerPath)).fields[0].value,null);
+  assert.equal((await req(workerPath)).fields[0].valueRevision,1);
+  await req('/labor-fields/workers/'+worker.insertId,'PUT',{target:'FICHA',values:[{fieldId:id,value:'ENTREGADO',revision:1}]});
   const read=(await req(workerPath)).fields[0];
-  assert.equal(read.value,'ENTREGADO');assert.equal(read.valueRevision,1);
+  assert.equal(read.value,'ENTREGADO');assert.equal(read.valueRevision,2);
   await req('/labor-fields/workers/'+worker.insertId,'PUT',{target:'FICHA',values:[{fieldId:id,value:'PENDIENTE',revision:0}]},'root',409);
   await req('/labor-fields/definitions/'+id,'PUT',{
    label:'Equipo actualizado',required:true,active:true,options:['PENDIENTE','REEMPLAZADO'],revision:1,reason:'Eliminar una opción utilizada'
@@ -69,15 +72,15 @@ test('Etapa 3: definición versionada, valores individuales, historial y permiso
   await grant('custom_field.EXT_EQUIPO.read');
   const one=(await req(workerPath,'GET',undefined,'account')).fields;
   assert.equal(one.length,1);assert.equal(one[0].value,'ENTREGADO');assert.equal(one[0].canWrite,false);
-  await req('/labor-fields/workers/'+worker.insertId,'PUT',{target:'FICHA',values:[{fieldId:id,value:'REEMPLAZADO',revision:1}]},'account',403);
+  await req('/labor-fields/workers/'+worker.insertId,'PUT',{target:'FICHA',values:[{fieldId:id,value:'REEMPLAZADO',revision:2}]},'account',403);
   await grant('personal.file.write');
   const allowedWrite=await grant('custom_field.EXT_EQUIPO.write');
-  await req('/labor-fields/workers/'+worker.insertId,'PUT',{target:'FICHA',values:[{fieldId:id,value:'REEMPLAZADO',revision:1}]},'account');
+  await req('/labor-fields/workers/'+worker.insertId,'PUT',{target:'FICHA',values:[{fieldId:id,value:'REEMPLAZADO',revision:2}]},'account');
   assert.equal((await req(workerPath)).fields[0].value,'REEMPLAZADO');
   await req('/admin/access/permissions/'+allowedWrite.id+'/revoke','POST');
-  await req('/labor-fields/workers/'+worker.insertId,'PUT',{target:'FICHA',values:[{fieldId:id,value:'PENDIENTE',revision:2}]},'account',403);
+  await req('/labor-fields/workers/'+worker.insertId,'PUT',{target:'FICHA',values:[{fieldId:id,value:'PENDIENTE',revision:3}]},'account',403);
   const [history]=await pool.execute('SELECT revision FROM employee_config_field_history WHERE field_id=? ORDER BY revision',[id]);
-  assert.deepEqual(history.map(x=>x.revision),[1,2]);
+  assert.deepEqual(history.map(x=>x.revision),[1,2,3]);
   const [definitionsHistory]=await pool.execute('SELECT revision FROM labor_config_field_history WHERE field_id=? ORDER BY revision',[id]);
   assert.deepEqual(definitionsHistory.map(x=>x.revision),[1,2]);
   assert.deepEqual((await pool.execute('PRAGMA foreign_key_check'))[0],[]);
