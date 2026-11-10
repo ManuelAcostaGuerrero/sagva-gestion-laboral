@@ -1,6 +1,6 @@
 import {Router} from 'express';
 import {z} from 'zod';
-import {requireRoles} from '../auth.js';
+import {requireAdmin,permitted} from '../auth.js';
 import {runMigrations} from '../migrations.js';
 import {pool} from '../db.js';
 import {asyncHandler} from '../asyncHandler.js';
@@ -8,7 +8,7 @@ import {recordAudit} from '../auditLog.js';
 import {blankContractTerms} from '../contractTerms.js';
 
 export const contractTermsRouter=Router();
-contractTermsRouter.use(requireRoles('admin','supervisor'));
+contractTermsRouter.use(requireAdmin);
 contractTermsRouter.use((_req,res,next)=>{res.set('Cache-Control','private, no-store');next();});
 contractTermsRouter.use(asyncHandler(async(_req,_res,next)=>{await runMigrations();next();}));
 const textField=(limit)=>z.string().trim().max(limit);
@@ -23,15 +23,21 @@ const schema=z.object({
 }).strict();
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
 const idOf=x=>Number.isSafeInteger(Number(x))&&Number(x)>0?Number(x):null;
+async function hasContractAccess(req,id,write=false){
+ const [files]=await pool.execute("SELECT f.company_id AS companyId,json_extract(f.extra_json,'$.branch') AS branch FROM employees e LEFT JOIN employee_files f ON f.employee_id=e.id WHERE e.id=?",[id]);
+ if(!files.length)throw fail('Trabajador no encontrado.',404);
+ return permitted(req.admin,write?'personal.contract.write':'personal.contract.read',files[0]);
+}
 contractTermsRouter.get('/workers/:employeeId',asyncHandler(async(req,res)=>{
  const id=idOf(req.params.employeeId);if(!id)throw fail('Trabajador inválido.');
- if(!(await pool.execute('SELECT id FROM employees WHERE id=?',[id]))[0].length)throw fail('Trabajador no encontrado.',404);
+ if(!(await hasContractAccess(req,id)))throw fail('No puedes consultar las condiciones contractuales.',403);
  const [rows]=await pool.execute('SELECT terms_json AS data,revision,updated_at AS updatedAt FROM employee_contract_terms WHERE employee_id=?',[id]);
  res.json({terms:rows.length?{...JSON.parse(rows[0].data),revision:rows[0].revision}:blankContractTerms(),updatedAt:rows[0]?.updatedAt||null});
 }));
 contractTermsRouter.put('/workers/:employeeId',asyncHandler(async(req,res)=>{
  const id=idOf(req.params.employeeId),parsed=schema.safeParse(req.body);
  if(!id||!parsed.success)throw fail('Revisa sueldo, horas, jornada y condiciones del contrato.');
+ if(!(await hasContractAccess(req,id,true)))throw fail('Sin autorización para modificar el contrato.',403);
  const data={...parsed.data};const previousRevision=data.revision;delete data.revision;
  const db=await pool.getConnection();
  try{
