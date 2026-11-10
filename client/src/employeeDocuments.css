@@ -21,3 +21,10 @@
 .ef .ed-upload input[type="file"] { max-width: 100%; }
 .ed-footnote { font-size: 12px; color: #51646a; }
 @media (max-width: 850px) { .ed-grid { grid-template-columns: 1fr; } .ed-bar { align-items: flex-start; } }
+
+.ed-state-stack{display:flex;align-items:center;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.ed-explainer{border-left:3px solid #567c86;padding:8px 11px;background:#f3f7f8;border-radius:5px}
+.ed-physical-panel{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-top:12px;padding:11px;background:#f5f8fa;border:1px solid #dce5e3;border-radius:8px}
+.ed-physical-panel label{min-width:min(100%,255px)}
+.ed-physical-panel button{align-self:center}
+@media(max-width:650px){.ed-state-stack{justify-content:flex-start}.ed-document>summary{align-items:flex-start}}

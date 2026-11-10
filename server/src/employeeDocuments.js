@@ -90,3 +90,10 @@ export async function migrateDocumentCatalog(connection) {
   ].join('\n'));
   await connection.execute('INSERT INTO schema_migrations(id) VALUES(?)', [id]);
 }
+
+export const DOCUMENT_PHYSICAL_STATUS_MIGRATION='20261110_028_document_physical_status';
+export async function migrateDocumentPhysicalStatus(db){
+ if((await db.execute('SELECT id FROM schema_migrations WHERE id=?',[DOCUMENT_PHYSICAL_STATUS_MIGRATION]))[0].length)return;
+ await db.execScript("CREATE TABLE employee_document_physical_status (employee_id INTEGER NOT NULL REFERENCES employees(id) ON DELETE RESTRICT, document_type_id INTEGER NOT NULL REFERENCES employee_document_types(id) ON DELETE RESTRICT, status TEXT NOT NULL CHECK(status IN ('UNVERIFIED','AVAILABLE','MISSING')), revision INTEGER NOT NULL DEFAULT 1, updated_by INTEGER NOT NULL REFERENCES admins(id), updated_at TEXT NOT NULL DEFAULT (datetime('now','localtime')), PRIMARY KEY(employee_id,document_type_id));");
+ await db.execute('INSERT INTO schema_migrations(id) VALUES(?)',[DOCUMENT_PHYSICAL_STATUS_MIGRATION]);
+}

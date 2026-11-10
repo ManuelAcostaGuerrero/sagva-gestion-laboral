@@ -4,6 +4,7 @@ import { api } from './services/api.js';
 import './employeeDocuments.css';
 import MonthField from './MonthField.jsx';
 import {calculateApprovedSalary} from '../../shared/salaryAnnex.js';
+import {documentEvidenceLabels} from './documentEvidenceStatus.js';
 
 const localDate = () => {
   const now = new Date();
@@ -42,6 +43,8 @@ function entryStatus(entry) {
 export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = false, role, onMessage, onDirtyChange, onSalaryApplied }) {
   const [types, setTypes] = useState([]);
   const [entries, setEntries] = useState([]);
+  const [physicalStatuses,setPhysicalStatuses]=useState({});
+  const [physicalDrafts,setPhysicalDrafts]=useState({});
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -75,6 +78,7 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
     ]);
     setTypes(catalog.types);
     setEntries(history.entries);
+    setPhysicalStatuses(Object.fromEntries((history.physicalStatuses||[]).map(v=>[v.typeId,v])));
   }
   useEffect(() => {
     if (!employeeId) return;
@@ -86,10 +90,12 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
       if (!active) return;
       setTypes(catalog.types);
       setEntries(history.entries);
+      setPhysicalStatuses(Object.fromEntries((history.physicalStatuses||[]).map(v=>[v.typeId,v])));
       setError('');
     }).catch(err => { if (active) setError(err.message); });
     setEditing(null);
     setUploads({});
+    setPhysicalDrafts({});
     return () => { active = false; };
   }, [employeeId]);
   useEffect(() => {
@@ -124,6 +130,22 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
     } finally {
       setBusy(false);
     }
+  }
+  async function savePhysicalStatus(typeId){
+    if(hasUnsavedChanges)return setError('Guarda primero la ficha antes de cambiar el estado documental.');
+    const current=physicalStatuses[typeId]||{status:'UNVERIFIED',revision:0};
+    const status=physicalDrafts[typeId];
+    if(!status||status===current.status)return;
+    setBusy(true);setError('');
+    try{
+      const response=await api('/employee-documents/workers/'+employeeId+'/types/'+typeId+'/physical-status',{
+        method:'PUT',body:JSON.stringify({status,revision:current.revision})
+      });
+      setPhysicalStatuses(old=>({...old,[typeId]:{status:response.status,revision:response.revision}}));
+      setPhysicalDrafts(old=>{const copy={...old};delete copy[typeId];return copy;});
+      onMessage?.('Estado físico actualizado. El estado de carga digital se mantiene independiente.');
+    }catch(e){setError(e.message);}
+    finally{setBusy(false);}
   }
   async function approveSalary(entry){
     if(hasUnsavedChanges||hasLocalDraft)return setError('Guarda o cancela los otros cambios pendientes antes de aprobar el sueldo.');
@@ -196,6 +218,7 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
     <fieldset className="ef-section ed-section">
       <legend>Documentos laborales</legend>
       <p>Los documentos se configuran en Administración → Documentos. Aquí se registran entregas y renovaciones sin borrar el historial. Cada entrega puede tener su propia fecha de vencimiento manual.</p>
+      <p className="ed-explainer">Se controlan <strong>dos situaciones distintas</strong>: si existe un respaldo físico y si el PDF está ingresado en SAGVA. Un documento sin PDF no significa automáticamente que no exista en papel.</p>
       <p className="ef-note">Para prorrogar un contrato: Ficha general → Datos laborales → PLAZO FIJO → ¿Tiene anexos? Sí. Para respaldar otro anexo en PDF, crea su tipo en Administración → Documentos y registra aquí la entrega con sus fechas.</p>
       {hasUnsavedChanges && <p className="ef-note">Guarda los cambios pendientes de la ficha antes de registrar documentos o adjuntar archivos.</p>}
       {error && <p className="ef-note" role="alert">{error}</p>}
@@ -203,18 +226,38 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
       {types.map(type => {
         const history = entries.filter(entry => entry.typeId === type.id);
         const latest = history[0];
-        const status = latest ? entryStatus(latest) : { text: 'Sin registro', kind: 'muted' };
+        const physical=physicalStatuses[type.id]||{status:'UNVERIFIED',revision:0};
+        const physicalDraft=physicalDrafts[type.id]??physical.status;
+        const evidence=documentEvidenceLabels(latest,physical.status);
         const canRecordAmount=!type.financialKind || ['admin','supervisor'].includes(role);
         const isEditing = editing === type.id;
         const expiryMode = entryDraft.expiryMode === 'MANUAL' ? 'MANUAL' : type.expiryMode;
         return (
           <details key={type.id} className="ed-document">
-            <summary><strong>{type.name}</strong><span className={'ed-status ed-' + status.kind}>{status.text}</span></summary>
+            <summary><strong>{type.name}</strong>
+             <span className="ed-state-stack">
+              <span className={'ed-status ed-'+evidence.digital.kind}>{evidence.digital.text}</span>
+              <span className={'ed-status ed-'+evidence.physical.kind}>{evidence.physical.text}</span>
+              {latest?.expiresOn&&latest.expiresOn<localDate()&&<span className="ed-status ed-danger">Vencido</span>}
+             </span>
+            </summary>
             <p>{modes[type.expiryMode]}{type.expiryMode === 'PERIOD' ? ' · cada ' + type.periodValue + ' ' + periodNames[type.periodUnit] : ''}</p>
+            <div className="ed-physical-panel" role="group" aria-label={'Disponibilidad física de '+type.name}>
+             <div><strong>Respaldo físico</strong><p className="ed-footnote">Declaración interna; no confirma firma ni validez legal.</p></div>
+             {canApprove&&<label>¿Se dispone del documento físico?
+              <select value={physicalDraft} disabled={busy||hasUnsavedChanges}
+               onChange={e=>setPhysicalDrafts(old=>({...old,[type.id]:e.target.value}))}>
+               <option value="UNVERIFIED">Sin verificar</option>
+               <option value="AVAILABLE">Sí, existe respaldo físico</option>
+               <option value="MISSING">No existe / no se dispone del respaldo</option>
+              </select></label>}
+             {canApprove&&<button type="button" disabled={busy||hasUnsavedChanges||physicalDraft===physical.status}
+              onClick={()=>savePhysicalStatus(type.id)}>Guardar estado físico</button>}
+            </div>
             {!canRecordAmount && <p className="ed-footnote">Los montos de estos anexos se registran desde Administración o Supervisión.</p>}
             {!type.canRegister && <p className="ed-footnote">No se admiten nuevas entregas para este documento; su historial permanece disponible.</p>}
             <div className="ed-bar">
-              <span>{history.length ? history.length + ' entrega(s) y renovación(es)' : '¿Tiene este documento? No registrado'}</span>
+              <span>{history.length ? history.length + ' entrega(s) y renovación(es)' : 'No hay entrega registrada en el sistema'}</span>
               <button type="button" disabled={busy || hasUnsavedChanges || (!type.canRegister || !canRecordAmount)} onClick={() => {
                 setEditing(isEditing ? null : type.id);
                 setStartEdited(false);
@@ -284,7 +327,7 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
                     {!!entry.retroactiveMonths?.length && <span>Meses: {entry.retroactiveMonths.map(month=>month.slice(5)+'/'+month.slice(0,4)).join(', ')}</span>}
                     {entry.versionLabel && entry.financialKind!=='SALARY_INCREASE' && type.financialKind!=='SALARY_INCREASE' && <span>Versión: {entry.versionLabel}</span>}
                   </div>
-                  {!entry.attachments.length && <p className="ed-status ed-danger" role="status">No hay PDF relacionado con esta entrega o renovación.</p>}
+                  {!entry.attachments.length && <p className="ed-status ed-warning" role="status">PDF pendiente de ingresar en SAGVA para esta entrega. Esto no determina si existe el documento físico.</p>}
                   {entry.documentName !== type.name && <p>Nombre original de esta entrega: <strong>{entry.documentName}</strong></p>}
                   {entry.notes && <p>{entry.notes}</p>}
                   {entry.attachments.map(file => (

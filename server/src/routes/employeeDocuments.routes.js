@@ -105,7 +105,11 @@ employeeDocumentsRouter.get('/workers/:workerId', asyncHandler(async (req, res) 
     );
     attachments = rows;
   }
-  res.json({ entries: entries.map(({retroactiveMonthsJson,...entry}) => ({
+  const [physicalStatuses] = await pool.execute(
+    'SELECT document_type_id AS typeId,status,revision,updated_at AS updatedAt FROM employee_document_physical_status WHERE employee_id=?',
+    [workerId]
+  );
+  res.json({ physicalStatuses, entries: entries.map(({retroactiveMonthsJson,...entry}) => ({
     ...entry,
     retroactive:entry.retroactive==null?null:Boolean(entry.retroactive),
     retroactiveMonths:JSON.parse(retroactiveMonthsJson||'[]'),
@@ -117,6 +121,43 @@ employeeDocumentsRouter.get('/workers/:workerId', asyncHandler(async (req, res) 
     }))
   })) });
 }));
+
+
+const physicalStatusSchema=z.object({
+  status:z.enum(['UNVERIFIED','AVAILABLE','MISSING']),
+  revision:z.number().int().nonnegative()
+}).strict();
+
+employeeDocumentsRouter.put('/workers/:workerId/types/:typeId/physical-status',
+ requireRoles('admin','supervisor'),asyncHandler(async(req,res)=>{
+  await runMigrations();
+  const workerId=idOf(req.params.workerId),typeId=idOf(req.params.typeId);
+  const parsed=physicalStatusSchema.safeParse(req.body);
+  if(!workerId||!typeId||!parsed.success)throw fail('Estado físico, documento o revisión inválidos.');
+  const db=await pool.getConnection();
+  try{
+   await db.beginTransaction();
+   const [worker]=await db.execute('SELECT id FROM employees WHERE id=?',[workerId]);
+   if(!worker.length)throw fail('Trabajador no encontrado.',404);
+   const [type]=await db.execute('SELECT id FROM employee_document_types WHERE id=?',[typeId]);
+   if(!type.length)throw fail('Tipo de documento no encontrado.',404);
+   const [rows]=await db.execute('SELECT status,revision FROM employee_document_physical_status WHERE employee_id=? AND document_type_id=?',[workerId,typeId]);
+   const before=rows[0]?.status||'UNVERIFIED',revision=rows[0]?.revision||0;
+   if(revision!==parsed.data.revision)throw fail('El estado físico cambió en otra sesión; actualiza antes de guardar.',409);
+   if(rows.length){
+    await db.execute("UPDATE employee_document_physical_status SET status=?,revision=revision+1,updated_by=?,updated_at=datetime('now','localtime') WHERE employee_id=? AND document_type_id=?",
+     [parsed.data.status,req.admin.id,workerId,typeId]);
+   }else{
+    await db.execute('INSERT INTO employee_document_physical_status(employee_id,document_type_id,status,updated_by) VALUES(?,?,?,?)',
+     [workerId,typeId,parsed.data.status,req.admin.id]);
+   }
+   await recordAudit(req.admin,'update','employee_document_physical_status',workerId,
+    {typeId,before,after:parsed.data.status,revision:revision+1,documentUnchanged:true},db);
+   await db.commit();
+   res.json({status:parsed.data.status,revision:revision+1,message:'Disponibilidad física registrada; los PDF y entregas existentes no se modificaron.'});
+  }catch(e){await db.rollback();throw e;}finally{db.release();}
+ })
+);
 
 employeeDocumentsRouter.post('/workers/:workerId/entries', asyncHandler(async (req, res) => {
   await runMigrations();
