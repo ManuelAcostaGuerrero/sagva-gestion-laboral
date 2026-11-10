@@ -168,3 +168,26 @@ Ya existe `recordAudit()` y tabla `audit_logs`; también historiales previsional
 **Resultado que se busca:** datos completos, bien separados, configurables y seguros **antes** de crear el futuro módulo de remuneraciones. Contabilidad Laboral define parámetros, la ficha consume configuraciones, Root gestiona accesos y la bitácora acredita movimientos.
 
 **No equivale a funcionalidades implementadas ni a certificación laboral oficial.**
+
+## 11. Entregable de cierre solicitado: manual breve en PDF por interfaz y campo (10-11-2026)
+
+**Estado: PENDIENTE. Crear el PDF solamente al terminar y validar las actualizaciones de esta tanda.** Es una tarea de documentación final, no una función nueva ni una indicación de generar el PDF antes de cerrar los cambios. El documento debe reflejar **la interfaz realmente implementada y probada**, no pantallas imaginadas ni planes sin ejecutar.
+
+### Alcance del manual
+
+- Entregar **un PDF corto, claro y visual**, en español, dirigido a las personas que usarán SAGVA; organizarlo por **módulo, pantalla y sección**. Cubrir las interfaces y campos modificados en esta tanda: empresa y sus correos, ficha del trabajador, documentos laborales, cuenta bancaria, Contabilidad Laboral/campos configurables y Root/permisos individuales, según lo que efectivamente quede disponible tras las pruebas.
+- Para **cada campo visible** indicar: **nombre exacto en pantalla**, **para qué sirve**, **qué información se debe ingresar**, **formato/tipo de dato**, **si es obligatorio u opcional**, **un ejemplo ficticio** y, cuando corresponda, **quién puede verlo o editarlo**. Usar una tabla simple «Campo | Qué ingresar | Ejemplo | Observaciones/obligatoriedad»; agrupar campos relacionados, sin repetir instrucciones innecesarias.
+- Explicar brevemente las **acciones**: guardar provisionalmente, validar, editar, cargar un respaldo, consultar estados, configurar permisos, sin confundir un archivo **no ingresado en el sistema** con un documento **sin respaldo físico/existente**.
+- En la ficha de empresa documentar separadamente **correo institucional/de contacto** y **correo de soporte/notificaciones**. Si queda implementada la selección por empresa para enviar correos, indicar qué remitente corresponde a cada trabajador. **No afirmar que existe envío automático o recuperación de clave por correo hasta implementarlo y probarlo**.
+- No inventar obligaciones legales, validaciones, valores previsionales ni efectos de firma o correo. Diferenciar claramente «dato informativo», «requisito interno» y «respaldo legal por validar con asesoría».
+- Incluir imágenes o capturas **únicamente de un entorno de prueba sin datos reales**, si ayudan a identificar la pantalla. En los ejemplos usar nombres, RUT, correos, cuentas y empresas **ficticios**; nunca copiar secretos ni datos del personal.
+
+### Puerta de aceptación del manual
+
+- [ ] Confirmar qué cambios de esta tanda están integrados en `main` y cuáles están realmente disponibles al actualizar la instalación beta.
+- [ ] Completar pruebas de interfaz, campos y permisos en Windows/móvil y comprobar textos, formatos, obligatoriedad y errores mostrados.
+- [ ] Elaborar el PDF desde las pantallas y campos finales con al menos un ejemplo ficticio por campo.
+- [ ] Revisar con el propietario que las indicaciones coincidan con la operación y corregir el documento antes de marcarlo como entregado.
+- [ ] Guardar el PDF como **entregable descargable** y dejar constancia de versión/fecha/SHA de SAGVA al que corresponde, sin datos privados.
+
+**Prioridad:** finalizar cambios actuales → comprobar funcionamiento → generar PDF breve por interfaz/campo → validación del propietario. No trasladar esta tarea indefinidamente a la fase de producción; corresponde al cierre de estas actualizaciones beta.
