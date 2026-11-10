@@ -5,16 +5,26 @@ import {blankContractTerms} from '../../server/src/contractTerms.js';
 const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName,positions=[],suggestedWorkplace='',onDirtyChange},ref){
  const [draft,setDraft]=useState(blankContractTerms),[saved,setSaved]=useState(null);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[loading,setLoading]=useState(true);
+ const [bonusTypes,setBonusTypes]=useState([]);
  const dirty=saved!==null&&JSON.stringify(saved)!==JSON.stringify(draft);
  useEffect(()=>{onDirtyChange?.(dirty);return()=>onDirtyChange?.(false);},[dirty,onDirtyChange]);
  useEffect(()=>{
   let active=true;setLoading(true);setError('');
+  api('/labor-benefits/bonus-types').then(x=>{if(active)setBonusTypes(x.types||[]);}).catch(e=>{if(active)setError('Catálogo de bonos: '+e.message);});
   api('/contract-terms/workers/'+employeeId).then(result=>{
    if(active){setSaved(result.terms);setDraft(structuredClone(result.terms));}
   }).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setLoading(false);});
   return ()=>{active=false;};
  },[employeeId]);
  const change=(key,value)=>setDraft(current=>({...current,[key]:value}));
+ const setBonus=(uid,key,value)=>setDraft(current=>({...current,bonuses:(current.bonuses||[]).map(b=>b.uid===uid?{...b,[key]:value}:b)}));
+ function addBonus(){
+  const first=bonusTypes.find(t=>t.active);
+  if(!first)return;
+  setDraft(current=>({...current,bonuses:[...(current.bonuses||[]),{
+   uid:crypto.randomUUID(),typeId:first.id,amountClp:1,periodicity:'MENSUAL',hasClauses:false,active:true,validFrom:''
+  }]}));
+ }
  async function saveChanges(){
   if(!dirty)return;
   if(loading||busy||saved===null)throw new Error('Las condiciones aún están cargando.');
@@ -56,6 +66,26 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
    {position?.description&&<div className="ef-field-wide">
      <button type="button" onClick={()=>change('jobDuties',position.description)}>Usar descripción del cargo {position.name}</button>
    </div>}
+   <div className="ef-field-wide">
+    <h3>Bonos y asignaciones pactadas</h3>
+    <p className="ef-note">Se registra el monto acordado y si existen cláusulas. Por ahora no hay evaluación, descuento ni cálculo de remuneraciones.</p>
+    {(draft.bonuses||[]).map((b,i)=><fieldset className="ef-section" key={b.uid}>
+     <legend>Bono o asignación {i+1}</legend>
+     <div className="ef-grid">
+      <label>Tipo<select value={b.typeId} onChange={e=>setBonus(b.uid,'typeId',Number(e.target.value))}>
+       {bonusTypes.filter(t=>t.active||t.id===b.typeId).map(t=><option value={t.id} key={t.id}>{t.name}</option>)}
+      </select></label>
+      <label>Monto pactado (CLP)<input type="number" required min="1" max="100000000000" step="1" value={b.amountClp} onChange={e=>setBonus(b.uid,'amountClp',Number(e.target.value))}/></label>
+      <label>Periodicidad<select value={b.periodicity} onChange={e=>setBonus(b.uid,'periodicity',e.target.value)}>
+       <option value="MENSUAL">Mensual</option><option value="UNICO">Único</option></select></label>
+      <label>Vigencia desde (opcional)<input type="date" value={b.validFrom} onChange={e=>setBonus(b.uid,'validFrom',e.target.value)}/></label>
+      <label><input type="checkbox" checked={b.hasClauses} onChange={e=>setBonus(b.uid,'hasClauses',e.target.checked)}/> Tiene cláusulas pactadas</label>
+      <label><input type="checkbox" checked={b.active} onChange={e=>setBonus(b.uid,'active',e.target.checked)}/> Activo</label>
+     </div>
+    </fieldset>)}
+    <button type="button" disabled={!bonusTypes.some(t=>t.active)||(draft.bonuses||[]).length>=20} onClick={addBonus}>Agregar bono o asignación</button>
+    {!bonusTypes.some(t=>t.active)&&<p className="ef-note">No hay conceptos activos; configurarlos desde Gestión → Contabilidad Laboral.</p>}
+   </div>
    <label className="ef-field-wide">Condiciones adicionales para revisión jurídica
     <textarea rows={3} maxLength={2000} value={draft.additionalTerms}
      onChange={e=>change('additionalTerms',e.target.value)}/></label>
