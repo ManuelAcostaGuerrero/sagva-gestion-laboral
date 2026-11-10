@@ -78,8 +78,12 @@ adminRouter.put('/access/users/:id/profile',rootOnly,asyncHandler(async(req,res)
  const db=await pool.getConnection();
  try{
   await db.beginTransaction();
-  const [users]=await db.execute('SELECT id FROM admins WHERE id=?',[id]);
+  const [users]=await db.execute('SELECT id,role FROM admins WHERE id=?',[id]);
   if(!users.length)return res.status(404).json({message:'Usuario no encontrado'});
+  // Este panel Root sigue dentro de /admin (rol SQL admin).
+  // No crear una cuenta root incapaz de abrir el panel de seguridad.
+  if(parsed.data.profile==='root'&&users[0].role!=='admin')
+   return res.status(409).json({message:'Root requiere una cuenta administradora preexistente. No se cambiaron permisos.'});
   const [current]=await db.execute('SELECT profile FROM security_user_profiles WHERE user_id=?',[id]);
   if(current[0]?.profile==='root'&&parsed.data.profile!=='root'){
    const [count]=await db.execute("SELECT count(*) AS n FROM security_user_profiles WHERE profile='root'");
@@ -132,7 +136,7 @@ adminRouter.post('/access/permissions/:id/revoke',rootOnly,asyncHandler(async(re
 }));
 
 
-adminRouter.get('/users', asyncHandler(async (_req, res) => {
+adminRouter.get('/users',forbidLegacyOnceRoot, asyncHandler(async (_req, res) => {
   await ensureAdminSecuritySchema();
   await ensureAdminFingerprintsTable();
   const [users] = await pool.execute(
@@ -194,7 +198,7 @@ adminRouter.put('/users/:id/role',forbidLegacyOnceRoot, asyncHandler(async (req,
 }));
 
 adminRouter.put('/users/:id/fingerprint', (_req,res)=>res.status(410).json({message:'Método de identificación retirado. Usa QR o PIN en una terminal autorizada.'}));
-adminRouter.get('/audit', asyncHandler(async (_req, res) => {
+adminRouter.get('/audit',forbidLegacyOnceRoot, asyncHandler(async (_req, res) => {
   await ensureAuditLogTable();
   const [logs] = await pool.execute(
     `SELECT id, admin_username AS adminUsername, action, entity_type AS entityType,
