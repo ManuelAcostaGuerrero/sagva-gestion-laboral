@@ -22,12 +22,13 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
   const first=bonusTypes.find(t=>t.active);
   if(!first)return;
   setDraft(current=>({...current,bonuses:[...(current.bonuses||[]),{
-   uid:crypto.randomUUID(),typeId:first.id,amountClp:1,periodicity:'MENSUAL',hasClauses:false,active:true,validFrom:''
+   uid:crypto.randomUUID(),typeId:first.id,amountClp:'',periodicity:'MENSUAL',hasClauses:false,active:true,validFrom:''
   }]}));
  }
  async function saveChanges(){
   if(!dirty)return;
   if(loading||busy||saved===null)throw new Error('Las condiciones aún están cargando.');
+  if((draft.bonuses||[]).some(b=>!Number.isSafeInteger(b.amountClp)||b.amountClp<=0))throw new Error('Completa el monto pactado de cada bono antes de guardar.');
   setBusy(true);setError('');
   try{
    const result=await api('/contract-terms/workers/'+employeeId,{method:'PUT',body:JSON.stringify(draft)});
@@ -75,12 +76,13 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
       <label>Tipo<select value={b.typeId} onChange={e=>setBonus(b.uid,'typeId',Number(e.target.value))}>
        {bonusTypes.filter(t=>t.active||t.id===b.typeId).map(t=><option value={t.id} key={t.id}>{t.name}</option>)}
       </select></label>
-      <label>Monto pactado (CLP)<input type="number" required min="1" max="100000000000" step="1" value={b.amountClp} onChange={e=>setBonus(b.uid,'amountClp',Number(e.target.value))}/></label>
+      <label>Monto pactado (CLP)<input type="number" required min="1" max="100000000000" step="1" value={b.amountClp} onChange={e=>setBonus(b.uid,'amountClp',e.target.value===''?'':Number(e.target.value))}/></label>
       <label>Periodicidad<select value={b.periodicity} onChange={e=>setBonus(b.uid,'periodicity',e.target.value)}>
        <option value="MENSUAL">Mensual</option><option value="UNICO">Único</option></select></label>
       <label>Vigencia desde (opcional)<input type="date" value={b.validFrom} onChange={e=>setBonus(b.uid,'validFrom',e.target.value)}/></label>
       <label><input type="checkbox" checked={b.hasClauses} onChange={e=>setBonus(b.uid,'hasClauses',e.target.checked)}/> Tiene cláusulas pactadas</label>
       <label><input type="checkbox" checked={b.active} onChange={e=>setBonus(b.uid,'active',e.target.checked)}/> Activo</label>
+      {!((saved?.bonuses||[]).some(x=>x.uid===b.uid))&&<button type="button" onClick={()=>setDraft(x=>({...x,bonuses:(x.bonuses||[]).filter(y=>y.uid!==b.uid)}))}>Quitar sin guardar</button>}
      </div>
     </fieldset>)}
     <button type="button" disabled={!bonusTypes.some(t=>t.active)||(draft.bonuses||[]).length>=20} onClick={addBonus}>Agregar bono o asignación</button>
