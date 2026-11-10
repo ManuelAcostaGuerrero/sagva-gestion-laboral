@@ -24,6 +24,7 @@ import {migrateSalaryAnnexApprovals} from './employeeSalaryApprovals.js';
 import {migrateLaborAccounting} from './laborAccounting.js';
 import {migrateLaborBenefits} from './laborBenefits.js';
 import {migrateAccessControl,bootstrapRoot} from './securityPermissions.js';
+import {migrateLaborFields} from './laborFields.js';
 
 import {migrateTerminalCompanies} from './terminalCompanies.js';
 
@@ -161,6 +162,7 @@ async function migrate() {
     await migrateLaborBenefits(connection);
     await migrateAccessControl(connection);
     await bootstrapRoot(connection);
+    await migrateLaborFields(connection);
     const [violations] = await connection.execute("PRAGMA foreign_key_check");
     if (violations.length)
       throw new Error(

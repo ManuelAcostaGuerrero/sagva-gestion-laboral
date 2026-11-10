@@ -58,7 +58,12 @@ adminRouter.get('/access/self',asyncHandler(async(req,res)=>{
  res.json({profile:req.admin.profile||null,hasRoot:req.admin.hasRoot===true});
 }));
 adminRouter.get('/access/catalog',rootOnly,asyncHandler(async(_req,res)=>{
- res.json({permissions:ACCESS_CATALOG.map(([key,group,label])=>({key,group,label}))});
+ const [fields]=await pool.execute('SELECT code,label,target FROM labor_config_fields ORDER BY target,label');
+ const custom=fields.flatMap(f=>['read','write'].map(action=>({
+  key:'custom_field.'+f.code+'.'+action,group:'Campos '+(f.target==='FICHA'?'de ficha':'contractuales'),
+  label:(action==='read'?'Ver ':'Editar ')+f.label
+ })));
+ res.json({permissions:[...ACCESS_CATALOG.map(([key,group,label])=>({key,group,label})),...custom]});
 }));
 adminRouter.get('/access/users',rootOnly,asyncHandler(async(_req,res)=>{
  const [rows]=await pool.execute('SELECT a.id,a.username,a.full_name AS fullName,a.role,p.profile FROM admins a LEFT JOIN security_user_profiles p ON p.user_id=a.id ORDER BY a.full_name');

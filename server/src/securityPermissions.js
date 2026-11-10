@@ -14,7 +14,7 @@ export const ACCESS_CATALOG=[
  ['personal.file.write','Ficha','Editar datos generales']
 ];
 const allKeys=new Set(ACCESS_CATALOG.map(x=>x[0]));
-export const permissionKnown=x=>allKeys.has(x);
+export const permissionKnown=x=>allKeys.has(x)||/^custom_field\.EXT_[A-Z0-9_]{2,36}\.(read|write)$/.test(x);
 export async function migrateAccessControl(db){
  if((await db.execute('SELECT id FROM schema_migrations WHERE id=?',[ACCESS_MIGRATION]))[0].length)return;
  await db.execScript([
@@ -61,8 +61,13 @@ export function permitted(admin,key,scope=null){
  if(profile==='accounting')return ['labor.catalog.read','labor.parameters.read'].includes(key);
  if(profile==='admin_local')return ['labor.catalog.read','labor.parameters.read'].includes(key);
  if(profile)return false;
- if(admin.role==='operator')return key==='labor.catalog.read';
- if(admin.role==='supervisor')return ['labor.catalog.read','labor.parameters.read'].includes(key);
+ if(key.startsWith('custom_field.')){
+  const write=key.endsWith('.write');
+  if(admin.role==='admin'||admin.role==='supervisor')return true;
+  return admin.role==='operator'&&!write;
+ }
+ if(admin.role==='operator')return ['labor.catalog.read','personal.file.read','personal.file.write'].includes(key);
+ if(admin.role==='supervisor')return ['labor.catalog.read','labor.parameters.read','personal.file.read','personal.file.write','personal.contract.read','personal.contract.write'].includes(key);
  if(admin.role!=='admin')return false;
  if(key.startsWith('personal.bank.'))return !admin.hasRoot&&set(process.env.SAGVA_BANK_ACCESS_USER_IDS).has(String(admin.id));
  if(key==='labor.benefits.manage')return !admin.hasRoot&&set(process.env.SAGVA_CONFIGURATION_USER_IDS).has(String(admin.id));
