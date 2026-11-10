@@ -38,6 +38,15 @@ test('Etapa 2: Root concede permisos individuales; deniega y revoca sin esperar 
   await call('/admin/users','POST',{username:'blocked',fullName:'Usuario Bloqueado',password:'Password123',role:'operator'},'other',403);
   await call('/admin/access/users/'+accounting.insertId+'/profile','PUT',{profile:'admin_local'},'root',409);
   await call('/admin/access/users/'+owner.insertId+'/profile','PUT',{profile:'accounting'},'root',409);
+  await call('/admin/access/users/999999/profile','PUT',{profile:'accounting'},'root',404);
+  await call('/admin/access/users/'+accounting.insertId+'/permissions','POST',{
+   permission:'labor.parameters.manage',effect:'ALLOW',scopeKind:'COMPANY',companyId:1,
+   reason:'Permiso local pendiente de aislamiento'
+  },'root',409);
+  await call('/admin/access/users/'+accounting.insertId+'/permissions','POST',{
+   permission:'labor.parameters.manage',effect:'ALLOW',scopeKind:'GLOBAL',validUntil:'2026-02-30',
+   reason:'Fecha que no existe en el calendario'
+  },'root',400);
   await call('/admin/access/users/'+accounting.insertId+'/profile','PUT',{profile:'accounting'});
   await call('/labor-accounting/','GET',undefined,'accounting');
   await call('/labor-accounting/parameters','POST',{

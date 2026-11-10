@@ -28,3 +28,7 @@
 - DENY prevalece sobre ALLOW, revocación efectiva en la siguiente solicitud con el mismo token.
 - Root no puede degradar su última cuenta; roles locales quedan bloqueados hasta la política multiempresa.
 - Comprobar API contra accesos directos, no solo que el menú oculte controles.
+
+## Revisión de permisos de ejecución, 10-11-2026
+
+Se bloquean concesiones por empresa/sucursal hasta completar el aislamiento en todas las rutas y exportaciones, se verifican fechas de expiración reales y las respuestas de error de los cambios de permisos cierran su transacción mediante rollback. PR en borrador, sin instalar ni fusionar.
