@@ -77,7 +77,9 @@ test('BL-003/004/005: bancos CMF, bandas SUSESO, cargas auditables y cuenta cifr
     ]});
     assert.equal(recognized.status,200);
     assert.equal((await call('/employee-benefits/'+w+'/family','GET',undefined,'supervisor')).data.status,'RECOGNIZED');
-    assert.equal((await call('/employee-benefits/bank-capability')).data.canAccess,false);
+    const deniedCapability=(await call('/employee-benefits/bank-capability')).data;
+    assert.equal(deniedCapability.canAccess,false);
+    assert.equal(deniedCapability.reason,'NOT_AUTHORIZED');
     assert.equal((await call('/employee-benefits/'+w+'/bank')).status,403);
     process.env.SAGVA_BANK_ACCESS_USER_IDS=String(admin.insertId);
     process.env.SAGVA_BANK_DATA_KEY='a'.repeat(64);

@@ -17,6 +17,7 @@ import {checkRut,formatRut} from '../../server/src/rut.js';
 import {currentContractEnd, validContractDate} from '../../server/src/employeeContracts.js';
 import {pendingFileSections, canCloseAfterSuccessfulSave, showReviewAction} from './employeeFileReview.js';
 import {saveEmployeeSections} from './saveEmployeeSections.js';
+import {pendingTarget,fieldPending} from './employeeFilePending.js';
 
 const fresh = () => ({
   fullName: "",
@@ -101,6 +102,18 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   const isapreEntities=previsionCatalog.filter(item=>item.kind==='ISAPRE');
   const dirty = Boolean(draft) && JSON.stringify(draft) !== saved;
   const pendingSections = pendingFileSections({general:dirty, medical:medicalDirty, contract:contractDirty, documents:documentsDirty, family:familyDirty,bank:bankDirty});
+  const missingFields=draft?completeFileMissing(draft):[];
+  const pendingClass=key=>fieldPending(missingFields,key)?' ef-pending-field':'';
+  const goToMissing=label=>{
+   const target=pendingTarget(label);
+   if(!target)return;
+   setTab('general');setSubTab(target[0]);
+   requestAnimationFrame(()=>{
+    const el=document.querySelector('[data-ef-field="'+target[1]+'"]');
+    el?.scrollIntoView({behavior:'smooth',block:'center'});
+    el?.querySelector('input:not([type=hidden]),select,textarea')?.focus({preventScroll:true});
+   });
+  };
   const showContractDetails = ['INDEFINIDO', 'PLAZO_FIJO'].includes(draft?.contractType);
   async function load() {
     const result = await api("/employee-files");
@@ -270,7 +283,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     <span className="ef-clear-field"><input type="checkbox" checked={(draft.clearFields || []).includes(key)}
       onChange={e => change('clearFields',e.target.checked ? [...(draft.clearFields || []),key] : (draft.clearFields || []).filter(k => k !== key))} /> Confirmar vaciado de este campo</span>
   );
-  const renderField = (key,label) => <label key={key} className={['fullName','legalFullName','address','terminationReason'].includes(key) ? 'ef-field-wide' : undefined}>
+  const renderField = (key,label) => <label key={key} data-ef-field={key} className={(['fullName','legalFullName','address','terminationReason'].includes(key) ? 'ef-field-wide' : '')+pendingClass(key)}>
     {label}{key.endsWith('Date') ? (
       <DateField value={draft[key] || ''} onChange={e => change(key,e.target.value)} />
     ) : (
@@ -416,13 +429,16 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                 : 'Sin cambios pendientes'}</span>
             </div>
             <div className="ef-tab-body" hidden={tab!=='general'}>
-            <p className="ef-note">
-              RUT: {checkRut(draft.documentId).status} · {['documentId','firstName','firstLastName','company','workSchedule','hireDate','email','address','birthDate'].filter(key => !String(draft[key] || '').trim()).length + (draft.phone || draft.mobile ? 0 : 1)} campos pendientes.
-              {draft.validatedAt && <> Revisado por {draft.validatorName || `usuario ${draft.validatedBy}`} el {draft.validatedAt}.</>}
-              {!draft.documentId && <> Ficha provisional: se conserva NO VALIDADO hasta informar el RUT.</>}
-            </p>
-            <p>El nombre completo se calcula al editar nombres y apellidos. El nombre legal histórico se conserva para revisión. El botón de guardado provisional no exige completar toda la ficha.</p>
-            {!!completeFileMissing(draft).length&&<p className="ef-note">Para validar la ficha faltan: {completeFileMissing(draft).join(', ')}.</p>}
+            <div className={missingFields.length?'ef-validation-warning':'ef-validation-success'} role="status" aria-live="polite">
+              <strong>{missingFields.length?`Ficha incompleta · ${missingFields.length} ${missingFields.length===1?'campo pendiente':'campos pendientes'}`:'Ficha completa para revisión'}</strong>
+              {missingFields.length
+               ? <><p>Selecciona un campo para ubicarlo y completarlo. Puedes guardar provisionalmente.</p>
+                  <div className="ef-pending-links">{missingFields.map((label,i)=>
+                   <button type="button" key={label+'-'+i} onClick={()=>goToMissing(label)}>{label}</button>
+                  )}</div></>
+               : <p>Los campos requeridos están completos; la validación administrativa sigue siendo una acción distinta.</p>}
+              {draft.validatedAt&&<p>Última revisión: {draft.validatedAt}.</p>}
+            </div>}
             <nav className="ef-tabs ef-subtabs" aria-label="Secciones de la ficha general">
               {[
                 ['personal','Datos personales'],['prevision','Previsión'],['laboral','Empresa y contrato'],
@@ -435,8 +451,8 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
               <div className="ef-grid">
                 {fields.filter(([key])=>!['mobile','phone'].includes(key)).map(([key,label])=>renderField(key,label))}
                 <TerritoryFields prefix="Trabajador" value={draft.extra||{}} onChange={changes=>change('extra',{...draft.extra,...changes})}/>
-                <PhoneField label="Celular" mobile value={draft.mobile} onChange={value=>change('mobile',value)}/>
-                <PhoneField label="Teléfono fijo" value={draft.phone} onChange={value=>change('phone',value)}/>
+                <div data-ef-field="mobile" className={pendingClass('mobile')}><PhoneField label="Celular" mobile value={draft.mobile} onChange={value=>change('mobile',value)}/></div>
+                <div data-ef-field="phone" className={pendingClass('phone')}><PhoneField label="Teléfono fijo" value={draft.phone} onChange={value=>change('phone',value)}/></div>
                 <label>Número del trabajador (derivado del RUT)<input readOnly value={workerNumberFromRut(draft.documentId)||draft.extra?.workerNumber||''}/></label>
                 {!draft.documentId&&renderExtra(['temporaryDocument','Documento temporal (sin RUT)'])}
                 {renderSelectExtra('sex','Sexo',SEX_OPTIONS)}
@@ -497,7 +513,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
             <fieldset className="ef-section">
               <legend>Vinculación con la empresa y condiciones laborales</legend>
               <div className="ef-grid">
-                <label>Empresa<select aria-label="Empresa" value={draft.companyId||''} onChange={e=>chooseCompany(e.target.value)}>
+                <label data-ef-field="companyId" className={pendingClass("companyId")}>Empresa<select aria-label="Empresa" value={draft.companyId||''} onChange={e=>chooseCompany(e.target.value)}>
                   <option value="" disabled>{draft.company ? draft.company + ' (histórica / no vinculada)' : 'Seleccionar empresa'}</option>
                   {companies.map(company=><option key={company.id} value={company.id} disabled={!company.isActive && Number(draft.companyId)!==company.id}>{company.legalName}{!company.isActive ? ' (inactiva)' : ''}</option>)}
                   {draft.companyId&&!companies.some(c=>c.id===Number(draft.companyId))&&<option value={draft.companyId}>{draft.company || 'Empresa histórica'} (fuera del catálogo disponible)</option>}
@@ -509,14 +525,14 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                   {!!draft.extra?.branch && draft.extra.branch!==selectedCompany?.defaultBranch && <option value={draft.extra.branch}>{draft.extra.branch} (histórica)</option>}
                 </select></label>
                 {draft.companyId&&!selectedCompany?.defaultBranch&&<p className="ef-note ef-field-wide">Para precargar una sucursal, regístrala en Administración → Empresas.</p>}
-                <label>Área
+                <label data-ef-field="workAreaId" className={pendingClass("workAreaId")}>Área
                   <select aria-label="Área" value={draft.workAreaId || ''} onChange={e => change('workAreaId',e.target.value)}>
                     <option value="">Sin asignar</option>
                     {areas.map(area => <option key={area.id} value={area.id}>{area.name}{area.isActive ? '' : ' (inactiva)'}</option>)}
                   </select>
                   {renderClear('workAreaId')}
                 </label>
-                <label>Cargo
+                <label data-ef-field="positionName" className={pendingClass("positionName")}>Cargo
                   <select aria-label="Cargo" value={draft.positionName || ''} onChange={e => change('positionName',e.target.value)}>
                     <option value="">Sin asignar</option>
                     {positions.map(p => <option key={p.id} value={p.name} disabled={!p.isActive && p.name !== draft.positionName}>{p.name}{p.isActive ? '' : ' (inactivo)'}</option>)}
@@ -524,7 +540,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                   </select>
                   {renderClear('positionName')}
                 </label>
-                <label>Jornada
+                <label data-ef-field="workSchedule" className={pendingClass("workSchedule")}>Jornada
                   <select aria-label="Jornada" value={draft.workSchedule || ''} onChange={e => change('workSchedule',e.target.value)}>
                     <option value="">Sin informar</option>
                     {['FULL_TIME','PART_TIME','PEAK_TIME'].map(v => <option key={v}>{v}</option>)}
@@ -532,7 +548,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                   </select>
                   {renderClear('workSchedule')}
                 </label>
-                <label className="ef-field-wide">Tipo de contrato
+                <label data-ef-field="contractType" className={"ef-field-wide"+pendingClass("contractType")}>Tipo de contrato
                   <select aria-label="Tipo de contrato" value={draft.contractType || ''} onChange={e => {
                     const contractType = e.target.value;
                     setDraft(current => ({...current,contractType,
@@ -545,7 +561,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                   </select>
                   {renderClear('contractType')}
                 </label>
-                {showContractDetails && renderField('hireDate','Fecha de inicio')}
+                {(showContractDetails||fieldPending(missingFields,'hireDate')) && renderField('hireDate','Fecha de inicio')}
                 {draft.contractType === 'INDEFINIDO' && (draft.employmentStatus === 'INACTIVO' || draft.employmentStatus === 'FINIQUITADO' || draft.isActive === 0) && renderField('terminationDate','Fecha de término efectivo')}
                 {draft.contractType === 'INDEFINIDO' && draft.employmentStatus==='ACTIVO' && draft.isActive!==0 &&
                   <p className="ef-note ef-field-wide">Contrato indefinido vigente: sin fecha de vencimiento. Una fecha anterior, si existe, se conserva como historial.</p>}

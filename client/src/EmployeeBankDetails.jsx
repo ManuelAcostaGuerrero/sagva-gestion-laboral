@@ -3,7 +3,7 @@ import React,{forwardRef,useEffect,useImperativeHandle,useState} from 'react';
 import {api} from './services/api.js';
 const initial=()=>({revision:0,bankId:0,accountType:'VISTA',accountNumber:'',holderName:'',holderRut:'',requestedOn:'',authorizationRef:''});
 const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,workerName,workerRut,onDirtyChange},ref){
- const [cap,setCap]=useState(false),[banks,setBanks]=useState([]);
+ const [cap,setCap]=useState(false),[reason,setReason]=useState(''),[banks,setBanks]=useState([]);
  const [data,setData]=useState(initial),[saved,setSaved]=useState(JSON.stringify(initial()));
  const [error,setError]=useState(''),[busy,setBusy]=useState(false),[showNumber,setShowNumber]=useState(false);
  const dirty=JSON.stringify(data)!==saved;
@@ -11,7 +11,7 @@ const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,wo
  useEffect(()=>{let active=true;setCap(false);setData(initial());setSaved(JSON.stringify(initial()));setError('');
   api('/employee-benefits/bank-capability').then(async capability=>{
    if(!active)return;
-   setCap(!!capability.canAccess);
+   setCap(!!capability.canAccess);setReason(capability.reason||'');
    if(!capability.canAccess||!employeeId)return;
    const [catalog,bank]=await Promise.all([
     api('/labor-benefits/banks'),api('/employee-benefits/'+employeeId+'/bank')
@@ -36,7 +36,14 @@ const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,wo
  }
  useImperativeHandle(ref,()=>({isDirty:()=>cap&&dirty,saveChanges:save}),[cap,dirty,data,employeeId,busy,workerName,workerRut]);
  if(!employeeId)return <p className="ef-note">Guarda primero al trabajador. Después podrás registrar su solicitud de transferencia, si corresponde.</p>;
- if(!cap)return <p className="ef-note">Cuenta bancaria: información financiera restringida. Solo los usuarios autorizados individualmente pueden ver o modificar estos datos. Se requiere una clave de cifrado instalada fuera de GitHub.</p>;
+ if(!cap)return <div className="ef-note" role="status"><strong>Registro bancario temporalmente no disponible.</strong>
+  <p>{reason==='NOT_AUTHORIZED'
+   ? 'Tu usuario no tiene autorización individual para ver o registrar cuentas bancarias. Solicita habilitación al responsable de permisos.'
+   : reason==='KEY_NOT_CONFIGURED'
+   ? 'Tu usuario está autorizado, pero falta configurar la clave privada de cifrado bancario en este servidor. Contacta al responsable técnico.'
+   : 'No se pudo comprobar el acceso bancario. Contacta al responsable técnico.'}</p>
+  <p>La cuenta no se puede registrar desde aquí hasta resolver el requisito de seguridad. No publiques claves ni números de cuenta en GitHub.</p>
+ </div>;
  const set=(key,value)=>setData(p=>({...p,[key]:value}));
  return <fieldset className="ef-section"><legend>Medio de pago y cuenta bancaria</legend>
   <p>Datos personales financieros. Solo registrar transferencia solicitada por el trabajador y respaldada por autorización.</p>

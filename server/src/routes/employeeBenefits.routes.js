@@ -32,7 +32,8 @@ async function employee(db,id){
  return rows[0];
 }
 employeeBenefitsRouter.get('/bank-capability',asyncHandler(async(req,res)=>{
- res.json({canAccess:mayAccessBank(req.admin)&&bankReady()});
+ const authorized=mayAccessBank(req.admin),ready=bankReady();
+ res.json({canAccess:authorized&&ready,reason:!authorized?'NOT_AUTHORIZED':!ready?'KEY_NOT_CONFIGURED':null});
 }));
 employeeBenefitsRouter.get('/:id/family',requireRoles('admin','supervisor'),asyncHandler(async(req,res)=>{
  const id=idOf(req.params.id);if(!id)throw fail('Trabajador inválido.');
