@@ -5,12 +5,12 @@ import crypto from 'node:crypto';
 import {pool} from '../db.js';
 import {runMigrations} from '../migrations.js';
 import {recordAudit} from '../auditLog.js';
-import {requireRoles} from '../auth.js';
+import {requireAdmin} from '../auth.js';
 import {asyncHandler} from '../asyncHandler.js';
 import {mayConfigureLabor,restricted} from '../benefitSecurity.js';
 
 export const laborBenefitsRouter=Router();
-laborBenefitsRouter.use(requireRoles('admin','supervisor','operator'));
+laborBenefitsRouter.use(requireAdmin);
 laborBenefitsRouter.use((_req,res,next)=>{res.set('Cache-Control','private, no-store');next();});
 laborBenefitsRouter.use(asyncHandler(async(_req,_res,next)=>{await runMigrations();next();}));
 const label=z.string().trim().min(2).max(120);
