@@ -6,7 +6,8 @@ test('QR/PIN: terminal obligatoria, activación única, credenciales hash, rotac
   const [employee]=await pool.execute("INSERT INTO employees(full_name,document_id) VALUES('Prueba Uno',NULL)");
   const [company]=await pool.execute("INSERT INTO company_profiles(legal_name) VALUES('EMPRESA PRUEBA')");
   await pool.execute('INSERT INTO employee_files(employee_id,company_id) VALUES(?,?)',[employee.insertId,company.insertId]);
-  const jwt=signAdmin({id:admin.insertId,username:'token-test',role:'admin'});const operator=signAdmin({id:admin.insertId,username:'token-test',role:'operator'});
+  const [operatorUser]=await pool.execute("INSERT INTO admins(username,password_hash,full_name,role) VALUES('token-operator','hash','Operador sintético','operator')");
+  const jwt=signAdmin({id:admin.insertId,username:'token-test',role:'admin'});const operator=signAdmin({id:operatorUser.insertId,username:'token-operator',role:'operator'});
   const server=app.listen(0,'127.0.0.1');await new Promise(resolve=>server.once('listening',resolve));
   let terminal;
   async function req(route,body,auth=jwt){const response=await fetch(`http://127.0.0.1:${server.address().port}/api/tokens${route}`,{method:body===undefined?'GET':route.endsWith('/pin')?'PUT':'POST',headers:{'Content-Type':'application/json',...(auth?{Authorization:`Bearer ${auth}`} :{}),...(terminal?{'X-Terminal-Token':terminal}:{})},body:body===undefined?undefined:JSON.stringify(body)});return {status:response.status,data:await response.json()};}

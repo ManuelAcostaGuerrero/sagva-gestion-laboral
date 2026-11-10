@@ -166,10 +166,11 @@ test("Planificador API: borrador, cobertura, conflictos, revision, publicacion a
     username: "planner",
     role: "admin",
   });
+  const [viewerUser]=await pool.execute("INSERT INTO admins(username,password_hash,full_name,role) VALUES('planner-viewer','hash','Lector sintético','operator')");
   const viewer = signAdmin({
-    id: admin.insertId,
-    username: "planner",
-    role: "viewer",
+    id: viewerUser.insertId,
+    username: "planner-viewer",
+    role: "operator",
   });
   const server = app.listen(0, "127.0.0.1");
   await new Promise((resolve) => server.once("listening", resolve));
