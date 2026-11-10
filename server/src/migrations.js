@@ -23,6 +23,7 @@ import {migrateFinancialDocuments,migrateSalaryRetroactive} from './financialDoc
 import {migrateSalaryAnnexApprovals} from './employeeSalaryApprovals.js';
 import {migrateLaborAccounting} from './laborAccounting.js';
 import {migrateLaborBenefits} from './laborBenefits.js';
+import {migrateBonusCatalog} from './bonusCatalog.js';
 
 import {migrateTerminalCompanies} from './terminalCompanies.js';
 
@@ -158,6 +159,7 @@ async function migrate() {
     await migrateTerminalCompanies(connection);
     await migrateLaborAccounting(connection);
     await migrateLaborBenefits(connection);
+    await migrateBonusCatalog(connection);
     const [violations] = await connection.execute("PRAGMA foreign_key_check");
     if (violations.length)
       throw new Error(
