@@ -43,6 +43,7 @@ import {
 import { api, setToken } from './services/api.js';
 import { createEmployeeExport } from './employeeExport.js';
 import { disablePushNotifications, enablePushNotifications, getPushStatus, registerAppServiceWorker } from './services/pushNotifications.js';
+import SecurityAccess from './SecurityAccess.jsx';
 import './styles.css';
 import WeeklyPlanner from './WeeklyPlanner.jsx';
 import ShiftManager from './ShiftManager.jsx';
@@ -2286,6 +2287,7 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
 
       {adminModule === 'security' && (
         <section className="security-module module-content">
+          <SecurityAccess onMessage={setMessage}/>
           <div className="security-grid">
             <form className="form-panel password-form" onSubmit={changeAdminPassword}>
               <h2><KeyRound size={20} /> Cambiar clave admin</h2>

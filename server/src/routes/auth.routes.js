@@ -88,7 +88,7 @@ authRouter.get('/me', requireAdmin, asyncHandler(async (req, res) => {
     { id: req.admin.id }
   );
 
-  res.json({ admin: rows[0] || null });
+  res.json({ admin: rows[0] ? {...rows[0],accessProfile:req.admin.profile||null} : null });
 }));
 
 authRouter.post('/refresh-session', requireAdmin, asyncHandler(async (req, res) => {
