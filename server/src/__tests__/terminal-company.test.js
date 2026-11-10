@@ -16,7 +16,8 @@ test('Terminal-empresa-trabajador: QR/PIN aislados, vista previa sin escrituras,
   await pool.execute("INSERT INTO attendance_terminals(name,token_hash) VALUES('Terminal histórica',?)",[crypto.createHash('sha256').update(legacy).digest('hex')]);
   terminal=legacy;await req('/terminal-workers',undefined,403);terminal=null;
   const device=await req('/terminals',{name:'Celular A',companyId:a.insertId},201);
-  const supervisor=signAdmin({id:owner.insertId,username:'terminal-company',role:'supervisor'});
+  const [supervisorUser]=await pool.execute("INSERT INTO admins(username,password_hash,full_name,role) VALUES('terminal-supervisor','hash','Supervisor sintético','supervisor')");
+  const supervisor=signAdmin({id:supervisorUser.insertId,username:'terminal-supervisor',role:'supervisor'});
   await req('/terminals/'+device.id+'/revoke',{},403,supervisor);
   const stillActive=(await pool.execute('SELECT is_active AS active FROM attendance_terminals WHERE id=?',[device.id]))[0][0];
   assert.equal(stillActive.active,1,'solo un admin puede revocar terminales');

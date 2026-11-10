@@ -58,7 +58,7 @@ test('Etapa 3: definición versionada, valores individuales, historial y permiso
   assert.equal(read.value,'ENTREGADO');assert.equal(read.valueRevision,1);
   await req('/labor-fields/workers/'+worker.insertId,'PUT',{target:'FICHA',values:[{fieldId:id,value:'PENDIENTE',revision:0}]},'root',409);
   await req('/labor-fields/definitions/'+id,'PUT',{
-   label:'Equipo actualizado',required:true,active:true,options:['PENDIENTE'],revision:1,reason:'Eliminar una opción utilizada'
+   label:'Equipo actualizado',required:true,active:true,options:['PENDIENTE','REEMPLAZADO'],revision:1,reason:'Eliminar una opción utilizada'
   },'root',409);
   await req('/labor-fields/definitions/'+id,'PUT',{
    label:'Equipo actualizado',required:true,active:true,options:['PENDIENTE','ENTREGADO','REEMPLAZADO'],revision:1,reason:'Añadir una opción nueva'

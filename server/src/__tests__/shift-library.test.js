@@ -65,7 +65,8 @@ test('Login por la web local, Rotativo común a todas las áreas y CRUD de turno
     const plannerLibrary = await request(`/planner/library?areaId=${areas[0].id}`);
     assert.equal(plannerLibrary.shifts.find(shift => shift.id === plannerCreated.id)?.name, 'Rotativo 06:00–14:00');
 
-    const operator = signAdmin({ id: admin.insertId, username: 'admin', role: 'operator' });
+    const [operatorUser]=await pool.execute("INSERT INTO admins(username,password_hash,full_name,role) VALUES('turnos-operator','hash','Operador sintético','operator')");
+    const operator = signAdmin({ id: operatorUser.insertId, username: 'turnos-operator', role: 'operator' });
     await request('/schedules/groups', 'POST', { name: 'No autorizado' }, 403, operator);
     const group = await request('/schedules/groups', 'POST', { name: ' Fin de semana ' }, 201);
     await request('/schedules/groups', 'POST', { name: 'fin de semana' }, 409);

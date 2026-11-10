@@ -11,7 +11,8 @@ test('Buscar trabajadores a demanda, emitir lote sin revocar QR y limitarlo a ad
   await runMigrations();
   const [admin]=await pool.execute("INSERT INTO admins(username,password_hash,full_name) VALUES('batch-admin','hash','Prueba')");
   const jwt=signAdmin({id:admin.insertId,username:'batch-admin',role:'admin'});
-  const supervisor=signAdmin({id:admin.insertId,username:'batch-admin',role:'supervisor'});
+  const [supervisorUser]=await pool.execute("INSERT INTO admins(username,password_hash,full_name,role) VALUES('batch-supervisor','hash','Supervisor sintético','supervisor')");
+  const supervisor=signAdmin({id:supervisorUser.insertId,username:'batch-supervisor',role:'supervisor'});
   const [first]=await pool.execute("INSERT INTO employees(full_name,document_id) VALUES('Ana Ejemplo','TEST-1001')");
   const [second]=await pool.execute("INSERT INTO employees(full_name,document_id) VALUES('Bernardo Ejemplo','TEST-1002')");
   const [third]=await pool.execute("INSERT INTO employees(full_name,document_id) VALUES('Carla Ejemplo','TEST-1003')");
