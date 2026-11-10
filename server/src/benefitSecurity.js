@@ -1,13 +1,12 @@
 
 import crypto from 'node:crypto';
+import {permitted} from './securityPermissions.js';
 
-// Transitorio hasta BL-007 Root: acceso explícito por ID, cerrado por defecto.
-// No depender solo del rol admin existente, que aún no distingue administradores locales.
-const ids = value => new Set(String(value || '').split(',').map(s=>s.trim()).filter(s=>/^\d+$/.test(s)));
-export const mayConfigureLabor = admin => admin?.role === 'admin' &&
-  ids(process.env.SAGVA_CONFIGURATION_USER_IDS).has(String(admin.id));
-export const mayAccessBank = admin => admin?.role === 'admin' &&
-  ids(process.env.SAGVA_BANK_ACCESS_USER_IDS).has(String(admin.id));
+export const mayConfigureLabor=admin=>permitted(admin,'labor.benefits.manage');
+export const mayReadBank=admin=>permitted(admin,'personal.bank.read')||permitted(admin,'personal.bank.write');
+export const mayEditBank=admin=>permitted(admin,'personal.bank.write');
+// Compatibilidad de lectura para consumidores existentes.
+export const mayAccessBank=mayReadBank;
 
 function key() {
   const raw=String(process.env.SAGVA_BANK_DATA_KEY || '');

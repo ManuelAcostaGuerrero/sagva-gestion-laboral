@@ -8,6 +8,7 @@ import { asyncHandler } from '../asyncHandler.js';
 import { requireRoles } from '../auth.js';
 import { ensureAdminSecuritySchema } from '../adminSecurity.js';
 import { ensureAuditLogTable, recordAudit } from '../auditLog.js';
+import {ACCESS_CATALOG,permissionKnown} from '../securityPermissions.js';
 
 export const adminRouter = Router();
 
@@ -38,8 +39,107 @@ async function ensureAdminFingerprintsTable() {
 }
 
 adminRouter.use(requireRoles('admin'));
+const rootOnly=(req,res,next)=>req.admin?.profile==='root'?next():res.status(403).json({message:'Solo Root puede administrar permisos individuales.'});
+const forbidLegacyOnceRoot=(req,res,next)=>req.admin?.hasRoot&&req.admin?.profile!=='root'
+ ? res.status(403).json({message:'La gestión de usuarios requiere una cuenta Root.'})
+ : next();
+const profileSchema=z.object({profile:z.enum(['root','accounting','admin_local'])}).strict();
+const accessSchema=z.object({
+ permission:z.string().min(3).max(140),
+ effect:z.enum(['ALLOW','DENY']),
+ scopeKind:z.enum(['GLOBAL','COMPANY','BRANCH']).default('GLOBAL'),
+ companyId:z.number().int().positive().nullable().optional(),
+ branch:z.string().trim().min(2).max(120).nullable().optional(),
+ validUntil:z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+ reason:z.string().trim().min(10).max(500)
+}).strict();
+const idOf=x=>Number.isSafeInteger(Number(x))&&Number(x)>0?Number(x):null;
+adminRouter.get('/access/self',asyncHandler(async(req,res)=>{
+ res.json({profile:req.admin.profile||null,hasRoot:req.admin.hasRoot===true});
+}));
+adminRouter.get('/access/catalog',rootOnly,asyncHandler(async(_req,res)=>{
+ res.json({permissions:ACCESS_CATALOG.map(([key,group,label])=>({key,group,label}))});
+}));
+adminRouter.get('/access/users',rootOnly,asyncHandler(async(_req,res)=>{
+ const [rows]=await pool.execute('SELECT a.id,a.username,a.full_name AS fullName,a.role,p.profile FROM admins a LEFT JOIN security_user_profiles p ON p.user_id=a.id ORDER BY a.full_name');
+ res.json({users:rows});
+}));
+adminRouter.get('/access/users/:id',rootOnly,asyncHandler(async(req,res)=>{
+ const id=idOf(req.params.id);if(!id)return res.status(400).json({message:'Usuario inválido'});
+ const [users]=await pool.execute('SELECT a.id,a.username,a.role,p.profile FROM admins a LEFT JOIN security_user_profiles p ON p.user_id=a.id WHERE a.id=?',[id]);
+ if(!users.length)throw Object.assign(new Error('Usuario inexistente'),{status:404});
+ const [overrides]=await pool.execute('SELECT id,permission_key AS permission,effect,scope_kind AS scopeKind,company_id AS companyId,branch,valid_until AS validUntil,reason,created_at AS createdAt,revoked_at AS revokedAt FROM security_permission_overrides WHERE user_id=? ORDER BY id DESC',[id]);
+ res.json({user:users[0],overrides});
+}));
+adminRouter.put('/access/users/:id/profile',rootOnly,asyncHandler(async(req,res)=>{
+ const id=idOf(req.params.id),parsed=profileSchema.safeParse(req.body);
+ if(!id||!parsed.success)return res.status(400).json({message:'Perfil inválido'});
+ if(parsed.data.profile==='admin_local')return res.status(409).json({message:'El perfil Administrador local requiere aislar previamente TODAS las rutas por empresa/sucursal. No puede activarse todavía.'});
+ const db=await pool.getConnection();
+ try{
+  await db.beginTransaction();
+  const [users]=await db.execute('SELECT id,role FROM admins WHERE id=?',[id]);
+  if(!users.length)throw Object.assign(new Error('Usuario no encontrado'),{status:404});
+  // Este panel Root sigue dentro de /admin (rol SQL admin).
+  // No crear una cuenta root incapaz de abrir el panel de seguridad.
+  if(parsed.data.profile==='root'&&users[0].role!=='admin')
+   throw Object.assign(new Error('Root requiere una cuenta administradora preexistente. No se cambiaron permisos.'),{status:409});
+  const [current]=await db.execute('SELECT profile FROM security_user_profiles WHERE user_id=?',[id]);
+  if(current[0]?.profile==='root'&&parsed.data.profile!=='root'){
+   const [count]=await db.execute("SELECT count(*) AS n FROM security_user_profiles WHERE profile='root'");
+   if(count[0].n<=1)throw Object.assign(new Error('No puedes degradar la única cuenta Root'),{status:409});
+  }
+  await db.execute('INSERT INTO security_user_profiles(user_id,profile,assigned_by) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET profile=excluded.profile,assigned_by=excluded.assigned_by,assigned_at=CURRENT_TIMESTAMP',[id,parsed.data.profile,req.admin.id]);
+  await recordAudit(req.admin,'change_profile','security_user',id,{from:current[0]?.profile||null,to:parsed.data.profile},db);
+  await db.commit();res.json({message:'Perfil aplicado; las sesiones usan permisos nuevos inmediatamente.'});
+ }catch(e){await db.rollback();throw e;}finally{db.release();}
+}));
+adminRouter.post('/access/users/:id/permissions',rootOnly,asyncHandler(async(req,res)=>{
+ const id=idOf(req.params.id),parsed=accessSchema.safeParse(req.body);
+ if(!id||!parsed.success||!permissionKnown(parsed.data.permission)||parsed.data.permission==='security.access.manage')
+  return res.status(400).json({message:'Concesión inválida o no delegable'});
+ const d=parsed.data;
+ // No habilitar ámbitos por empresa/sucursal hasta proteger todas las rutas y exportaciones.
+ if(d.scopeKind!=='GLOBAL')
+  return res.status(409).json({message:'Los permisos por empresa/sucursal están pendientes del aislamiento integral.'});
+ if(d.companyId||d.branch)
+  return res.status(400).json({message:'Un permiso global no admite empresa o sucursal.'});
+ if(d.validUntil&&(!Number.isFinite(Date.parse(d.validUntil+'T23:59:59Z'))||new Date(d.validUntil+'T23:59:59Z').toISOString().slice(0,10)!==d.validUntil||Date.parse(d.validUntil+'T23:59:59Z')<=Date.now()))
+  return res.status(400).json({message:'El vencimiento debe ser futuro'});
+ const db=await pool.getConnection();
+ try{
+  await db.beginTransaction();
+  const [users]=await db.execute('SELECT a.id,p.profile FROM admins a LEFT JOIN security_user_profiles p ON p.user_id=a.id WHERE a.id=?',[id]);
+  if(!users.length)return res.status(404).json({message:'Usuario inexistente'});
+  if(users[0].profile==='root')throw Object.assign(new Error('Root administra acceso por perfil, no por excepciones'),{status:400});
+  if(users[0].profile==='admin_local'&&d.permission.startsWith('labor.')&&d.permission.endsWith('.manage'))
+   throw Object.assign(new Error('El administrador local no puede configurar parámetros globales'),{status:403});
+  if(d.companyId){
+   const [company]=await db.execute('SELECT id FROM company_profiles WHERE id=?',[d.companyId]);
+   if(!company.length)throw Object.assign(new Error('Empresa inexistente'),{status:400});
+  }
+  const [created]=await db.execute('INSERT INTO security_permission_overrides(user_id,permission_key,effect,scope_kind,company_id,branch,valid_until,reason,created_by) VALUES(?,?,?,?,?,?,?,?,?)',
+   [id,d.permission,d.effect,d.scopeKind,d.companyId||null,d.branch||null,d.validUntil?d.validUntil+'T23:59:59Z':null,d.reason,req.admin.id]);
+  await recordAudit(req.admin,'grant_permission','security_user',id,{permission:d.permission,effect:d.effect,scope:d.scopeKind,companyId:d.companyId||null,branch:d.branch||null,expires:d.validUntil||null},db);
+  await db.commit();res.status(201).json({id:created.insertId,message:'Excepción individual registrada con historial.'});
+ }catch(e){await db.rollback();throw e;}finally{db.release();}
+}));
+adminRouter.post('/access/permissions/:id/revoke',rootOnly,asyncHandler(async(req,res)=>{
+ const id=idOf(req.params.id);if(!id)return res.status(400).json({message:'Permiso inválido'});
+ const db=await pool.getConnection();
+ try{
+  await db.beginTransaction();
+  const [old]=await db.execute('SELECT id,user_id AS userId,permission_key AS key,revoked_at AS revokedAt FROM security_permission_overrides WHERE id=?',[id]);
+  if(!old.length)throw Object.assign(new Error('Permiso inexistente'),{status:404});
+  if(old[0].revokedAt)throw Object.assign(new Error('Ya estaba revocado'),{status:409});
+  await db.execute('UPDATE security_permission_overrides SET revoked_at=CURRENT_TIMESTAMP,revoked_by=? WHERE id=?',[req.admin.id,id]);
+  await recordAudit(req.admin,'revoke_permission','security_user',old[0].userId,{permission:old[0].key,grantId:id},db);
+  await db.commit();res.json({message:'Permiso revocado. La próxima solicitud respetará el cambio.'});
+ }catch(e){await db.rollback();throw e;}finally{db.release();}
+}));
 
-adminRouter.get('/users', asyncHandler(async (_req, res) => {
+
+adminRouter.get('/users',forbidLegacyOnceRoot, asyncHandler(async (_req, res) => {
   await ensureAdminSecuritySchema();
   await ensureAdminFingerprintsTable();
   const [users] = await pool.execute(
@@ -53,7 +153,7 @@ adminRouter.get('/users', asyncHandler(async (_req, res) => {
   res.json({ users });
 }));
 
-adminRouter.post('/users', asyncHandler(async (req, res) => {
+adminRouter.post('/users',forbidLegacyOnceRoot, asyncHandler(async (req, res) => {
   await ensureAdminSecuritySchema();
   const parsed = adminUserSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -80,7 +180,7 @@ adminRouter.post('/users', asyncHandler(async (req, res) => {
   res.status(201).json({ id: result.insertId });
 }));
 
-adminRouter.put('/users/:id/role', asyncHandler(async (req, res) => {
+adminRouter.put('/users/:id/role',forbidLegacyOnceRoot, asyncHandler(async (req, res) => {
   const parsed = updateRoleSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ message: 'Rol invalido' });
@@ -101,7 +201,7 @@ adminRouter.put('/users/:id/role', asyncHandler(async (req, res) => {
 }));
 
 adminRouter.put('/users/:id/fingerprint', (_req,res)=>res.status(410).json({message:'Método de identificación retirado. Usa QR o PIN en una terminal autorizada.'}));
-adminRouter.get('/audit', asyncHandler(async (_req, res) => {
+adminRouter.get('/audit',forbidLegacyOnceRoot, asyncHandler(async (_req, res) => {
   await ensureAuditLogTable();
   const [logs] = await pool.execute(
     `SELECT id, admin_username AS adminUsername, action, entity_type AS entityType,

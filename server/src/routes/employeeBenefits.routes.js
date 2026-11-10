@@ -3,14 +3,14 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { pool } from '../db.js';
 import { runMigrations } from '../migrations.js';
-import { requireRoles } from '../auth.js';
+import { requireRoles,requireAdmin } from '../auth.js';
 import { recordAudit } from '../auditLog.js';
 import { asyncHandler } from '../asyncHandler.js';
-import {mayAccessBank,bankReady,encryptBank,decryptBank,restricted} from '../benefitSecurity.js';
+import {mayReadBank,mayEditBank,bankReady,encryptBank,decryptBank,restricted} from '../benefitSecurity.js';
 import {normalizeRut} from '../rut.js';
 
 export const employeeBenefitsRouter=Router();
-employeeBenefitsRouter.use(requireRoles('admin','supervisor','operator'));
+employeeBenefitsRouter.use(requireAdmin);
 employeeBenefitsRouter.use((_req,res,next)=>{res.set('Cache-Control','private, no-store');next();});
 employeeBenefitsRouter.use(asyncHandler(async(_req,_res,next)=>{await runMigrations();next();}));
 const fail=(msg,status=400)=>Object.assign(new Error(msg),{status});
@@ -32,8 +32,8 @@ async function employee(db,id){
  return rows[0];
 }
 employeeBenefitsRouter.get('/bank-capability',asyncHandler(async(req,res)=>{
- const authorized=mayAccessBank(req.admin),ready=bankReady();
- res.json({canAccess:authorized&&ready,reason:!authorized?'NOT_AUTHORIZED':!ready?'KEY_NOT_CONFIGURED':null});
+ const canRead=mayReadBank(req.admin),canWrite=mayEditBank(req.admin),ready=bankReady();
+ res.json({canAccess:canRead&&ready,canWrite:canWrite&&ready,reason:!canRead?'NOT_AUTHORIZED':!ready?'KEY_NOT_CONFIGURED':null});
 }));
 employeeBenefitsRouter.get('/:id/family',requireRoles('admin','supervisor'),asyncHandler(async(req,res)=>{
  const id=idOf(req.params.id);if(!id)throw fail('Trabajador inválido.');
@@ -88,7 +88,7 @@ employeeBenefitsRouter.put('/:id/family',requireRoles('admin'),asyncHandler(asyn
   await db.commit();res.json({message:'Cargas familiares guardadas con historial.',revision:current+1});
  }catch(e){await db.rollback();throw e;}finally{db.release();}
 }));
-employeeBenefitsRouter.get('/:id/bank',restricted(mayAccessBank),asyncHandler(async(req,res)=>{
+employeeBenefitsRouter.get('/:id/bank',restricted(mayReadBank),asyncHandler(async(req,res)=>{
  const id=idOf(req.params.id);if(!id)throw fail('Trabajador inválido.');
  await employee(pool,id);
  // La clave es obligatoria incluso para lectura; sin ella no se expone registro.
@@ -100,7 +100,7 @@ employeeBenefitsRouter.get('/:id/bank',restricted(mayAccessBank),asyncHandler(as
  await recordAudit(req.admin,'read','employee_bank_account',id,{field:'bank_account'});
  res.json({account,revision:rows[0]?.revision||0});
 }));
-employeeBenefitsRouter.put('/:id/bank',restricted(mayAccessBank),asyncHandler(async(req,res)=>{
+employeeBenefitsRouter.put('/:id/bank',restricted(mayEditBank),asyncHandler(async(req,res)=>{
  const id=idOf(req.params.id),parsed=bankSchema.safeParse(req.body);
  if(!id||!parsed.success)throw fail('Datos bancarios inválidos.');
  if(!bankReady())throw fail('Clave de cifrado no configurada.',503);

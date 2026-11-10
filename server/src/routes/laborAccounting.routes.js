@@ -1,7 +1,7 @@
 import {Router} from 'express';
 import {z} from 'zod';
 import {pool} from '../db.js';
-import {requireRoles} from '../auth.js';
+import {requireAdmin,requirePermission} from '../auth.js';
 import {asyncHandler} from '../asyncHandler.js';
 import {runMigrations} from '../migrations.js';
 import {recordAudit} from '../auditLog.js';
@@ -9,7 +9,7 @@ import {validContractDate} from '../employeeContracts.js';
 import {laborMetric,laborMetrics,laborScaled,laborValuesAt} from '../../../shared/laborAccounting.js';
 
 export const laborAccountingRouter=Router();
-laborAccountingRouter.use(requireRoles('admin','supervisor','operator'));
+laborAccountingRouter.use(requireAdmin);
 laborAccountingRouter.use((_req,res,next)=>{res.set('Cache-Control','private, no-store');next();});
 laborAccountingRouter.use(asyncHandler(async (_req,_res,next)=>{await runMigrations();next();}));
 
@@ -45,11 +45,11 @@ const getVersions=async db=>{
  return rows;
 };
 
-laborAccountingRouter.get('/catalog',asyncHandler(async(_req,res)=>{
+laborAccountingRouter.get('/catalog',requirePermission('labor.catalog.read'),asyncHandler(async(_req,res)=>{
  const entities=await getEntities(pool);
  res.json({entities:entities.filter(x=>x.active).map(({id,kind,code,name})=>({id,kind,code,name}))});
 }));
-laborAccountingRouter.get('/',requireRoles('admin','supervisor'),asyncHandler(async(req,res)=>{
+laborAccountingRouter.get('/',requirePermission('labor.parameters.read'),asyncHandler(async(req,res)=>{
  const on=String(req.query.on||new Date().toISOString().slice(0,10));
  if(!validContractDate(on))throw fail('Selecciona una fecha válida.');
  const [entities,versions,history]=await Promise.all([
@@ -66,7 +66,7 @@ laborAccountingRouter.get('/',requireRoles('admin','supervisor'),asyncHandler(as
  });
 }));
 
-laborAccountingRouter.post('/entities',requireRoles('admin'),asyncHandler(async(req,res)=>{
+laborAccountingRouter.post('/entities',requirePermission('labor.parameters.manage'),asyncHandler(async(req,res)=>{
  const parsed=creation.safeParse(req.body);
  if(!parsed.success)throw fail('Completa tipo, código, nombre y motivo del catálogo.');
  const data=parsed.data,db=await pool.getConnection();
@@ -85,7 +85,7 @@ laborAccountingRouter.post('/entities',requireRoles('admin'),asyncHandler(async(
  }catch(error){await db.rollback();throw error;}finally{db.release();}
 }));
 
-laborAccountingRouter.put('/entities/:id',requireRoles('admin'),asyncHandler(async(req,res)=>{
+laborAccountingRouter.put('/entities/:id',requirePermission('labor.parameters.manage'),asyncHandler(async(req,res)=>{
  const parsed=editing.safeParse(req.body);
  const id=Number(req.params.id);
  if(!parsed.success||!Number.isSafeInteger(id)||id<1)throw fail('Revisa la entidad y el motivo.');
@@ -113,7 +113,7 @@ laborAccountingRouter.put('/entities/:id',requireRoles('admin'),asyncHandler(asy
  }catch(error){await db.rollback();throw error;}finally{db.release();}
 }));
 
-laborAccountingRouter.post('/parameters',requireRoles('admin'),asyncHandler(async(req,res)=>{
+laborAccountingRouter.post('/parameters',requirePermission('labor.parameters.manage'),asyncHandler(async(req,res)=>{
  const parsed=parameter.safeParse(req.body);
  if(!parsed.success)throw fail('Revisa el parámetro, la fecha, el valor y el motivo.');
  const data=parsed.data;
