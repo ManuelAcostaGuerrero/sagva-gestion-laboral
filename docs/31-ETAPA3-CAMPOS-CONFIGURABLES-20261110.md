@@ -22,3 +22,13 @@
 
 - [Plan Etapa 2](30-ETAPA2-ROOT-PERMISOS-20261110.md).
 - [Plan consolidado](25-PLAN-CONTABILIDAD-LABORAL-CAMPOS-Y-PERMISOS-20261110.md).
+
+## Revisión adicional de ejecución e interfaz — 10-11-2026
+
+- La ficha provisional **puede guardar campos configurados incompletos**: `required` se exige solo al marcar «Completar / validar ficha», no al guardar un borrador. Se verifican campos de ficha y condiciones contractuales cuando estén configurados como obligatorios.
+- El resumen de campos pendientes muestra también los campos configurables, los resalta y permite saltar directamente al control.
+- La API Root rechaza permisos de ámbito empresa/sucursal hasta completar el aislamiento real de todos los módulos; evita ofrecer una protección falsa.
+- Las fechas de vencimiento de permisos se validan contra el calendario, no solo por coincidencia de formato.
+- No se conceden permisos a campos personalizados inexistentes para evitar autorizaciones futuras accidentales.
+- Respuestas de error dentro de transacciones de permisos hacen `ROLLBACK` explícito antes de liberar conexiones.
+- Se ejecutan regresiones del servidor, compilación frontend y validación automática QR. **No equivale a prueba física en Windows y móvil ni a instalación local.**

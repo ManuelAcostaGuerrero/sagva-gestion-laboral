@@ -118,6 +118,13 @@ adminRouter.post('/access/users/:id/permissions',rootOnly,asyncHandler(async(req
   const [users]=await db.execute('SELECT a.id,p.profile FROM admins a LEFT JOIN security_user_profiles p ON p.user_id=a.id WHERE a.id=?',[id]);
   if(!users.length)return res.status(404).json({message:'Usuario inexistente'});
   if(users[0].profile==='root')throw Object.assign(new Error('Root administra acceso por perfil, no por excepciones'),{status:400});
+  // Solo se asignan permisos de campos ya publicados desde Contabilidad Laboral.
+  // Un ID futuro no puede heredar una autorización concedida por anticipado.
+  if(d.permission.startsWith('custom_field.')){
+   const code=d.permission.split('.')[1];
+   const [found]=await db.execute('SELECT id FROM labor_config_fields WHERE code=?',[code]);
+   if(!found.length)throw Object.assign(new Error('El campo solicitado no existe en el catálogo.'),{status:400});
+  }
   if(users[0].profile==='admin_local'&&d.permission.startsWith('labor.')&&d.permission.endsWith('.manage'))
    throw Object.assign(new Error('El administrador local no puede configurar parámetros globales'),{status:403});
   if(d.companyId){
