@@ -191,3 +191,25 @@ Ya existe `recordAudit()` y tabla `audit_logs`; también historiales previsional
 - [ ] Guardar el PDF como **entregable descargable** y dejar constancia de versión/fecha/SHA de SAGVA al que corresponde, sin datos privados.
 
 **Prioridad:** finalizar cambios actuales → comprobar funcionamiento → generar PDF breve por interfaz/campo → validación del propietario. No trasladar esta tarea indefinidamente a la fase de producción; corresponde al cierre de estas actualizaciones beta.
+
+## 12. Integración beta de correos empresariales y estados documentales — 10-11-2026
+
+**Código incorporado directamente en `main` por decisión del propietario**, sin alterar instalaciones Windows, repositorios originales ni archivos reales.
+
+### Configuración de empresas
+- Se conserva el campo **Correo institucional** y se añade **Correo de soporte y notificaciones**, ambos opcionales y validados en el servidor.
+- Cada valor pertenece a la empresa identificada por `company_profiles.id` y queda visible en la ficha de administración de empresas; no se agrega correo genérico compartido.
+- Las asociaciones de personas con empresas ya existen mediante `employee_files.company_id`. **La selección automática de remitente, SMTP, recuperación de clave y envío por correo NO se han implementado todavía.** Se incluirán tras elegir proveedor y revisar seguridad/legalidad.
+
+### Estados de documentos: dos controles independientes
+- **Estado digital:** `Sin entrega registrada`, `Falta cargar PDF` o `PDF ingresado al sistema`, obtenido del historial de entregas y adjuntos; no se deduce de una declaración manual.
+- **Estado físico:** `Sin verificar`, `Sí, existe respaldo físico` o `No existe / no se dispone del respaldo`, declaración individual por trabajador/tipo documental, auditable, editable solo por administración/supervisión y con revisión para evitar escrituras concurrentes.
+- Se muestran dos indicadores independientes en cada documento (por ejemplo, **respaldo físico disponible, PDF pendiente**). Cambiar estado físico **no** crea una entrega, no sube un PDF, no acredita firma ni modifica un anexo, un pago o un sueldo.
+- Los registros previos continúan con estado físico **Sin verificar** hasta revisión humana, incluso si existen PDF; no se inventa el estado de los originales.
+- Migraciones aditivas con historial y pruebas sintéticas: `20261110_027_company_contact_emails` y `20261110_028_document_physical_status`.
+
+### Futuro, NO ejecutado
+- Generar documentos desde plantillas, enviarlos al correo correcto de la empresa y completar el flujo de firmas electrónicas/físicas. La asesoría laboral debe validar los requisitos de entrega, notificación, firma y conservación.
+- Sigue pendiente el **manual PDF corto por interfaz y campo**, con ejemplos ficticios, después de cerrar pruebas de estas actualizaciones.
+
+Las pruebas automáticas de servidor y compilación de interfaz deben aprobarse en el SHA integrado de `main`. Se añade verificación por cada nuevo commit en `main`, **solo CI**, sin instalar ni actualizar el Windows local ni realizar acciones en producción.
