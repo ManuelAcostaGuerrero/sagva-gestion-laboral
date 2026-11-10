@@ -46,6 +46,7 @@ Cada fase tiene puertas de salida; el orden no autoriza saltar pruebas. Las fase
 
 - [Bitácora de decisiones: ficha, cuenta bancaria, bancos, cargas y auditoría](docs/26-BITACORA-FICHA-BANCOS-CARGAS-AUDITORIA-20261109.md).
 - [Plan de acción: seguridad Root, auditoría, formularios y autoregistro](docs/27-PLAN-ACCION-FICHA-CAMPOS-BANCOS-CARGAS-AUDITORIA-20261109.md).
+- [BL-013: registro de bonos pactados y asignación por pérdida de caja, sin liquidaciones](docs/29-BONOS-REGISTRO-SIN-CALCULO-20261110.md).
 
 **Planificación, no implementación:** no se han instalado estas funcionalidades, y la bitácora operativa existente requiere ampliar su cobertura.
 

@@ -131,3 +131,5 @@ Las decisiones D-034/D-035/D-036 y D-032 del registro previo pasaron a implement
 | D-057 | Planificado | Crear capa declarativa autoadaptable de edición para metadatos, etiquetas, opciones, catálogos y parámetros vigentes, sin dar edición arbitraria de código/SQL; ficha y contratos reflejan esquema publicado. |
 
 **Registro y alcance:** [Bitácora](26-BITACORA-FICHA-BANCOS-CARGAS-AUDITORIA-20261109.md) · [Plan de acción](27-PLAN-ACCION-FICHA-CAMPOS-BANCOS-CARGAS-AUDITORIA-20261109.md). Ninguno de D-051 a D-057 está implementado por escribir esta documentación.
+
+- **D-051 (alcance autorizado para implementar con revisión, 10-11-2026):** alta de varios bonos o asignaciones por trabajador con tipo administrado en Contabilidad Laboral, monto, periodicidad, casilla «Tiene cláusulas pactadas», estado y vigencia; distinguir bono remuneracional de asignación por pérdida de caja. No agregar evaluación, cálculo, descuento o liquidación. [BL-013](29-BONOS-REGISTRO-SIN-CALCULO-20261110.md).
