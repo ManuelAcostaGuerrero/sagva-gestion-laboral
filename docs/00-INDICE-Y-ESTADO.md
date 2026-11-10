@@ -67,3 +67,5 @@ Operación de asistentes: [AGENTS.md](../AGENTS.md). Cambios: [CONTRIBUTING.md](
 ## Actualización de implementación BL-001 a BL-005 (09-11-2026)
 
 La [integración por PR #9, ya fusionado en `main`](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/9) contiene nueva ficha subdividida, bancos, datos bancarios cifrados, cargas familiares y tramos históricos. Las pruebas GitHub fueron verdes en el SHA funcional `d323d6db95e5ff2a3ea4469ecec20e9fa945e1e8`. **Esta anotación describe código y CI, NO aceptación física Windows/móvil ni despliegue productivo**. [Informe](28-BL001-BL005-IMPLEMENTACION-EN-REVISION-20261109.md).
+
+28. [Etapa 2: perfiles Root/Contabilidad y concesiones individuales, con activación local segura](30-ETAPA2-ROOT-PERMISOS-20261110.md). En PR pendiente de revisión.

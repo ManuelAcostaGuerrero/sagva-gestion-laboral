@@ -56,3 +56,5 @@ Cada fase tiene puertas de salida; el orden no autoriza saltar pruebas. Las fase
 Este es un **repositorio público solo de código y documentación no sensible**. Las bases SQLite reales, la conciliación nominal de trabajadores, contratos, RUT, antecedentes médicos, PDFs, imágenes de documentos, sesiones, secretos, exportaciones y respaldos **jamás se suben aquí**, ni a incidencias, PR, CI o logs. La fuente real vive en almacenamiento privado autorizado.
 
 **Sin afirmaciones falsas:** una copia de código no contiene por sí sola los empleados/empresas reales. Antes de integrar la información se necesita respaldo consistente y restauración comprobada. No tocar las bases operativas originales.
+
+- [Etapa 2 (PR en revisión): seguridad Root y permisos individuales](docs/30-ETAPA2-ROOT-PERMISOS-20261110.md).
