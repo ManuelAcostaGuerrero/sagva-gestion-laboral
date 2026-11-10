@@ -53,8 +53,9 @@ export default function LaborBenefits({mode='banks'}){
    {bands.map(b=><tr key={b.tier}><td>{b.tier}</td><td>{b.incomeFrom.toLocaleString('es-CL')}</td><td>{b.incomeTo==null?'Sin límite':b.incomeTo.toLocaleString('es-CL')}</td><td>{b.amountClp.toLocaleString('es-CL')} CLP</td></tr>)}
   </tbody></table></div>
   {bands[0]&&<p className="ef-note">Versión desde {bands[0].effectiveFrom}. Período de ingresos: {bands[0].incomeReference}. Fuente: <a href={bands[0].sourceUrl} target="_blank" rel="noreferrer">SUSESO</a>.</p>}
+  {!canManage&&<p className="ef-note" role="status">Consulta disponible. Para crear versiones y modificar montos o límites de tramos necesitas autorización individual de configuración; solicita acceso al responsable del sistema.</p>}
   {canManage&&<>
-   <button type="button" onClick={()=>{setEdit({tiers:bands.map(b=>({tier:b.tier,incomeFrom:b.incomeFrom,incomeTo:b.incomeTo,amountClp:b.amountClp}))});setReason('');}}>Crear versión de tramos</button>
+   <button type="button" onClick={()=>{setEdit({tiers:bands.map(b=>({tier:b.tier,incomeFrom:b.incomeFrom,incomeTo:b.incomeTo,amountClp:b.amountClp}))});setReason('');}}>Modificar tramos y montos (crear nueva versión)</button>
    {edit&&<form onSubmit={e=>{e.preventDefault();post('/labor-benefits/family-brackets','POST',{effectiveFrom:effective,incomeReference:reference,sourceUrl:source,reason,tiers:edit.tiers});}}>
     <fieldset disabled={busy}><legend>Nueva versión (no reemplaza histórica)</legend>
     <div className="ef-grid">

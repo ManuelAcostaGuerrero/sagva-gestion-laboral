@@ -207,3 +207,12 @@
 .ef-subtabs button{flex:0 1 auto;white-space:normal}
 .ef-tab-body>[hidden],.ef-tab-body [hidden]{display:none!important}
 @media(max-width:650px){.ef-subtabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.ef-subtabs button{min-width:0}}
+
+/* Indicaciones de validación de ficha, sin duplicar reglas del servidor. */
+.ef-validation-warning{padding:13px;border:1px solid #db9f31;background:#fff9e9;border-radius:9px;color:#6b4715}
+.ef-validation-success{padding:13px;border:1px solid #a9c7b8;background:#f0f8f3;border-radius:9px;color:#2e6249}
+.ef-pending-links{display:flex;gap:7px;flex-wrap:wrap;margin-top:9px}
+.ef-pending-links button{background:#fff;border:1px solid #d9a247;color:#6b4715;border-radius:7px;padding:6px 10px;text-align:left}
+.ef-pending-links button:hover,.ef-pending-links button:focus-visible{outline:2px solid #ae781f;outline-offset:1px}
+.ef-pending-field{padding:7px;border:2px solid #d39b39;border-radius:8px;background:#fffbf1}
+.ef-pending-field:focus-within{border-color:#a66f12;box-shadow:0 0 0 2px #f6dfa8}
