@@ -8,7 +8,7 @@ import {employmentContextAsOf} from '../../employmentHistory.js';
 import {previsionAsOf} from '../../normalizationExpand.js';
 import {validContractDate} from '../../employeeContracts.js';
 import {laborCatalog,laborWorker} from './laborStructure.repository.js';
-import {laborTransaction,createBranch,updateBranch,hire,finish,assign,setConditions,setPrevision,linkDocument} from './laborStructure.service.js';
+import {laborTransaction,createBranch,updateBranch,hire,finish,assign,setConditions,setShift,setPrevision,linkDocument} from './laborStructure.service.js';
 
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
 const id=z.number().int().positive();
@@ -29,6 +29,7 @@ const conditions=z.object({effectiveFrom:isoDate,monthlyBaseSalaryClp:z.number()
  weeklyHours:z.number().min(0).max(48),breakMinutes:z.number().int().min(0).max(240),
  contractType:z.enum(['INDEFINIDO','PLAZO_FIJO','OTRO']),description:z.string().trim().max(500).default(''),
  evidenceRef:evidence}).strict();
+const shift=z.object({validFrom:isoDate,shiftId:id,evidenceRef:evidence}).strict();
 const prevision=z.object({validFrom:isoDate,afpEntityId:nullableId,healthEntityId:nullableId,
   planAmountHundredths:z.number().int().nonnegative().nullable(),planUnit:z.enum(['CLP','UF']).nullable(),
   evidenceRef:evidence}).strict().refine(x=>(x.planAmountHundredths===null)===(x.planUnit===null),
@@ -90,6 +91,11 @@ laborStructureRouter.post('/employments/:id/assignments',asyncHandler(async(req,
 laborStructureRouter.post('/employments/:id/conditions',asyncHandler(async(req,res)=>{
  const data=payload(conditions,req.body),id=numberParam(req.params.id);
  const result=await laborTransaction(req.admin,(db,admin)=>setConditions(db,admin,id,data));
+ res.status(201).json({result});
+}));
+laborStructureRouter.post('/employments/:id/shifts',asyncHandler(async(req,res)=>{
+ const data=payload(shift,req.body),id=numberParam(req.params.id);
+ const result=await laborTransaction(req.admin,(db,admin)=>setShift(db,admin,id,data));
  res.status(201).json({result});
 }));
 laborStructureRouter.post('/workers/:workerId/prevision',asyncHandler(async(req,res)=>{
