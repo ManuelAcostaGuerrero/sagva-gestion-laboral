@@ -45,3 +45,4 @@ export default function LaborBonuses(){
    </div><div className="la-inline-actions"><button type="submit" className="primary la-small" disabled={busy}>Guardar concepto</button><button type="button" className="la-small" onClick={()=>setDraft(null)}>Cancelar</button></div>
   </fieldset></form>}
  </section>;
+}
