@@ -33,6 +33,7 @@ import {migrateJobDuties} from './jobDuties.js';
 import {migrateTerminalCompanies} from './terminalCompanies.js';
 import {migrateEmploymentHistory} from './employmentHistory.js';
 import {migrateNormalizationExpand} from './normalizationExpand.js';
+import {migrateDtJornadaNormative} from './dtJornadaNormativa.js';
 
 let pending;
 export function runMigrations() {
@@ -179,6 +180,8 @@ async function migrate() {
     await migrateEmploymentHistory(connection);
     // Expand P3: sólo vista y nuevas tablas vacías; nunca borrar legacy/JSON.
     await migrateNormalizationExpand(connection);
+    // Parámetros legales por vigencia, sin cambio de contratos o marcaciones anteriores.
+    await migrateDtJornadaNormative(connection);
     const [violations] = await connection.execute("PRAGMA foreign_key_check");
     if (violations.length)
       throw new Error(
