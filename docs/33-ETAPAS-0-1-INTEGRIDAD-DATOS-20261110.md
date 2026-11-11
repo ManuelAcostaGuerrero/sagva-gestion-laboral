@@ -74,6 +74,29 @@
 
 **Cierre técnico condicionado a:** CI del PR aprobado, revisión de cambios, pruebas negativas y paridad, prueba manual con copias privadas, respaldo/restauración aislada, comprobación de estado de Root/contratos en PC autorizada y confirmación del propietario. No hacer cambios destructivos sobre `main`, no aplicar migraciones P2/P3 ni declarar listo para DT/producción.
 
+## Protocolo obligatorio para ChatGPT Work: comprobación local P0/P1
+
+**Regla operativa principal:** **actualizar de forma segura → diagnosticar sin escribir → documentar hallazgos → detenerse y solicitar aprobación antes de corregir datos existentes**. Ninguna diferencia detectada en la base de trabajadores autoriza su corrección automática. Este protocolo prevalece sobre una instrucción genérica de «arreglar todo».
+
+### Puertas de avance y orden
+
+1. **Confirmar el entorno real.** Work debe verificar que tiene acceso efectivo a **la instalación existente en la PC Windows del propietario**, no solo al repositorio remoto o a un clon en su computador de nube. Si no tiene ese acceso, **detener la operación local**, explicar qué puede realizar en GitHub y marcar lo local como `PENDIENTE`. No sustituir la base de producción por datos sintéticos y presentarlos como resultados reales.
+2. **Identificar sin alterar.** Confirmar ruta del proyecto, `origin`, rama local, SHA instalado, estado de Git y servicio mediante `Estado.bat`. No ejecutar `git reset --hard`, `git clean`, `git push --force`, cambios forzados de rama ni borrado de datos.
+3. **Actualizar mediante el mecanismo previsto**, **solo si el entorno es el correcto y se puede realizar de manera segura**: utilizar `Actualizar.bat` para descargar `main`. El actualizador hace pruebas, respaldo antes de activar y migraciones controladas. Confirmar antes que el usuario no tenga formularios sin guardar y que no existan bloqueos/errores de recuperación. **No usar `Preparar.bat`, importadores o scripts manuales de migración como sustitutos.** Si falla, conservar marca de recuperación y respaldo; no restaurar «a ciegas» ni borrar errores para forzar el inicio.
+4. **Comprobar respaldo y versión.** Confirmar resultado del respaldo SQLite y de configuración, versión instalada y arranque del sistema. Conservar `server/.env`, identidad Root, `SAGVA_BANK_DATA_KEY`, documentos, PDF y permisos **sin revelar sus valores**. No cambiar secretos ni generar una nueva base.
+5. **Diagnosticar P0 en lectura solamente.** Desde la raíz, ejecutar `node tools/auditar-modelo-datos.mjs`. Esta herramienta abre SQLite en modo `readOnly` y `query_only`; no se debe modificar para que escriba. Revisar integridad, FK, totales e indicadores de trabajadores/fichas/estados/empresa/cargo/JSON, sin exportar PII a GitHub.
+6. **Validar P1 sin alterar registros reales.** En el PC comprobar de manera no destructiva inicio, acceso Root, fichas, contratos, PDFs y permisos. Las pruebas que crean, activan/desactivan, finiquitan, editan sueldos o cambian empresas se hacen **solo en una copia aislada o entorno de pruebas con registros sintéticos**, nunca sobre personas reales para «ver si funciona».
+7. **Informar primero, corregir después solo con aprobación.** Presentar el informe con SHA, estado del respaldo, comprobaciones `APROBADO/FALLIDO/PENDIENTE`, cantidades agregadas, discrepancias, su posible causa, impacto y una propuesta separada por caso. **Detenerse** antes de cualquier actualización masiva, conciliación de trabajadores, normalización, ajuste de RUT/nombres/empresa/estado/sueldo, borrado o modificación de registros. Pedir autorización expresa del propietario para cada lote correctivo.
+
+### Límites permanentes para Work
+
+- Nada de Propinas, pagos nuevos, P2 (relaciones laborales) o P3 (normalización de duplicados y JSON) en esta orden.
+- No publicar en repositorios, PR, issues, transcripciones o informes compartidos nombres/RUT reales, cuentas, contraseñas, PDFs, respaldos, JWT, `.env` ni claves de cifrado.
+- No reescribir marcaciones originales ni historiales contractuales; no reinterpretar estados ambiguos como finiquitos o recontrataciones.
+- En caso de error, duda sobre la instalación, recuperación pendiente, diagnóstico incoherente o falta de acceso: **detenerse, preservar el estado y explicar el bloqueo**.
+- El código P0/P1 ya se integró por PR #17 en el commit `68303e073d9c8630505b542fe0dbc9a2629109f8`. No generar otro PR para repetirlo.
+- **Cierre:** Work no puede afirmar que P0/P1 están validadas en producción mientras no exista evidencia de comprobación en la instalación real y aceptación del propietario.
+
 ## Orden siguiente (NO EJECUTAR en estas etapas)
 1. P2: relación laboral histórica, catálogo de sucursales, asignaciones y condiciones por vigencia.
 2. P3: normalizar duplicados y JSON mediante `expand → backfill → comparar → cambiar lecturas → retirada opcional`.
