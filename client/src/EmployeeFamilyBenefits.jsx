@@ -1,6 +1,7 @@
 
 import React,{forwardRef,useEffect,useImperativeHandle,useState} from 'react';
 import {api} from './services/api.js';
+import {familyAllowancePreview} from '../../shared/familyAllowance.js';
 
 const blank=()=>({fullName:'',relationship:'HIJO',recognitionStatus:'PENDING',institution:'',recognitionDate:'',validFrom:'',validUntil:'',referenceCode:''});
 const empty=()=>({revision:0,status:'NONE',dependents:[],averageIncomeClp:null,incomePeriod:'',incomeVerified:false});
@@ -23,10 +24,7 @@ const EmployeeFamilyBenefits=forwardRef(function EmployeeFamilyBenefits({employe
   }).catch(e=>{if(valid)setError(e.message);});return()=>{valid=false;};
  },[employeeId,permitted]);
  useEffect(()=>{onDirtyChange?.(dirty);},[dirty,onDirtyChange]);
- const day=localDay();
- const recognized=data.status==='RECOGNIZED'?data.dependents.filter(x=>x.recognitionStatus==='RECOGNIZED'&&(!x.validFrom||x.validFrom<=day)&&(!x.validUntil||x.validUntil>=day)).length:0;
- const matching=data.incomeVerified&&data.averageIncomeClp!==null?bands.find(x=>data.averageIncomeClp>=x.incomeFrom&&(x.incomeTo===null||data.averageIncomeClp<=x.incomeTo)):null;
- const amount=matching?matching.amountClp*recognized:null;
+ const {recognized,bracket:matching,totalClp:amount}=familyAllowancePreview({...data,brackets:bands,on:localDay()});
  const update=(i,k,value)=>setData(prev=>({...prev,dependents:prev.dependents.map((row,index)=>i===index?{...row,[k]:value}:row)}));
  const save=async()=>{
   if(!employeeId||!editable||busy)return;
