@@ -39,7 +39,7 @@ try{
   const saved=page.waitForResponse(r=>r.url().includes('/api/labor-structure/branches')&&r.request().method()==='POST');
   await local.getByRole('button',{name:'Registrar local'}).click();
   assert.equal((await saved).status(),201);
-  await expect(local.getByText('LOCAL FICTICIO UI')).toBeVisible();
+  await expect(local.locator('select').last()).toContainText('LOCAL FICTICIO UI');
  });
  await check('1B seleccionar persona existente y contratar sin duplicarla',async()=>{
   await mod.getByLabel('Persona con identidad única').selectOption(String(ctx.otherWorker));
@@ -50,7 +50,7 @@ try{
   const saved=page.waitForResponse(r=>r.url().endsWith('/api/labor-structure/employments')&&r.request().method()==='POST');
   await hiring.getByRole('button',{name:'Registrar relación confirmada'}).click();
   assert.equal((await saved).status(),201);
-  await expect(hiring.getByText('ACTIVE',{exact:false}).first()).toBeVisible();
+  await expect(hiring.locator('p').filter({hasText:'Estado:'})).toContainText('ACTIVE');
  });
  await check('1C asignación de cargo/local y sueldo desde UI',async()=>{
   const a=mod.locator('details').filter({has:page.locator('summary').filter({hasText:'1C. Movimientos'})});
