@@ -35,6 +35,7 @@ import {migrateEmploymentHistory} from './employmentHistory.js';
 import {migrateNormalizationExpand} from './normalizationExpand.js';
 import {migrateDtJornadaNormative} from './dtJornadaNormativa.js';
 import {migrateAttendanceProofs} from './attendanceProofs.js';
+import {migrateLaborStructure} from './modules/labor-structure/laborStructure.migration.js';
 
 let pending;
 export function runMigrations() {
@@ -185,6 +186,8 @@ async function migrate() {
     await migrateDtJornadaNormative(connection);
     // Pruebas criptograficas sólo para las marcas nuevas. Sin backfill histórico.
     await migrateAttendanceProofs(connection);
+    // 1A-1E: esquema aditivo con cierre seguro; sin tocar fichas existentes.
+    await migrateLaborStructure(connection);
     const [violations] = await connection.execute("PRAGMA foreign_key_check");
     if (violations.length)
       throw new Error(
