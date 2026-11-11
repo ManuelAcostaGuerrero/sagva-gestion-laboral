@@ -70,6 +70,8 @@ test('P3: informe solo agrega indicadores sin emitir datos personales ni reescri
       INSERT INTO employee_files VALUES(1,1,'RAZON HISTORICA',
         '{"paternalLastName":"APELLIDO DIFERENTE","maternalLastName":"APELLIDO MATERNO","afp":"INSTITUCION DESCONOCIDA","isapreName":"SIN REFERENCIA","branch":"SUR"}');
       INSERT INTO employee_contract_terms VALUES(1,'{}');
+      INSERT INTO employees VALUES(2,'OTRO APELLIDO','OTRO MATERNO');
+      INSERT INTO employee_files VALUES(2,NULL,'','{json-ilegible');
     `);
     db.exec('PRAGMA query_only=ON');
     const report=auditNormalization(db);
@@ -80,6 +82,7 @@ test('P3: informe solo agrega indicadores sin emitir datos personales ni reescri
     assert.equal(report.counts.linkedCompanyNameDifferences,1);
     assert.equal(report.counts.unrecognizedAfpLabel,1);
     assert.equal(report.counts.unrecognizedIsapreLabel,1);
+    assert.equal(report.counts.invalidExtrasJson,1,'El informe debe tolerar JSON heredado malformado');
     assert.equal(db.prepare('PRAGMA query_only').get().query_only,1);
     assert.equal(db.prepare('SELECT COUNT(*) AS n FROM employee_files').get().n,1);
     assert.doesNotMatch(JSON.stringify(report),/APELLIDO REAL|APELLIDO DIFERENTE|INSTITUCION DESCONOCIDA|RAZON HISTORICA/);
