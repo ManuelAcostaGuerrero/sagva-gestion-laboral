@@ -62,3 +62,4 @@ export default function EmployeeBonuses({employeeId}){
     {evaluations.map(e=><tr key={e.id}><td>{assigned.find(a=>a.id===e.assignmentId)?.name||e.assignmentId}</td><td>{e.period}</td><td>{e.correctUnits}/{e.plannedUnits}</td><td>{money(e.suggestedClp)} CLP</td><td>Pendiente de revisión</td></tr>)}
    </tbody></table></div></details>}
  </fieldset>;
+}
