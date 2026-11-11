@@ -46,9 +46,18 @@ contractTermsRouter.put('/workers/:employeeId',asyncHandler(async(req,res)=>{
  try{
   await db.beginTransaction();
   if(!(await db.execute('SELECT id FROM employees WHERE id=?',[id]))[0].length)throw fail('Trabajador no encontrado.',404);
-  const [rows]=await db.execute('SELECT revision FROM employee_contract_terms WHERE employee_id=?',[id]);
+  const [rows]=await db.execute('SELECT revision,terms_json AS termsJson FROM employee_contract_terms WHERE employee_id=?',[id]);
   const current=rows.length?Number(rows[0].revision):0;
   if(previousRevision!==current)throw fail('Las condiciones contractuales cambiaron en otra sesión. Actualiza.',409);
+  // Un aumento aplicado desde un anexo firmado no se revierte editando la ficha.
+  // Sí se permite actualizar otros campos contractuales conservando exactamente el sueldo.
+  const [salaryApprovals]=await db.execute(
+   'SELECT entry_id FROM employee_salary_annex_approvals WHERE employee_id=? LIMIT 1',[id]);
+  if(salaryApprovals.length){
+   const savedSalary=rows.length?JSON.parse(rows[0].termsJson).monthlyBaseSalary:'';
+   if(data.monthlyBaseSalary!==savedSalary)
+    throw fail('Existe un anexo de sueldo aprobado. Modifica el sueldo mediante un nuevo anexo firmado y aprobado.',409);
+  }
   const revision=current+1;
   if(current){
    await db.execute("UPDATE employee_contract_terms SET terms_json=?,revision=?,updated_by=?,updated_at=datetime('now','localtime') WHERE employee_id=?",
