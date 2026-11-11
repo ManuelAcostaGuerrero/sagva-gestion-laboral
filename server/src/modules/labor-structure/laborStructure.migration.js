@@ -7,6 +7,22 @@ export async function migrateLaborStructure(db){
   await db.execScript(`
     ALTER TABLE company_branches ADD COLUMN address TEXT;
     ALTER TABLE company_branches ADD COLUMN revision INTEGER NOT NULL DEFAULT 1 CHECK(revision>0);
+    CREATE TRIGGER company_branch_identity_guard BEFORE UPDATE OF company_id,code ON company_branches
+    BEGIN SELECT RAISE(ABORT,'Empresa y código de local son identificadores permanentes'); END;
+    CREATE TRIGGER employment_relation_update_guard BEFORE UPDATE ON employment_relationships
+    WHEN NOT(
+      OLD.status='ACTIVE' AND NEW.status='ENDED'
+      AND OLD.ended_on IS NULL AND NEW.ended_on IS NOT NULL
+      AND NEW.ended_on>=OLD.started_on
+      AND NEW.id IS OLD.id AND NEW.employee_id IS OLD.employee_id
+      AND NEW.company_id IS OLD.company_id AND NEW.started_on IS OLD.started_on
+      AND NEW.review_status IS OLD.review_status AND NEW.review_reason IS OLD.review_reason
+      AND NEW.reviewed_by IS OLD.reviewed_by AND NEW.reviewed_at IS OLD.reviewed_at
+      AND NEW.created_at IS OLD.created_at
+    ) BEGIN SELECT RAISE(ABORT,'No reescribir identificación ni vigencias originales de la relación'); END;
+    CREATE TRIGGER employment_relation_no_delete BEFORE DELETE ON employment_relationships
+    BEGIN SELECT RAISE(ABORT,'No eliminar relaciones laborales históricas'); END;
+
     CREATE TABLE labor_lifecycle_events(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       employment_id INTEGER NOT NULL REFERENCES employment_relationships(id) ON DELETE RESTRICT,
