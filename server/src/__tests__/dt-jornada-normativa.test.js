@@ -12,12 +12,12 @@ test('DT: parámetros por vigencia sin reescribir contratos, con advertencia no 
   await runMigrations();await runMigrations();
   const [migrations]=await pool.execute('SELECT COUNT(*) n FROM schema_migrations WHERE id=?',[DT_JORNADA_MIGRATION]);
   assert.equal(migrations[0].n,1,'Migración idempotente');
-  const [rules]=await pool.execute('SELECT effective_from AS on,value_hours AS hours FROM dt_jornada_normative_versions ORDER BY effective_from');
+  const [rules]=await pool.execute('SELECT effective_from AS effectiveDate,value_hours AS hours FROM dt_jornada_normative_versions ORDER BY effective_from');
   assert.deepEqual(rules,[
-    {on:'2005-01-01',hours:45},
-    {on:'2024-04-26',hours:44},
-    {on:'2026-04-26',hours:42},
-    {on:'2028-04-26',hours:40}
+    {effectiveDate:'2005-01-01',hours:45},
+    {effectiveDate:'2024-04-26',hours:44},
+    {effectiveDate:'2026-04-26',hours:42},
+    {effectiveDate:'2028-04-26',hours:40}
   ]);
   for(const [on,limit] of [
     ['2024-04-25',45],['2024-04-26',44],
