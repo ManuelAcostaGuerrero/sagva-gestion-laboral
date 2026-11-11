@@ -49,7 +49,7 @@ employeeBenefitsRouter.put('/:id/family',requireRoles('admin'),asyncHandler(asyn
  const id=idOf(req.params.id),parsed=familySchema.safeParse(req.body);
  if(!id||!parsed.success)throw fail('Datos de cargas familiares inválidos.');
  const d=parsed.data;
- if(d.incomeVerified && (!(d.averageIncomeClp>=0)||!d.incomePeriod?.trim()))
+ if(d.incomeVerified && (!Number.isSafeInteger(d.averageIncomeClp)||!d.incomePeriod?.trim()))
   throw fail('La renta acreditada requiere monto e identificación del semestre de referencia.');
  if(d.status==='RECOGNIZED'&&!d.dependents.some(x=>x.recognitionStatus==='RECOGNIZED'))
    throw fail('Debe existir al menos una carga reconocida.');
@@ -119,7 +119,7 @@ employeeBenefitsRouter.put('/:id/bank',restricted(mayEditBank),asyncHandler(asyn
  try{
   await db.beginTransaction();
   const worker=await employee(db,id);
-  const thirdParty=!!worker.documentId&&normalizeRut(worker.documentId)!==normalizeRut(d.holderRut);
+  const thirdParty=!worker.documentId||normalizeRut(worker.documentId)!==normalizeRut(d.holderRut);
   if(thirdParty){
    const ref=/^BANCARIA-([1-9][0-9]*)$/.exec(d.authorizationRef);
    if(!ref)throw fail('Una cuenta de tercero requiere PDF de autorización.');
