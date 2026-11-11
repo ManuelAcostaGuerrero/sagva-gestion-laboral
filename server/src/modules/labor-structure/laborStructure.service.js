@@ -2,6 +2,7 @@
 import {pool} from '../../db.js';
 import {recordAudit} from '../../auditLog.js';
 import {validContractDate} from '../../employeeContracts.js';
+import {assessWeeklyOrdinaryHours} from '../../dtJornadaNormativa.js';
 
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
 const date=value=>{
@@ -139,6 +140,7 @@ export async function setConditions(db,admin,id,data){
  if(relation.reviewStatus!=='CONFIRMED'||relation.status!=='ACTIVE')
   throw fail('Las condiciones requieren una relación confirmada y activa.',409);
  inEmploymentPeriod(relation,data.effectiveFrom);
+ const normativeAssessment=await assessWeeklyOrdinaryHours(db,{on:data.effectiveFrom,weeklyHours:data.weeklyHours,regime:data.regime});
  const [current]=await db.execute(`SELECT id,effective_from AS effectiveFrom
   FROM employment_terms_versions WHERE employment_id=? AND effective_until IS NULL
   ORDER BY effective_from DESC,id DESC LIMIT 1`,[id]);
@@ -152,12 +154,12 @@ export async function setConditions(db,admin,id,data){
    terms_snapshot_json,source_document_ref,confirmed_by)
   VALUES(?,?,?,?,?,?,?,?)`,[
   id,data.effectiveFrom,data.monthlyBaseSalaryClp,data.weeklyHours,data.breakMinutes,
-  JSON.stringify({contractType:data.contractType||null,description:data.description||null}),
+  JSON.stringify({contractType:data.contractType||null,regime:data.regime,description:data.description||null}),
   data.evidenceRef,admin.id]);
  await event(db,admin,id,'CONDITIONS',data.effectiveFrom,data.evidenceRef,{termsId:created.insertId});
  await log(db,admin,'conditions','employment_terms',created.insertId,
-  {employmentId:id,effectiveFrom:data.effectiveFrom,source:data.evidenceRef});
- return {id:created.insertId};
+  {employmentId:id,effectiveFrom:data.effectiveFrom,source:data.evidenceRef,legalStatus:normativeAssessment.status});
+ return {id:created.insertId,normativeAssessment};
 }
 export async function setShift(db,admin,id,data){
  const relation=await employment(db,id);
