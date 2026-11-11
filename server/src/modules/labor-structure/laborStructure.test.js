@@ -74,6 +74,19 @@ test('1A-1E: ciclo contractual completo versionado, aislado por Root, transaccio
   assert.equal(oldAssignment[0].end,'2026-06-01');
   await assert.rejects(pool.execute('UPDATE employment_assignments SET branch_id=? WHERE id=?',[b.data.result.id,assigned.data.result.id]));
 
+  const [shifts]=await pool.execute('SELECT id FROM work_shifts WHERE is_active=1 ORDER BY id LIMIT 2');
+  assert.ok(shifts.length>=1,'Biblioteca de turnos disponible');
+  const shift1=await call('/employments/'+id+'/shifts','POST',
+   {validFrom:'2026-01-01',shiftId:shifts[0].id,evidenceRef:'HORARIO FICTICIO 001'});
+  assert.equal(shift1.status,201,JSON.stringify(shift1.data));
+  const shift2=await call('/employments/'+id+'/shifts','POST',
+   {validFrom:'2026-05-01',shiftId:shifts[shifts.length-1].id,evidenceRef:'HORARIO FICTICIO 002'});
+  assert.equal(shift2.status,201,JSON.stringify(shift2.data));
+  const [oldShift]=await pool.execute('SELECT valid_until AS ended FROM employment_shift_versions WHERE id=?',
+   [shift1.data.result.id]);
+  assert.equal(oldShift[0].ended,'2026-05-01');
+  await assert.rejects(pool.execute('UPDATE employment_shift_versions SET shift_id=99 WHERE id=?',
+   [shift1.data.result.id]));
   const conditions={effectiveFrom:'2026-01-01',monthlyBaseSalaryClp:500000,weeklyHours:42,
    breakMinutes:60,contractType:'INDEFINIDO',description:'CONDICIONES FICTICIAS',
    evidenceRef:'CONTRATO PRUEBA 001 DOCUMENTADO'};
@@ -114,6 +127,7 @@ test('1A-1E: ciclo contractual completo versionado, aislado por Root, transaccio
   const oct=await call('/workers/'+worker.insertId+'/as-of?on=2026-10-01');
   assert.equal(jan.status,200);
   assert.equal(jan.data.relationships[0].monthlyBaseSalaryClp,500000);
+  assert.equal(jan.data.shifts[0].shiftId,shifts[0].id);
   assert.equal(oct.data.relationships[0].monthlyBaseSalaryClp,600000);
   assert.equal(oct.data.prevision.planUnit,'UF');
   const workerHistory=await call('/workers/'+worker.insertId);
