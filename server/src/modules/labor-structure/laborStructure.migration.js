@@ -10,7 +10,7 @@ export async function migrateLaborStructure(db){
     CREATE TABLE labor_lifecycle_events(
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       employment_id INTEGER NOT NULL REFERENCES employment_relationships(id) ON DELETE RESTRICT,
-      kind TEXT NOT NULL CHECK(kind IN ('HIRE','END','ASSIGNMENT','CONDITIONS','DOCUMENT')),
+      kind TEXT NOT NULL CHECK(kind IN ('HIRE','END','ASSIGNMENT','CONDITIONS','SHIFT','DOCUMENT')),
       effective_on TEXT NOT NULL CHECK(length(effective_on)=10),
       evidence_ref TEXT NOT NULL CHECK(trim(evidence_ref)<>''),
       details_json TEXT NOT NULL DEFAULT '{}' CHECK(json_valid(details_json)),
@@ -43,6 +43,44 @@ export async function migrateLaborStructure(db){
     BEGIN SELECT RAISE(ABORT,'Vinculo documental inmutable'); END;
     CREATE TRIGGER employment_documents_no_delete BEFORE DELETE ON employment_documents
     BEGIN SELECT RAISE(ABORT,'Vinculo documental no se elimina'); END;
+
+    CREATE TABLE employment_shift_versions(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      employment_id INTEGER NOT NULL REFERENCES employment_relationships(id) ON DELETE RESTRICT,
+      shift_id INTEGER NOT NULL REFERENCES work_shifts(id) ON DELETE RESTRICT,
+      valid_from TEXT NOT NULL CHECK(length(valid_from)=10),
+      valid_until TEXT CHECK(valid_until IS NULL OR valid_until>valid_from),
+      evidence_ref TEXT NOT NULL CHECK(trim(evidence_ref)<>''),
+      confirmed_by INTEGER NOT NULL REFERENCES admins(id) ON DELETE RESTRICT,
+      confirmed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+    CREATE INDEX employment_shift_period ON employment_shift_versions(employment_id,valid_from,valid_until);
+    CREATE TRIGGER employment_shift_scope BEFORE INSERT ON employment_shift_versions
+    BEGIN
+      SELECT RAISE(ABORT,'Horario requiere empleo confirmado y fecha comprendida')
+      WHERE NOT EXISTS(
+        SELECT 1 FROM employment_relationships e JOIN work_shifts s ON s.id=NEW.shift_id
+        WHERE e.id=NEW.employment_id AND e.review_status='CONFIRMED'
+          AND NEW.valid_from>=e.started_on
+          AND (e.ended_on IS NULL OR NEW.valid_from<=e.ended_on)
+      );
+      SELECT RAISE(ABORT,'Horarios de un empleo no pueden superponerse')
+      WHERE EXISTS(
+        SELECT 1 FROM employment_shift_versions x WHERE x.employment_id=NEW.employment_id
+          AND NEW.valid_from<coalesce(x.valid_until,'9999-12-31')
+          AND x.valid_from<coalesce(NEW.valid_until,'9999-12-31')
+      );
+    END;
+    CREATE TRIGGER employment_shift_no_update BEFORE UPDATE ON employment_shift_versions
+    WHEN NOT(
+      OLD.valid_until IS NULL AND NEW.valid_until IS NOT NULL AND NEW.valid_until>OLD.valid_from
+      AND NEW.id IS OLD.id AND NEW.employment_id IS OLD.employment_id
+      AND NEW.shift_id IS OLD.shift_id AND NEW.valid_from IS OLD.valid_from
+      AND NEW.evidence_ref IS OLD.evidence_ref AND NEW.confirmed_by IS OLD.confirmed_by
+      AND NEW.confirmed_at IS OLD.confirmed_at
+    ) BEGIN SELECT RAISE(ABORT,'Sólo se puede cerrar la vigencia de un turno'); END;
+    CREATE TRIGGER employment_shift_no_delete BEFORE DELETE ON employment_shift_versions
+    BEGIN SELECT RAISE(ABORT,'No eliminar horarios históricos'); END;
 
     -- Antes: prohibición total de UPDATE. Ahora sólo permite CERRAR la vigencia
     -- previa en una fecha posterior, sin tocar ningún otro campo o dato económico.
