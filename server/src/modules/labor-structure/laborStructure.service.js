@@ -214,12 +214,13 @@ export async function linkDocument(db,admin,id,data){
  const pdf=await getOne(db,`SELECT id,employee_id AS employeeId,sha256
   FROM employee_contract_files WHERE id=?`,[data.fileId],'PDF contractual no encontrado.');
  if(pdf.employeeId!==relation.employeeId)throw fail('El documento es de otra persona.',403);
+ date(data.documentDate);
  const [created]=await db.execute(`INSERT INTO employment_documents
- (employment_id,contract_file_id,document_kind,evidence_ref,linked_by) VALUES(?,?,?,?,?)`,
- [id,data.fileId,data.kind,data.evidenceRef,admin.id]);
- await event(db,admin,id,'DOCUMENT',relation.startedOn,data.evidenceRef,
-  {fileId:data.fileId,sha256:pdf.sha256,kind:data.kind});
+ (employment_id,contract_file_id,document_kind,document_date,evidence_ref,linked_by) VALUES(?,?,?,?,?,?)`,
+ [id,data.fileId,data.kind,data.documentDate,data.evidenceRef,admin.id]);
+ await event(db,admin,id,'DOCUMENT',data.documentDate,data.evidenceRef,
+  {fileId:data.fileId,sha256:pdf.sha256,kind:data.kind,documentDate:data.documentDate});
  await log(db,admin,'link','employment_document',created.insertId,
-  {employmentId:id,fileId:data.fileId,kind:data.kind,sha256:pdf.sha256});
+  {employmentId:id,fileId:data.fileId,kind:data.kind,documentDate:data.documentDate,sha256:pdf.sha256});
  return {id:created.insertId};
 }
