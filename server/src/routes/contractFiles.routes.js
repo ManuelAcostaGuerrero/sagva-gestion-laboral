@@ -2,7 +2,7 @@ import {Router, raw} from 'express';
 import {createHash} from 'node:crypto';
 import {pool} from '../db.js';
 import {runMigrations} from '../migrations.js';
-import {requireRoles} from '../auth.js';
+import {requireRoles,permitted} from '../auth.js';
 import {asyncHandler} from '../asyncHandler.js';
 import {recordAudit} from '../auditLog.js';
 import {fileSelect,presentFile} from '../employeeFiles.js';
@@ -11,12 +11,20 @@ const fail=(message,status=400)=>Object.assign(new Error(message),{status});
 const idOf=value=>Number.isSafeInteger(Number(value)) && Number(value)>0 ? Number(value) : null;
 export const contractFilesRouter=Router();
 contractFilesRouter.use(requireRoles('admin','supervisor','operator'));
+// Compatibilidad temporal: el operador anterior podía adjuntar contratos antes de activar Root.
+// Con Root, permisos individuales obligatorios; delegación por empresa/sucursal aún pendiente.
+function canAccessContract(req,file,write=false){
+  if(!req.admin.hasRoot&&req.admin.role==='operator')return true;
+  return permitted(req.admin,write?'personal.contract.write':'personal.contract.read',
+    {companyId:file.companyId||null,branch:file.extra?.branch||null});
+}
 contractFilesRouter.get('/workers/:id',asyncHandler(async(req,res)=>{
   await runMigrations();
   const id=idOf(req.params.id);
   if(!id)throw fail('Trabajador inválido.');
   const [files]=await pool.execute(`${fileSelect} WHERE e.id=?`,[id]);
   if(!files.length)throw fail('Ficha no encontrada.',404);
+  if(!canAccessContract(req,presentFile(files[0])))throw fail('Sin permiso para consultar contratos.',403);
   const [attachments]=await pool.execute('SELECT f.id,f.annex_order AS annexOrder,f.filename,f.source,f.uploaded_at AS uploadedAt,a.full_name AS uploadedByName FROM employee_contract_files f JOIN admins a ON a.id=f.uploaded_by WHERE f.employee_id=? ORDER BY f.id DESC',[id]);
   res.json({attachments,preparation:contractPreparation(presentFile(files[0]))});
 }));
@@ -34,6 +42,7 @@ contractFilesRouter.post('/workers/:id/:target/pdf',raw({type:'application/pdf',
     const [rows]=await db.execute(`${fileSelect} WHERE e.id=?`,[id]);
     if(!rows.length)throw fail('Ficha no encontrada.',404);
     const file=presentFile(rows[0]);
+    if(!canAccessContract(req,file,true))throw fail('Sin permiso para adjuntar contratos.',403);
     if(file.revision!==revision)throw fail('La ficha cambió en otra sesión. Vuelve a abrirla antes de adjuntar el PDF.',409);
     if(annexOrder && !file.annexes[annexOrder-1])throw fail('Guarda primero el anexo correspondiente.',409);
     if(!annexOrder && !['INDEFINIDO','PLAZO_FIJO'].includes(file.contractType))throw fail('Guarda primero el tipo de contrato.',409);
@@ -51,9 +60,14 @@ contractFilesRouter.get('/:id/pdf',asyncHandler(async(req,res)=>{
   await runMigrations();
   const id=idOf(req.params.id);
   if(!id)throw fail('Archivo inválido.');
-  const [files]=await pool.execute('SELECT filename,pdf FROM employee_contract_files WHERE id=?',[id]);
+  const [files]=await pool.execute('SELECT employee_id AS employeeId,filename FROM employee_contract_files WHERE id=?',[id]);
   if(!files.length)throw fail('PDF no encontrado.',404);
+  const [workers]=await pool.execute(`${fileSelect} WHERE e.id=?`,[files[0].employeeId]);
+  if(!workers.length||!canAccessContract(req,presentFile(workers[0])))throw fail('Sin permiso para consultar contratos.',403);
+  // Sólo leer el BLOB tras autorizar al solicitante.
+  const [contents]=await pool.execute('SELECT pdf FROM employee_contract_files WHERE id=?',[id]);
+  if(!contents.length)throw fail('PDF no encontrado.',404);
   res.set('Cache-Control','no-store');res.set('X-Content-Type-Options','nosniff');
   res.set('Content-Disposition',`attachment; filename="${files[0].filename}"`);
-  res.type('application/pdf').send(Buffer.from(files[0].pdf));
+  res.type('application/pdf').send(Buffer.from(contents[0].pdf));
 }));

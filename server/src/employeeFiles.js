@@ -292,8 +292,10 @@ export async function saveEmployeeFile(id, data, admin) {
         );
     }
     const positionName=await resolvePosition(data.positionName,connection,before?.positionName);
-    const companyId=data.companyId||null;
+    // Una edición parcial no desvincula silenciosamente la empresa.
+    const companyId=data.companyId===undefined?(before?.companyId||null):(data.companyId||null);
     if(companyId){
+      if(requestedClears.has('company'))throw problem('Para vaciar la empresa debes desvincular su identificador.',400);
       const [companies]=await connection.execute('SELECT legal_name,default_branch AS defaultBranch,is_active AS isActive FROM company_profiles WHERE id=?',[companyId]);
       if(!companies.length)throw problem('Empresa no encontrada.',400);
       if(!companies[0].isActive && (!before || Number(before.companyId)!==companyId))throw problem('Selecciona una empresa activa.',400);
@@ -301,6 +303,9 @@ export async function saveEmployeeFile(id, data, admin) {
         data.company=companies[0].legal_name;
         data.extra.branch=companies[0].defaultBranch || null;
       } else if(!empty(data.extra.branch)) data.extra.branch=companies[0].defaultBranch || null;
+      if(before&&Number(before.companyId)===Number(companyId)&&empty(data.company)&&empty(before.company)&&
+          normalizeLabel(data.company)!==normalizeLabel(before.company))
+        throw problem('La razón social vinculada no se cambia mediante texto libre. Selecciona otra empresa.',400);
     }
     const area = data.workAreaId || null;
     if (area) {

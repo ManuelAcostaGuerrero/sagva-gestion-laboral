@@ -276,103 +276,78 @@ employeeRouter.put('/:id/document', asyncHandler(async (req, res) => {
   res.json({ message: 'Documento corregido sin afectar huellas ni historial' });
 }));
 
+// El alta/baja administrativa y el estado de ficha se mueven juntos.
+// No alterar fechas de contrato ni historiales, y mantener auditoría atómica.
 employeeRouter.post('/:id/reactivate', asyncHandler(async (req, res) => {
   const parsed = reactivateEmployeeSchema.safeParse(req.body);
-  if (!parsed.success) {
-    return res.status(400).json({ message: 'Debes indicar un motivo de reactivacion' });
-  }
-
+  if (!parsed.success) return res.status(400).json({ message: 'Debes indicar un motivo de reactivacion' });
   const employeeId = Number(req.params.id);
-  if (!Number.isInteger(employeeId) || employeeId <= 0) {
-    return res.status(400).json({ message: 'Empleado invalido' });
-  }
+  if (!Number.isInteger(employeeId) || employeeId <= 0) return res.status(400).json({ message: 'Empleado invalido' });
 
-  const [employees] = await pool.execute(
-    `SELECT id, document_id AS documentId, full_name AS fullName, is_active AS isActive
-     FROM employees
-     WHERE id = :employeeId
-     LIMIT 1`,
-    { employeeId }
-  );
-  const employee = employees[0];
-  if (!employee) {
-    return res.status(404).json({ message: 'Empleado no encontrado' });
-  }
-  if (employee.isActive) {
-    return res.status(409).json({ message: 'El empleado ya esta activo' });
-  }
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [employees] = await connection.execute(
+      `SELECT e.id, e.document_id AS documentId, e.full_name AS fullName,
+              e.is_active AS isActive, f.employment_status AS employmentStatus
+       FROM employees e LEFT JOIN employee_files f ON f.employee_id=e.id
+       WHERE e.id=? LIMIT 1`, [employeeId]);
+    const employee=employees[0];
+    if (!employee) return res.status(404).json({ message: 'Empleado no encontrado' });
+    if (employee.isActive) return res.status(409).json({ message: 'El empleado ya esta activo' });
+    // La recontratación exige otra relación laboral: no deshacer un finiquito por un botón.
+    if (employee.employmentStatus==='FINIQUITADO')
+      return res.status(409).json({message:'El trabajador está finiquitado. No se puede reactivar su contrato anterior; requiere nueva relación laboral.'});
 
-  await pool.execute(
-    `UPDATE employees
-     SET is_active = 1,
-         deleted_at = NULL,
-         deleted_by = NULL,
-         deletion_reason = NULL,
-         reactivated_at = (datetime('now', 'localtime')),
-         reactivated_by = :reactivatedBy,
-         reactivation_reason = :reactivationReason
-     WHERE id = :employeeId`,
-    {
-      employeeId,
-      reactivatedBy: req.admin.id,
-      reactivationReason: parsed.data.reason
-    }
-  );
-
-  await recordAudit(req.admin, 'reactivate', 'employee', employeeId, {
-    reason: parsed.data.reason,
-    employee
-  });
-
-  res.json({ message: 'Empleado reactivado con su historial y huellas existentes' });
+    await connection.execute(
+      `UPDATE employees SET is_active=1,deleted_at=NULL,deleted_by=NULL,
+       deletion_reason=NULL,reactivated_at=datetime('now','localtime'),
+       reactivated_by=?,reactivation_reason=? WHERE id=?`,
+      [req.admin.id,parsed.data.reason,employeeId]);
+    await connection.execute(
+      `UPDATE employee_files SET employment_status='ACTIVO',revision=revision+1,
+       updated_at=datetime('now','localtime'),updated_by=? WHERE employee_id=?`,
+      [req.admin.id,employeeId]);
+    await recordAudit(req.admin,'reactivate','employee',employeeId,
+      {reason:parsed.data.reason,before:employee,employmentStatus:'ACTIVO'},connection);
+    await connection.commit();
+    res.json({ message: 'Empleado reactivado con su historial y huellas existentes' });
+  } catch(error) { await connection.rollback();throw error; }
+  finally { connection.release(); }
 }));
 
 employeeRouter.delete('/:id', asyncHandler(async (req, res) => {
   const parsed = deactivateEmployeeSchema.safeParse(req.body || {});
-  if (!parsed.success) {
-    return res.status(400).json({ message: 'Debes indicar un motivo de desactivacion' });
-  }
-
+  if (!parsed.success) return res.status(400).json({ message: 'Debes indicar un motivo de desactivacion' });
   const employeeId = Number(req.params.id);
-  if (!Number.isInteger(employeeId) || employeeId <= 0) {
-    return res.status(400).json({ message: 'Empleado invalido' });
-  }
+  if (!Number.isInteger(employeeId) || employeeId <= 0) return res.status(400).json({ message: 'Empleado invalido' });
 
-  const [employees] = await pool.execute(
-    `SELECT id, document_id AS documentId, full_name AS fullName, email, position_name AS positionName, is_active AS isActive
-     FROM employees
-     WHERE id = :employeeId AND is_active = 1
-     LIMIT 1`,
-    { employeeId }
-  );
-
-  if (!employees.length) {
-    return res.status(404).json({ message: 'Empleado no encontrado o ya desactivado' });
-  }
-
-  const [result] = await pool.execute(
-    `UPDATE employees
-     SET is_active = 0,
-         deleted_at = (datetime('now', 'localtime')),
-         deleted_by = :deletedBy,
-         deletion_reason = :deletionReason
-     WHERE id = :employeeId AND is_active = 1`,
-    {
-      employeeId,
-      deletedBy: req.admin.id,
-      deletionReason: parsed.data.reason
-    }
-  );
-
-  if (result.affectedRows === 0) {
-    return res.status(404).json({ message: 'Empleado no encontrado' });
-  }
-
-  await recordAudit(req.admin, 'deactivate', 'employee', employeeId, {
-    reason: parsed.data.reason,
-    before: employees[0]
-  });
-  res.json({ message: 'Empleado desactivado sin borrar su historial' });
+  const connection=await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [employees] = await connection.execute(
+      `SELECT e.id,e.document_id AS documentId,e.full_name AS fullName,
+              e.email,e.position_name AS positionName,e.is_active AS isActive,
+              f.employment_status AS employmentStatus
+       FROM employees e LEFT JOIN employee_files f ON f.employee_id=e.id
+       WHERE e.id=? AND e.is_active=1 LIMIT 1`,[employeeId]);
+    if (!employees.length) return res.status(404).json({ message: 'Empleado no encontrado o ya desactivado' });
+    const [result]=await connection.execute(
+      `UPDATE employees SET is_active=0,deleted_at=datetime('now','localtime'),
+       deleted_by=?,deletion_reason=? WHERE id=? AND is_active=1`,
+      [req.admin.id,parsed.data.reason,employeeId]);
+    if(!result.affectedRows) return res.status(404).json({message:'Empleado no encontrado'});
+    // No convertir un finiquito confirmado en baja administrativa.
+    await connection.execute(
+      `UPDATE employee_files SET employment_status=CASE WHEN employment_status='FINIQUITADO' THEN 'FINIQUITADO' ELSE 'INACTIVO' END,
+       revision=revision+1,updated_at=datetime('now','localtime'),updated_by=? WHERE employee_id=?`,
+      [req.admin.id,employeeId]);
+    await recordAudit(req.admin,'deactivate','employee',employeeId,
+      {reason:parsed.data.reason,before:employees[0]},connection);
+    await connection.commit();
+    res.json({message:'Empleado desactivado sin borrar su historial'});
+  } catch(error) { await connection.rollback();throw error; }
+  finally { connection.release(); }
 }));
 
 employeeRouter.put('/:id/fingerprint', (_req,res)=>res.status(410).json({message:'Método de identificación retirado. Usa QR o PIN en una terminal autorizada.'}));
