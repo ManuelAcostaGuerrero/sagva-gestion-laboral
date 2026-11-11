@@ -1,8 +1,16 @@
 # Requisitos consolidados de pruebas físicas · 10 de noviembre de 2026
 
-> **Estado:** pendiente de implementación. Documento de requisitos, no informe de cambios ejecutados.
+> **Estado al 11-11-2026:** implementación de los ajustes actuales integrada a `main` mediante [PR #15](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/15), commit `dbfb805b0572ff459588ce8538ca502e9408b2eb`. Pruebas de servidor y compilación web aprobadas en CI del PR; pruebas físicas Windows/móvil, restauración y revisión legal pendientes.
 >
 > **Repositorio:** `ManuelAcostaGuerrero/sagva-gestion-laboral` · Rama de referencia: `main` · Seguimiento: https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/issues/14
+
+## Registro de avance tras el PR #15
+
+**Codificado y aprobado por CI:** catálogo de varios bonos con casilla de imponibilidad y condición de horas extras separada, cláusulas, evaluaciones auditables de simulación; pago mixto; autorización bancaria de tercero en PDF cifrado; referencia de renta familiar acreditada y visualización del total legal por carga sin edición; catálogo de funciones escritas por área/cargo y autocompletado; turno semanal editable con deshacer/restablecer; formato CLP y pantalla más compacta y ancha.
+
+**Límites explícitos:** las simulaciones de bonos **no pagan ni descuentan** remuneraciones; se requiere revisión laboral de condiciones, imponibilidad y cálculo de horas extras. La renta semestral de referencia debe acreditarse para determinar tramo; no se infiere del sueldo base. La generación de contratos/PDF y el flujo futuro de postulantes quedan para otra fase, conforme a lo acordado. Centro de costo y unidad jerárquica siguen siendo códigos organizacionales distintos de empresa/sucursal y deben catalogarse antes de poder autocompletarlos.
+
+**Pendiente de aceptación:** pruebas reales en Windows y móvil, test de respaldo/restauración de base local con migraciones, revisión jurídica de contratos/bonos y aceptación del propietario. Integrar código a main no instala ni despliega automáticamente la aplicación.
 
 ## Objetivo
 Registrar hallazgos de pruebas físicas de la ficha laboral y contabilidad laboral (10-11-2026). **Prioridad alta: bonos**. Este issue es de especificación y ejecución pendiente: no implica que los cambios estén implementados.
@@ -56,7 +64,7 @@ Registrar hallazgos de pruebas físicas de la ficha laboral y contabilidad labor
 - [ ] Revisión jurídica antes de activar cálculos de remuneraciones y deducciones en producción.
 - [ ] Documentación de prueba y pasos de actualización manual; **sin actualizaciones automáticas**.
 
-**Alcance de esta anotación:** especificación documentada; implementación y pruebas pendientes.
+**Alcance de la especificación original:** requisitos de usuario; ver el registro de avance y límites anterior para distinguir código integrado de validación local pendiente.
 
 ## Orden de ejecución propuesto
 
