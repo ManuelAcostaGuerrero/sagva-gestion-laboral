@@ -6,7 +6,7 @@ const emptyBranch={companyId:'',code:'',name:'',address:''};
 const emptyHire={companyId:'',startedOn:'',evidenceRef:''};
 const emptyAssignment={validFrom:'',branchId:'',areaId:'',positionId:'',evidenceRef:''};
 const emptyConditions={effectiveFrom:'',monthlyBaseSalaryClp:'',weeklyHours:'',breakMinutes:'0',
- contractType:'INDEFINIDO',description:'',evidenceRef:''};
+ contractType:'INDEFINIDO',regime:'',description:'',evidenceRef:''};
 const emptyShift={validFrom:'',shiftId:'',evidenceRef:''};
 const emptyPrevision={validFrom:'',afpEntityId:'',healthEntityId:'',planAmountHundredths:'',
  planUnit:'',evidenceRef:''};
@@ -45,7 +45,9 @@ export default function LaborStructure({onGoEmployeeFile,onGoCompanies}){
    if(refreshCatalog)await reloadCatalog();
    if(workerId)await reloadWorker();
    if(clear)clear();
-   setMessage('Operación guardada y auditada. Los antecedentes anteriores se conservan.');
+   setMessage(result?.result?.normativeAssessment?.warning ?
+    'Guardado con advertencia legal: '+result.result.normativeAssessment.warning :
+    'Operación guardada y auditada. Los antecedentes anteriores se conservan.');
    return result;
   }catch(e){setError(e.message);return null;}finally{setLoading(false);}
  }
@@ -228,6 +230,13 @@ export default function LaborStructure({onGoEmployeeFile,onGoCompanies}){
       onChange={e=>setConditions({...conditions,contractType:e.target.value})}>
       <option value="INDEFINIDO">Indefinido</option><option value="PLAZO_FIJO">Plazo fijo</option>
       <option value="OTRO">Otro / revisión</option></select></label>
+     <label>Régimen para evaluar la jornada<select required value={conditions.regime}
+      onChange={e=>setConditions({...conditions,regime:e.target.value})}>
+      <option value="">Indicar régimen</option>
+      <option value="GENERAL">Jornada general</option>
+      <option value="SPECIAL">Especial: requiere revisión legal</option>
+      <option value="EXEMPT">Exceptuado: requiere revisión legal</option>
+     </select></label>
      <label>Sueldo base (CLP)<input type="number" min="0" step="1" required value={conditions.monthlyBaseSalaryClp}
       onChange={e=>setConditions({...conditions,monthlyBaseSalaryClp:e.target.value})}/></label>
      <label>Horas semanales pactadas<input type="number" min="0" max="48" step=".5" required value={conditions.weeklyHours}
