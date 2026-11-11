@@ -7,6 +7,7 @@ const emptyHire={companyId:'',startedOn:'',evidenceRef:''};
 const emptyAssignment={validFrom:'',branchId:'',areaId:'',positionId:'',evidenceRef:''};
 const emptyConditions={effectiveFrom:'',monthlyBaseSalaryClp:'',weeklyHours:'',breakMinutes:'0',
  contractType:'INDEFINIDO',description:'',evidenceRef:''};
+const emptyShift={validFrom:'',shiftId:'',evidenceRef:''};
 const emptyPrevision={validFrom:'',afpEntityId:'',healthEntityId:'',planAmountHundredths:'',
  planUnit:'',evidenceRef:''};
 const emptyFinish={endedOn:'',reason:'',evidenceRef:''};
@@ -21,6 +22,7 @@ export default function LaborStructure({onGoEmployeeFile,onGoCompanies}){
  [message,setMessage]=useState(''),[branch,setBranch]=useState(emptyBranch),
  [editedBranch,setEditedBranch]=useState(null),[hire,setHire]=useState(emptyHire),
  [assignment,setAssignment]=useState(emptyAssignment),[conditions,setConditions]=useState(emptyConditions),
+ [shift,setShift]=useState(emptyShift),
  [prevision,setPrevision]=useState(emptyPrevision),[finish,setFinish]=useState(emptyFinish),
  [link,setLink]=useState(emptyLink),[asOf,setAsOf]=useState(''),[asOfResult,setAsOfResult]=useState(null);
  const employment=worker?.relations.find(x=>String(x.id)===String(relationId));
@@ -192,6 +194,27 @@ export default function LaborStructure({onGoEmployeeFile,onGoCompanies}){
   </details>
 
   <details className="form-panel">
+   <summary><strong>1D. Turno programado por vigencia laboral</strong></summary>
+   <p>El turno no reemplaza la jornada contractual ni altera marcaciones pasadas. La planificación diaria sigue en el módulo Turnos/Calendario.</p>
+   <form onSubmit={event=>{event.preventDefault();execute('/employments/'+relationId+'/shifts',{
+    validFrom:shift.validFrom,shiftId:Number(shift.shiftId),evidenceRef:shift.evidenceRef},
+    {clear:()=>setShift(emptyShift)});}}>
+    <div className="ef-grid">
+     <label>Inicio de vigencia<input type="date" required value={shift.validFrom}
+      onChange={event=>setShift({...shift,validFrom:event.target.value})}/></label>
+     <label>Turno de biblioteca<select required value={shift.shiftId}
+      onChange={event=>setShift({...shift,shiftId:event.target.value})}>
+      <option value="">Seleccionar turno</option>
+      {catalog.shifts.map(x=>choice(x.id,x.name+' · '+x.startTime+'-'+x.endTime))}
+     </select></label>
+     <label className="ef-field-wide">Documento o instrucción respaldatoria<input required minLength={8}
+      value={shift.evidenceRef} onChange={event=>setShift({...shift,evidenceRef:event.target.value})}/></label>
+    </div>
+    <button disabled={loading||!shift.shiftId}>Guardar turno versionado</button>
+   </form>
+  </details>
+
+  <details className="form-panel">
    <summary><strong>1C–1D. Condiciones, sueldo y jornada pactada</strong></summary>
    <p>Registrar sólo condiciones documentadas. Esto no genera ni firma un contrato y no autoriza horas extraordinarias.</p>
    <form onSubmit={e=>{e.preventDefault();execute('/employments/'+relationId+'/conditions',{
@@ -293,6 +316,7 @@ export default function LaborStructure({onGoEmployeeFile,onGoCompanies}){
     ['Relaciones',worker.relations,x=>x.companyName+' · '+x.startedOn+' → '+displayDate(x.endedOn)+' · '+x.status],
     ['Local / cargo',worker.assignments,x=>x.validFrom+' → '+displayDate(x.validUntil)+' · '+(x.branchName||'Sin local')+' · '+(x.positionName||'Sin cargo')],
     ['Condiciones',worker.terms,x=>x.effectiveFrom+' → '+displayDate(x.effectiveUntil)+' · '+x.monthlyBaseSalaryClp+' CLP · '+x.weeklyHours+' h/sem'],
+    ['Turnos versionados',worker.shifts,x=>x.validFrom+' → '+displayDate(x.validUntil)+' · '+x.shiftName],
     ['Previsión',worker.prevision,x=>x.validFrom+' → '+displayDate(x.validUntil)+' · '+(x.afpName||'Sin AFP')+' / '+(x.healthName||'Sin salud')],
     ['PDF vinculados',worker.documents,x=>x.filename+' · '+x.kind+' · SHA256 '+x.sha256.slice(0,12)+'…'],
     ['Eventos inmutables',worker.events,x=>x.effectiveOn+' · '+x.kind+' · '+x.evidenceRef]
