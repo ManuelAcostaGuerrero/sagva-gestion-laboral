@@ -44,6 +44,7 @@ export async function migrateLaborStructure(db){
       employment_id INTEGER NOT NULL REFERENCES employment_relationships(id) ON DELETE RESTRICT,
       contract_file_id INTEGER NOT NULL REFERENCES employee_contract_files(id) ON DELETE RESTRICT,
       document_kind TEXT NOT NULL CHECK(document_kind IN ('CONTRACT','ANNEX','OTHER')),
+      document_date TEXT NOT NULL CHECK(length(document_date)=10),
       evidence_ref TEXT NOT NULL CHECK(trim(evidence_ref)<>''),
       linked_by INTEGER NOT NULL REFERENCES admins(id) ON DELETE RESTRICT,
       linked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
