@@ -30,9 +30,10 @@ try{
   await expect(page.getByText('Modelo laboral por vigencias')).toBeVisible();
  });
  const mod=page.getByRole('region',{name:'Ciclo laboral versionado'});
- const local=mod.locator('details').filter({has:page.locator('summary').filter({hasText:'1A. Locales'})});
+ await expect(mod.getByLabel('Persona con identidad única')).toBeVisible();
+ const local=mod.locator('details').filter({hasText:'1A. Locales'}).first();
  await check('1A registrar local desde UI, persistir y refrescar catálogo',async()=>{
-  await local.locator('form').first().getByLabel('Empresa',{exact:true}).selectOption(String(ctx.otherCompany));
+  await local.locator('form').first().locator('select').first().selectOption(String(ctx.otherCompany));
   await local.getByLabel('Código de local',{exact:true}).fill('UITEST-'+suffix);
   await local.getByLabel('Nombre del local',{exact:true}).fill('LOCAL FICTICIO UI');
   await local.getByLabel('Dirección',{exact:true}).first().fill('DIRECCION UI FICTICIA');
@@ -43,7 +44,7 @@ try{
  });
  await check('1B seleccionar persona existente y contratar sin duplicarla',async()=>{
   await mod.getByLabel('Persona con identidad única').selectOption(String(ctx.otherWorker));
-  const hiring=mod.locator('details').filter({has:page.locator('summary').filter({hasText:'1B. Contratación'})});
+  const hiring=mod.locator('details').filter({hasText:'1B. Contratación'}).first();
   await hiring.getByLabel('Empresa',{exact:true}).selectOption(String(ctx.otherCompany));
   await hiring.getByLabel('Fecha de ingreso').fill('2026-01-01');
   await hiring.getByLabel('Documento o evidencia de contratación').fill('CONTRATO SINTETICO '+suffix);
@@ -53,7 +54,7 @@ try{
   await expect(hiring.locator('p').filter({hasText:'Estado:'})).toContainText('ACTIVE');
  });
  await check('1C asignación de cargo/local y sueldo desde UI',async()=>{
-  const a=mod.locator('details').filter({has:page.locator('summary').filter({hasText:'1C. Movimientos'})});
+  const a=mod.locator('details').filter({hasText:'1C. Movimientos'}).first();
   await a.locator('summary').click();
   await a.getByLabel('Desde',{exact:true}).fill('2026-01-01');
   await a.getByLabel('Local de la empresa').selectOption({label:'LOCAL FICTICIO UI'});
@@ -68,7 +69,7 @@ try{
   let saved=page.waitForResponse(r=>r.url().includes('/assignments')&&r.request().method()==='POST');
   await a.getByRole('button',{name:'Guardar nueva vigencia del cargo/local'}).click();
   assert.equal((await saved).status(),201);
-  const c=mod.locator('details').filter({has:page.locator('summary').filter({hasText:'1C–1D. Condiciones'})});
+  const c=mod.locator('details').filter({hasText:'1C–1D. Condiciones'}).first();
   await c.locator('summary').click();
   await c.getByLabel('Desde',{exact:true}).fill('2026-01-01');
   await c.getByLabel('Sueldo base (CLP)').fill('550000');
@@ -81,7 +82,7 @@ try{
   assert.equal((await saved).status(),201);
  });
  await check('1E consulta histórica a fecha desde UI',async()=>{
-  const history=mod.locator('details').filter({has:page.locator('summary').filter({hasText:'1E. Historial'})});
+  const history=mod.locator('details').filter({hasText:'1E. Historial'}).first();
   await history.getByLabel('Fecha de consulta').fill('2026-06-01');
   await history.getByRole('button',{name:'Consultar datos vigentes'}).click();
   await expect(history.getByText(/550000 CLP/).first()).toBeVisible();
@@ -99,6 +100,7 @@ try{
   await mobile.close();
  });
 } catch(e){
+ if(page)console.error('LABOR UI VISIBLE: '+(await page.locator('body').innerText().catch(()=>'' )).slice(0,2800));
  if(page)await page.screenshot({path:'.local/beta-labor-ui-error.png',fullPage:true}).catch(()=>{});
  process.exitCode=1;
 } finally {
