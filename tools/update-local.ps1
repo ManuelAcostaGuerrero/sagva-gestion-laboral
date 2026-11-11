@@ -1,4 +1,10 @@
 # Operacion manual local. Nunca importar fuentes ni abrir un navegador aqui.
+function GetLocalSha256([string]$Path) {
+  $stream = [IO.File]::OpenRead($Path)
+  $algorithm = [Security.Cryptography.SHA256]::Create()
+  try { return ([BitConverter]::ToString($algorithm.ComputeHash($stream))).Replace('-','') }
+  finally { $algorithm.Dispose(); $stream.Dispose() }
+}
 function GitText([string[]]$Arguments) {
   $value = @(& git.exe @Arguments)
   if ($LASTEXITCODE -ne 0) { throw "Git no pudo completar: $($Arguments[0])" }
@@ -43,7 +49,7 @@ function TestInstalledBuild([string]$Sha) {
     foreach ($entry in $stamp.Files) {
       $path = [IO.Path]::GetFullPath((Join-Path $dist $entry.Path))
       if (!$path.StartsWith($dist+'\',[StringComparison]::OrdinalIgnoreCase) -or !(Test-Path -LiteralPath $path -PathType Leaf)) { return $false }
-      if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $entry.Hash) { return $false }
+      if ((GetLocalSha256 $path) -ne $entry.Hash) { return $false }
     }
     return $true
   } catch { return $false }
@@ -53,7 +59,7 @@ function SaveInstalledBuild([string]$Sha) {
   $version = Get-Content -LiteralPath (Join-Path $dist 'local-version.json') -Raw | ConvertFrom-Json
   if ($version.commit -ne $Sha) { throw 'La compilacion no corresponde al SHA preparado.' }
   $files = @(Get-ChildItem -LiteralPath $dist -File -Recurse | ForEach-Object {
-    @{Path=$_.FullName.Substring($dist.Length+1);Hash=(Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash}
+    @{Path=$_.FullName.Substring($dist.Length+1);Hash=(GetLocalSha256 $_.FullName)}
   })
   @{Commit=$Sha;Files=$files} | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $local 'installed-build.json') -Encoding UTF8
 }
@@ -73,6 +79,7 @@ function PrepareUpdate([string]$Sha) {
     Run 'powershell.exe' @('-NoProfile','-ExecutionPolicy','Bypass','-File','tools/test-control-local.ps1') | Out-Host
     Run 'powershell.exe' @('-NoProfile','-ExecutionPolicy','Bypass','-File','tools/test-update-local.ps1') | Out-Host
     Run 'powershell.exe' @('-NoProfile','-ExecutionPolicy','Bypass','-File','tools/test-update-git.ps1') | Out-Host
+    Run 'powershell.exe' @('-NoProfile','-ExecutionPolicy','Bypass','-File','tools/test-update-hash.ps1') | Out-Host
     if ((GitText @('status','--porcelain'))) { throw 'La preparacion modifico archivos versionados.' }
     $version = Get-Content -LiteralPath 'client\dist\local-version.json' -Raw | ConvertFrom-Json
     if ($version.commit -ne $Sha) { throw 'Candidato compilado con otro SHA.' }
