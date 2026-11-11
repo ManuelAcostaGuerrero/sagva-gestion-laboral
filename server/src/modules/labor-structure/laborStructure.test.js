@@ -49,6 +49,8 @@ test('1A-1E: ciclo contractual completo versionado, aislado por Root, transaccio
   let branchId=a.data.result.id;
   const branchEdit=await call('/branches/'+branchId,'PUT',{name:'LOCAL UNO ACTUALIZADO',address:'OTRA DIRECCION',active:true,revision:1});
   assert.equal(branchEdit.status,200,JSON.stringify(branchEdit.data));
+  assert.equal((await call('/branches','POST',{companyId:company.insertId,code:'LOCAL-1',
+   name:'DUPLICADO',address:''})).status,409,'Código de local duplicado');
   assert.equal((await call('/branches/'+branchId,'PUT',{name:'OTRO',address:'',active:true,revision:1})).status,409);
   const noDate=await call('/employments','POST',
    {employeeId:worker.insertId,companyId:company.insertId,startedOn:'2026-02-30',evidenceRef:'CONTRATO FICTICIO'});
@@ -88,13 +90,20 @@ test('1A-1E: ciclo contractual completo versionado, aislado por Root, transaccio
   await assert.rejects(pool.execute('UPDATE employment_shift_versions SET shift_id=99 WHERE id=?',
    [shift1.data.result.id]));
   const conditions={effectiveFrom:'2026-01-01',monthlyBaseSalaryClp:500000,weeklyHours:42,
-   breakMinutes:60,contractType:'INDEFINIDO',description:'CONDICIONES FICTICIAS',
+   breakMinutes:60,contractType:'INDEFINIDO',regime:'GENERAL',description:'CONDICIONES FICTICIAS',
    evidenceRef:'CONTRATO PRUEBA 001 DOCUMENTADO'};
   const salary1=await call('/employments/'+id+'/conditions','POST',conditions);
   assert.equal(salary1.status,201,JSON.stringify(salary1.data));
+  assert.equal(salary1.data.result.normativeAssessment.status,'WITHIN_GENERAL_LIMIT');
   const salary2=await call('/employments/'+id+'/conditions','POST',
    {...conditions,effectiveFrom:'2026-08-01',monthlyBaseSalaryClp:600000,evidenceRef:'ANEXO PRUEBA 002 DOCUMENTADO'});
   assert.equal(salary2.status,201,JSON.stringify(salary2.data));
+  const exceeds=await call('/employments/'+id+'/conditions','POST',
+   {...conditions,effectiveFrom:'2026-09-01',monthlyBaseSalaryClp:650000,
+    weeklyHours:45,evidenceRef:'ANEXO PRUEBA EXCESO ORIENTATIVO'});
+  assert.equal(exceeds.status,201,JSON.stringify(exceeds.data));
+  assert.equal(exceeds.data.result.normativeAssessment.status,'EXCEEDS_GENERAL_LIMIT');
+  assert.match(exceeds.data.result.normativeAssessment.warning,/supera/);
   const [original]=await pool.execute('SELECT monthly_base_salary_clp AS salary,effective_until AS ended FROM employment_terms_versions WHERE id=?',[salary1.data.result.id]);
   assert.equal(original[0].salary,500000);assert.equal(original[0].ended,'2026-08-01');
   await assert.rejects(pool.execute('UPDATE employment_terms_versions SET monthly_base_salary_clp=1 WHERE id=?',[salary1.data.result.id]));
@@ -128,11 +137,11 @@ test('1A-1E: ciclo contractual completo versionado, aislado por Root, transaccio
   assert.equal(jan.status,200);
   assert.equal(jan.data.relationships[0].monthlyBaseSalaryClp,500000);
   assert.equal(jan.data.shifts[0].shiftId,shifts[0].id);
-  assert.equal(oct.data.relationships[0].monthlyBaseSalaryClp,600000);
+  assert.equal(oct.data.relationships[0].monthlyBaseSalaryClp,650000);
   assert.equal(oct.data.prevision.planUnit,'UF');
   const workerHistory=await call('/workers/'+worker.insertId);
   assert.equal(workerHistory.data.assignments.length,2);
-  assert.equal(workerHistory.data.terms.length,2);
+  assert.equal(workerHistory.data.terms.length,3);
   assert.equal(workerHistory.data.prevision.length,2);
   assert.equal(workerHistory.data.documents.length,1);
 
