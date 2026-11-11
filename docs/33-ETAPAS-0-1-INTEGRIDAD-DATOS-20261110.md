@@ -38,7 +38,7 @@
 ## Etapa 1: correcciones de código propuestas en la rama
 
 ### P1-A — Identidad y ficha
-- `employeeFiles.js`: no permitir reactivar por escritura directa de `employmentStatus='ACTIVO'` cuando `employees.is_active=0`, aunque la ficha ya tenga estado histórico incoherente.
+- Se mantiene el bloqueo existente de reactivación mediante ficha cuando un trabajador inactivo se intenta cambiar de `INACTIVO/FINIQUITADO` a `ACTIVO`. Una inconsistencia heredada (`is_active=0` y ficha `ACTIVO`) se detecta con P0; editar otro dato no fuerza su corrección automática.
 - No borrar ni normalizar todavía `legal_full_name`, `full_name`, los componentes de nombre o `extra_json`.
 - Se conserva el comportamiento preexistente de RUT normalizado, ficha provisional, guardado por revisión y advertencias.
 
