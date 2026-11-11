@@ -25,7 +25,7 @@ test('P1: al configurar Root, los PDF contractuales requieren permiso individual
  async function http(path,role='operator',expected=200,method='GET',data){
   const res=await fetch(base+path,{method,headers:{Authorization:'Bearer '+tokens[role],...(data?{'Content-Type':'application/json'}:{})},
    body:data?JSON.stringify(data):undefined});
-  assert.equal(res.status,expected,path+' '+res.status+' '+(res.status!==200?await res.text():''));
+  if(res.status!==expected)assert.fail(path+' esperado '+expected+', recibido '+res.status+': '+await res.text());
   if(res.headers.get('content-type')?.includes('application/json'))return res.json();
   return res;
  }
