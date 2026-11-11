@@ -35,7 +35,7 @@ const prevision=z.object({validFrom:isoDate,afpEntityId:nullableId,healthEntityI
   planAmountHundredths:z.number().int().nonnegative().nullable(),planUnit:z.enum(['CLP','UF']).nullable(),
   evidenceRef:evidence}).strict().refine(x=>(x.planAmountHundredths===null)===(x.planUnit===null),
   'El valor del plan y su unidad deben estar ambos presentes o ausentes.');
-const document=z.object({fileId:id,kind:z.enum(['CONTRACT','ANNEX','OTHER']),evidenceRef:evidence}).strict();
+const document=z.object({fileId:id,kind:z.enum(['CONTRACT','ANNEX','OTHER']),documentDate:isoDate,evidenceRef:evidence}).strict();
 
 export const laborStructureRouter=Router();
 laborStructureRouter.use(requireAdmin);
