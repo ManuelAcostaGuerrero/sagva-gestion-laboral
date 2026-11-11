@@ -69,14 +69,14 @@ Los artículos citados definen el trabajo a revisar; la conformidad formal depen
 
 1. Verificar ruta, rama, aplicación real y respaldo offline consistente de SQLite, WAL, PDF, auditorías, Root y configuración, sin publicar secretos.
 2. Ensayar restauración y comprobar `integrity_check`, `foreign_key_check`, documentos, conteos, hashes de respaldos y muestras históricas.
-3. Crear **nueva base de pruebas aislada**, nunca sobrescribir `data/asistencia.db` productiva. Datos sintéticos inicialmente; personas reales sólo mediante carga manual controlada del propietario si lo autoriza.
+3. Crear **nueva base de pruebas aislada**, nunca sobrescribir `data/asistencia.db` productiva. El comando `node tools/crear-base-ensayo-dt.mjs` genera una carpeta única bajo `.local/dt-ensayo-*/asistencia-ensayo.db` sin tocar `server/.env`, usuarios Root ni datos reales; su prueba verifica tablas vacías, reglas de jornada, FK e integridad. Datos sintéticos inicialmente; personas reales sólo mediante carga manual controlada del propietario si lo autoriza.
 4. Conciliar identificadores antiguos y nuevas relaciones por evidencia: conservar el registro original y las decisiones humanas, sin inventar fechas o causas de término.
 5. Ensayar creación de perfiles, contratos, jornadas y empresas desde cero, con revisión negativa para duplicados, jurisdicciones múltiples y recontrataciones.
 6. La transición productiva requiere ventana aprobada, plan de reversión, documentación de respaldo y conservación histórica; no permitir que una base nueva esconda registros de asistencia anteriores.
 
 ## Fase D — pruebas exigidas
 
-**Automatizadas:** migraciones P2/P3 y reglas DT idempotentes; relaciones vigentes, fechas límite, valores legales, FK, solapamientos, seguridad de rutas y no pérdida de históricos. **Pendientes:** pruebas presenciales Windows/Android, horarios nocturnos y cambios de hora de Chile, cortes de red/reintentos, manipulación de marcaciones, correo trabajador/48 h, reportes DT, alta disponibilidad y performance.
+**Automatizadas:** migraciones P2/P3 y reglas DT idempotentes; relaciones vigentes, fechas límite, valores legales, FK, solapamientos, seguridad de rutas, prueba de integridad SHA-256, rechazo de cambios directos en marcas nuevas, creación de SQLite limpia en ruta aislada y no pérdida de históricos. **Pendientes:** pruebas presenciales Windows/Android, horarios nocturnos y cambios de hora de Chile, cortes de red/reintentos, manipulación de marcaciones, correo trabajador/48 h, reportes DT, alta disponibilidad y performance.
 
 La simulación fiscalizadora debe tener cuentas ficticias de prueba y datos sintéticos; nunca hacerse pasar por personal real de la DT ni inventar un sello de aprobación. Un reporte sin algún requisito bloqueante verificado se marca `NO APTO PARA CERTIFICACIÓN`.
 
