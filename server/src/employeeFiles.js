@@ -221,7 +221,7 @@ export async function saveEmployeeFile(id, data, admin) {
     if (contractChanged) validateContract({...data, birthDate:undefined,
       terminationDate:data.contractType === 'INDEFINIDO' && !changed('terminationDate') ? undefined : data.terminationDate,
       annexes:data.contractType === 'INDEFINIDO' && sameAnnexes ? [] : data.annexes});
-    if (before?.isActive === 0 && data.employmentStatus === 'ACTIVO')
+    if (before?.isActive === 0 && data.employmentStatus === 'ACTIVO' && before.employmentStatus !== 'ACTIVO')
       throw problem('Este trabajador está inactivo. Su reactivación se gestiona en Usuarios.',400);
     data.fullName = normalizeLabel(empty(data.fullName) || empty(data.legalFullName));
     if (data.email) data.email=data.email.trim().toUpperCase();
