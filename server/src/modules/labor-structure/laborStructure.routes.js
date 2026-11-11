@@ -66,10 +66,19 @@ laborStructureRouter.get('/workers/:workerId/as-of',asyncHandler(async(req,res)=
  if(!validContractDate(req.query.on))throw fail('Fecha de consulta inválida.');
  const worker=await laborWorker(pool,workerId);
  if(!worker)throw fail('Trabajador no encontrado.',404);
- const [relationships,prevision]=await Promise.all([
-  employmentContextAsOf(pool,workerId,req.query.on),previsionAsOf(pool,workerId,req.query.on)
+ const [relationships,prevision,shifts]=await Promise.all([
+  employmentContextAsOf(pool,workerId,req.query.on),
+  previsionAsOf(pool,workerId,req.query.on),
+  pool.execute(`SELECT v.employment_id AS employmentId,v.shift_id AS shiftId,
+      s.name AS shiftName,v.valid_from AS validFrom
+    FROM employment_shift_versions v JOIN employment_relationships r ON r.id=v.employment_id
+    JOIN work_shifts s ON s.id=v.shift_id
+    WHERE r.employee_id=? AND r.review_status='CONFIRMED'
+      AND r.started_on<=? AND (r.ended_on IS NULL OR r.ended_on>=?)
+      AND v.valid_from<=? AND (v.valid_until IS NULL OR v.valid_until>?)
+    ORDER BY v.employment_id`,[workerId,req.query.on,req.query.on,req.query.on,req.query.on]).then(result=>result[0])
  ]);
- res.json({worker:worker.worker,asOf:req.query.on,relationships,prevision});
+ res.json({worker:worker.worker,asOf:req.query.on,relationships,prevision,shifts});
 }));
 laborStructureRouter.post('/branches',mutate(createBranch,branchNew));
 laborStructureRouter.put('/branches/:id',asyncHandler(async(req,res)=>{
