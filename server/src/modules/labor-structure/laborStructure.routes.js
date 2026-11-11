@@ -27,7 +27,8 @@ const assignment=z.object({validFrom:isoDate,branchId:nullableId,areaId:nullable
   evidenceRef:evidence}).strict();
 const conditions=z.object({effectiveFrom:isoDate,monthlyBaseSalaryClp:z.number().int().nonnegative(),
  weeklyHours:z.number().min(0).max(48),breakMinutes:z.number().int().min(0).max(240),
- contractType:z.enum(['INDEFINIDO','PLAZO_FIJO','OTRO']),description:z.string().trim().max(500).default(''),
+ contractType:z.enum(['INDEFINIDO','PLAZO_FIJO','OTRO']),regime:z.enum(['GENERAL','SPECIAL','EXEMPT']),
+ description:z.string().trim().max(500).default(''),
  evidenceRef:evidence}).strict();
 const shift=z.object({validFrom:isoDate,shiftId:id,evidenceRef:evidence}).strict();
 const prevision=z.object({validFrom:isoDate,afpEntityId:nullableId,healthEntityId:nullableId,
@@ -119,7 +120,7 @@ laborStructureRouter.post('/employments/:id/documents',asyncHandler(async(req,re
 }));
 // No devolver SQL interno a la UI. Los conflictos son del usuario, no fallos fatales.
 laborStructureRouter.use((err,_req,res,next)=>{
- if(err?.errcode===1811||String(err?.code||'').startsWith('SQLITE_CONSTRAINT'))
+ if([19,1555,1811,2067,787,275].includes(Number(err?.errcode))||String(err?.code||'').startsWith('SQLITE_CONSTRAINT'))
   return res.status(409).json({message:'Conflicto de datos o vigencias. Revisa el historial y vuelve a intentarlo.'});
  next(err);
 });
