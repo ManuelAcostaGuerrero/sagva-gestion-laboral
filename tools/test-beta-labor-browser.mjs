@@ -9,7 +9,7 @@ const config=JSON.parse(fs.readFileSync('.local/beta-dt.json','utf8'));
 const ctx=JSON.parse(fs.readFileSync('.local/beta-context.json','utf8'));
 assert.equal(config.purpose,'DT_TEST_ONLY');
 assert.equal(config.webPort,5195);
-const browser=await chromium.launch({headless:true});
+const browser=await chromium.launch({headless:true,...(process.env.SAGVA_BROWSER_CHANNEL?{channel:process.env.SAGVA_BROWSER_CHANNEL}:{})});
 const reports=[];
 const suffix=crypto.randomBytes(3).toString('hex').toUpperCase();
 async function check(label,fn){
