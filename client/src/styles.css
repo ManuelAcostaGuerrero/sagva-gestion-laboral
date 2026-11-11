@@ -1932,3 +1932,16 @@ button.enrolled {
   color: #60706d;
   flex-basis: 100%;
 }
+
+
+/* Ancho fluido: evita grandes márgenes vacíos en monitores panorámicos. */
+@media (min-width: 1000px){
+ .app-shell { max-width: 2200px; padding:clamp(12px,1.3vw,23px); }
+ .app-shell-admin .admin-shell {max-width:none;width:100%;}
+ .app-shell-admin .admin-main {flex:1 1 0;min-width:0;width:100%;}
+ .app-shell-admin button {min-height:34px;padding:5px 10px;gap:5px;}
+ .app-shell-admin input:not([type="checkbox"]):not([type="radio"]),.app-shell-admin select{min-height:34px;}
+}
+@media (min-width: 1600px){
+ .app-shell{max-width: min(98.5vw,2400px);}
+}
