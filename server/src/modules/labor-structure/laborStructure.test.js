@@ -66,10 +66,13 @@ test('1A-1E: ciclo contractual completo versionado, aislado por Root, transaccio
   const again=await call('/employments','POST',
    {employeeId:worker.insertId,companyId:company.insertId,startedOn:'2026-04-01',evidenceRef:'CONTRATO FICTICIO 002'});
   assert.equal(again.status,409);
+  const [oneEmployment]=await pool.execute('SELECT COUNT(*) AS n FROM employment_relationships WHERE employee_id=?',[worker.insertId]);
+  assert.equal(oneEmployment[0].n,1,'Una contratación fallida debe revertirse totalmente');
 
   const assignment={validFrom:'2026-01-01',branchId:b.data.result.id,areaId:area.insertId,
    positionId:position.insertId,evidenceRef:'DOCUMENTO ASIGNACION FICTICIO'};
   assert.equal((await call('/employments/'+id+'/assignments','POST',assignment)).status,403);
+  assert.equal((await pool.execute('SELECT COUNT(*) AS n FROM employment_assignments WHERE employment_id=?',[id]))[0][0].n,0,'No registrar asignación de empresa ajena');
   const assigned=await call('/employments/'+id+'/assignments','POST',{...assignment,branchId});
   assert.equal(assigned.status,201,JSON.stringify(assigned.data));
   const moved=await call('/employments/'+id+'/assignments','POST',
