@@ -6,6 +6,7 @@ import {pool} from '../db.js';
 import {asyncHandler} from '../asyncHandler.js';
 import {recordAudit} from '../auditLog.js';
 import {blankContractTerms} from '../contractTerms.js';
+import {assessWeeklyOrdinaryHours} from '../dtJornadaNormativa.js';
 
 export const contractTermsRouter=Router();
 contractTermsRouter.use(requireAdmin);
@@ -31,6 +32,18 @@ async function hasContractAccess(req,id,write=false){
  if(!files.length)throw fail('Trabajador no encontrado.',404);
  return permitted(req.admin,write?'personal.contract.write':'personal.contract.read',files[0]);
 }
+// Consulta informativa, sin guardar ni impedir marcaciones o contratos.
+// No da autorización a una jornada especial: exige revisión normativa individual.
+contractTermsRouter.get('/jornada/assessment',asyncHandler(async(req,res)=>{
+ const on=String(req.query.on||'');
+ const regime=String(req.query.regime||'GENERAL');
+ const weeklyHours=Number(req.query.weeklyHours);
+ if(!['GENERAL','SPECIAL','EXEMPT'].includes(regime)||
+    !('weeklyHours' in req.query)||!('on' in req.query))
+  throw fail('Indica fecha, jornada semanal y régimen explícito.');
+ const assessment=await assessWeeklyOrdinaryHours(pool,{on,weeklyHours,regime});
+ res.set('Cache-Control','private, no-store').json(assessment);
+}));
 contractTermsRouter.get('/workers/:employeeId',asyncHandler(async(req,res)=>{
  const id=idOf(req.params.employeeId);if(!id)throw fail('Trabajador inválido.');
  if(!(await hasContractAccess(req,id)))throw fail('No puedes consultar las condiciones contractuales.',403);
