@@ -9,7 +9,9 @@ export async function laborCatalog(db) {
  const [areas]=await db.execute(`SELECT id,name,is_active AS isActive FROM work_areas ORDER BY name`);
  const [positions]=await db.execute(`SELECT id,name,is_active AS isActive FROM work_positions ORDER BY name`);
  const [entities]=await db.execute(`SELECT id,kind,name,active FROM labor_entities WHERE active=1 ORDER BY kind,name`);
- return {companies,branches,workers,areas,positions,entities};
+ const [shifts]=await db.execute(`SELECT id,name,start_time AS startTime,end_time AS endTime,break_minutes AS breakMinutes
+  FROM work_shifts WHERE is_active=1 ORDER BY name`);
+ return {companies,branches,workers,areas,positions,entities,shifts};
 }
 
 export async function laborWorker(db,employeeId){
@@ -35,6 +37,12 @@ export async function laborWorker(db,employeeId){
  t.source_document_ref AS sourceDocumentRef,t.terms_snapshot_json AS termsSnapshotJson
  FROM employment_terms_versions t JOIN employment_relationships r ON r.id=t.employment_id
  WHERE r.employee_id=? ORDER BY t.effective_from DESC,t.id DESC`,[employeeId]);
+ const [shifts]=await db.execute(`SELECT v.id,v.employment_id AS employmentId,v.shift_id AS shiftId,
+ s.name AS shiftName,v.valid_from AS validFrom,v.valid_until AS validUntil,
+ v.evidence_ref AS evidenceRef
+ FROM employment_shift_versions v JOIN employment_relationships r ON r.id=v.employment_id
+ JOIN work_shifts s ON s.id=v.shift_id
+ WHERE r.employee_id=? ORDER BY v.valid_from DESC,v.id DESC`,[employeeId]);
  const [prevision]=await db.execute(`SELECT p.id,p.valid_from AS validFrom,p.valid_until AS validUntil,
  p.afp_entity_id AS afpEntityId,afp.name AS afpName,p.health_entity_id AS healthEntityId,
  health.name AS healthName,p.plan_amount_hundredths AS planAmountHundredths,
@@ -56,5 +64,5 @@ export async function laborWorker(db,employeeId){
  ev.created_by AS createdBy
  FROM labor_lifecycle_events ev JOIN employment_relationships r ON r.id=ev.employment_id
  WHERE r.employee_id=? ORDER BY ev.id DESC`,[employeeId]);
- return {worker:workers[0],relations,assignments,terms,prevision,documents,availableDocuments,events};
+ return {worker:workers[0],relations,assignments,terms,shifts,prevision,documents,availableDocuments,events};
 }
