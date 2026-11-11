@@ -11,6 +11,7 @@ assert.equal(config.purpose,'DT_TEST_ONLY');
 assert.equal(config.webPort,5195);
 const browser=await chromium.launch({headless:true,...(process.env.SAGVA_BROWSER_CHANNEL?{channel:process.env.SAGVA_BROWSER_CHANNEL}:{})});
 const reports=[];
+const field=(scope,caption,element='input')=>scope.locator('label').filter({hasText:caption}).locator(element).first();
 const suffix=crypto.randomBytes(3).toString('hex').toUpperCase();
 async function check(label,fn){
  try{await fn();reports.push({label,status:'PASS'});console.log('PASS',label);}
@@ -45,9 +46,9 @@ try{
  await check('1B seleccionar persona existente y contratar sin duplicarla',async()=>{
   await mod.getByLabel('Persona con identidad única').selectOption(String(ctx.otherWorker));
   const hiring=mod.locator('details').filter({hasText:'1B. Contratación'}).first();
-  await hiring.getByLabel('Empresa',{exact:true}).selectOption(String(ctx.otherCompany));
-  await hiring.getByLabel('Fecha de ingreso').fill('2026-01-01');
-  await hiring.getByLabel('Documento o evidencia de contratación').fill('CONTRATO SINTETICO '+suffix);
+  await field(hiring,'Empresa','select').selectOption(String(ctx.otherCompany));
+  await field(hiring,'Fecha de ingreso').fill('2026-01-01');
+  await field(hiring,'Documento o evidencia de contratación').fill('CONTRATO SINTETICO '+suffix);
   const saved=page.waitForResponse(r=>r.url().endsWith('/api/labor-structure/employments')&&r.request().method()==='POST');
   await hiring.getByRole('button',{name:'Registrar relación confirmada'}).click();
   assert.equal((await saved).status(),201);
@@ -56,34 +57,34 @@ try{
  await check('1C asignación de cargo/local y sueldo desde UI',async()=>{
   const a=mod.locator('details').filter({hasText:'1C. Movimientos'}).first();
   await a.locator('summary').click();
-  await a.getByLabel('Desde',{exact:true}).fill('2026-01-01');
-  await a.getByLabel('Local de la empresa').selectOption({label:'LOCAL FICTICIO UI'});
-  await a.getByLabel('Área',{exact:true}).selectOption(String(ctx.area));
+  await field(a,'Desde').fill('2026-01-01');
+  await field(a,'Local de la empresa','select').selectOption({label:'LOCAL FICTICIO UI'});
+  await field(a,'Área','select').selectOption(String(ctx.area));
   const catalog=await page.request.get('http://127.0.0.1:5195/api/labor-structure/catalog',
    {headers:{Authorization:'Bearer '+ctx.token}});
   assert.equal(catalog.status(),200);
   const position=(await catalog.json()).positions.find(p=>p.name===ctx.position);
   assert.ok(position);
-  await a.getByLabel('Cargo',{exact:true}).selectOption(String(position.id));
-  await a.getByLabel('Referencia del traslado o asignación').fill('ASIGNACION UI SINTETICA '+suffix);
+  await field(a,'Cargo','select').selectOption(String(position.id));
+  await field(a,'Referencia del traslado o asignación').fill('ASIGNACION UI SINTETICA '+suffix);
   let saved=page.waitForResponse(r=>r.url().includes('/assignments')&&r.request().method()==='POST');
   await a.getByRole('button',{name:'Guardar nueva vigencia del cargo/local'}).click();
   assert.equal((await saved).status(),201);
   const c=mod.locator('details').filter({hasText:'1C–1D. Condiciones'}).first();
   await c.locator('summary').click();
-  await c.getByLabel('Desde',{exact:true}).fill('2026-01-01');
-  await c.getByLabel('Sueldo base (CLP)').fill('550000');
-  await c.getByLabel('Horas semanales pactadas').fill('42');
-  await c.getByLabel('Colación (minutos)').fill('60');
-  await c.getByLabel('Régimen para evaluar la jornada').selectOption('GENERAL');
-  await c.getByLabel('Documento/anexo que respalda las condiciones').fill('CONTRATO UI SINTETICO '+suffix);
+  await field(c,'Desde').fill('2026-01-01');
+  await field(c,'Sueldo base (CLP)').fill('550000');
+  await field(c,'Horas semanales pactadas').fill('42');
+  await field(c,'Colación (minutos)').fill('60');
+  await field(c,'Régimen para evaluar la jornada','select').selectOption('GENERAL');
+  await field(c,'Documento/anexo que respalda las condiciones').fill('CONTRATO UI SINTETICO '+suffix);
   saved=page.waitForResponse(r=>r.url().includes('/conditions')&&r.request().method()==='POST');
   await c.getByRole('button',{name:'Registrar nueva versión contractual'}).click();
   assert.equal((await saved).status(),201);
  });
  await check('1E consulta histórica a fecha desde UI',async()=>{
   const history=mod.locator('details').filter({hasText:'1E. Historial'}).first();
-  await history.getByLabel('Fecha de consulta').fill('2026-06-01');
+  await field(history,'Fecha de consulta').fill('2026-06-01');
   await history.getByRole('button',{name:'Consultar datos vigentes'}).click();
   await expect(history.getByText(/550000 CLP/).first()).toBeVisible();
   await expect(history.getByText('Relaciones (1)')).toBeVisible();
