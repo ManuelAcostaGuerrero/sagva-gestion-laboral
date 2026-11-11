@@ -26,7 +26,7 @@ const definition=z.object({
 }).strict();
 const assignmentCreate=z.object({bonusId:z.number().int().positive(),amountOverrideClp:z.number().int().min(0).max(100000000).nullable(),validFrom:date}).strict();
 const assignmentUpdate=z.object({revision:z.number().int().positive(),active:z.boolean(),amountOverrideClp:z.number().int().min(0).max(100000000).nullable(),validFrom:date}).strict();
-const evaluation=z.object({period:z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),plannedUnits:z.number().int().min(1).max(366),correctUnits:z.number().int().nonnegative().max(366),evidence:z.string().trim().min(5).max(3000),revision:z.number().int().nonnegative()}).strict();
+const evaluation=z.object({period:z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),plannedUnits:z.number().int().min(1).max(366),correctUnits:z.number().int().nonnegative().max(366),evidence:z.string().trim().min(5).max(3000),revision:z.number().int().nonnegative()}).strict().refine(d=>d.correctUnits<=d.plannedUnits,{message:'Los cierres correctos no pueden exceder los previstos.'});
 function mayManage(admin){return permitted(admin,'labor.benefits.manage');}
 async function workerAccess(req,id,write=false){
  const [rows]=await pool.execute("SELECT f.company_id AS companyId,json_extract(f.extra_json,'$.branch') AS branch FROM employees e LEFT JOIN employee_files f ON f.employee_id=e.id WHERE e.id=?",[id]);
