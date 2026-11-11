@@ -90,8 +90,9 @@ export async function finish(db,admin,id,data){
  inEmploymentPeriod(relation,data.endedOn);
  const [future]=await db.execute(`SELECT 1 FROM employment_assignments
   WHERE employment_id=? AND valid_from>? UNION ALL
-  SELECT 1 FROM employment_terms_versions WHERE employment_id=? AND effective_from>? LIMIT 1`,
-  [id,data.endedOn,id,data.endedOn]);
+  SELECT 1 FROM employment_terms_versions WHERE employment_id=? AND effective_from>? UNION ALL
+  SELECT 1 FROM employment_shift_versions WHERE employment_id=? AND valid_from>? LIMIT 1`,
+  [id,data.endedOn,id,data.endedOn,id,data.endedOn]);
  if(future.length)throw fail('Existen cambios futuros posteriores al término. Revisar antes de finalizar.',409);
  const [marks]=await db.execute(`SELECT 1 FROM attendance_employment_links l
  JOIN attendance_records a ON a.id=l.record_id WHERE l.employment_id=? AND substr(a.registered_at,1,10)>? LIMIT 1`,[id,data.endedOn]);
@@ -156,6 +157,26 @@ export async function setConditions(db,admin,id,data){
  await event(db,admin,id,'CONDITIONS',data.effectiveFrom,data.evidenceRef,{termsId:created.insertId});
  await log(db,admin,'conditions','employment_terms',created.insertId,
   {employmentId:id,effectiveFrom:data.effectiveFrom,source:data.evidenceRef});
+ return {id:created.insertId};
+}
+export async function setShift(db,admin,id,data){
+ const relation=await employment(db,id);
+ if(relation.reviewStatus!=='CONFIRMED'||relation.status!=='ACTIVE')
+  throw fail('Turno requiere una relación laboral confirmada y activa.',409);
+ inEmploymentPeriod(relation,data.validFrom);
+ await getOne(db,'SELECT id FROM work_shifts WHERE id=? AND is_active=1',[data.shiftId],'Horario no disponible.');
+ const [current]=await db.execute(`SELECT id,valid_from AS validFrom FROM employment_shift_versions
+   WHERE employment_id=? AND valid_until IS NULL ORDER BY valid_from DESC,id DESC LIMIT 1`,[id]);
+ if(current.length){
+  if(data.validFrom<=current[0].validFrom)throw fail('La nueva vigencia debe comenzar después de la anterior.',409);
+  await db.execute('UPDATE employment_shift_versions SET valid_until=? WHERE id=?',[data.validFrom,current[0].id]);
+ }
+ const [created]=await db.execute(`INSERT INTO employment_shift_versions
+  (employment_id,shift_id,valid_from,evidence_ref,confirmed_by) VALUES(?,?,?,?,?)`,
+  [id,data.shiftId,data.validFrom,data.evidenceRef,admin.id]);
+ await event(db,admin,id,'SHIFT',data.validFrom,data.evidenceRef,{shiftId:data.shiftId,versionId:created.insertId});
+ await log(db,admin,'shift','employment_shift_version',created.insertId,
+  {employmentId:id,shiftId:data.shiftId,validFrom:data.validFrom});
  return {id:created.insertId};
 }
 export async function setPrevision(db,admin,employeeId,data){
