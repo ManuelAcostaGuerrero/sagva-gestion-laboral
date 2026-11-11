@@ -12,6 +12,7 @@ import { ATTENDANCE_TYPES, ensureAttendanceRecordTypes } from '../attendanceSche
 import bcrypt from 'bcryptjs';
 import { recordAudit } from '../auditLog.js';
 import { attachAttendanceDurations } from '../attendancePairing.js';
+import {createAttendanceProof} from '../attendanceProofs.js';
 
 export const attendanceRouter = Router();
 
@@ -248,36 +249,36 @@ attendanceRouter.post('/records/manual', requireAdmin, asyncHandler(async (req, 
     return res.status(404).json({ message: 'Empleado no encontrado' });
   }
 
-  const [result] = await pool.execute(
-    `INSERT INTO attendance_records (employee_id, record_type, registered_at, notes, correction_reason, created_by_admin_id,device_name,mark_method)
-     VALUES (:employeeId, :recordType, :registeredAt, :notes, :correctionReason, :createdByAdminId,'Administración','MANUAL')`,
-    {
-      employeeId: parsed.data.employeeId,
-      recordType: parsed.data.type,
-      registeredAt: parsed.data.registeredAt.replace('T', ' '),
-      notes: `Marca manual admin ${req.admin.username}`,
-      correctionReason: parsed.data.reason,
-      createdByAdminId: req.admin.id
-    }
-  );
-
+  // Los registros nuevos se sellan y auditan en una misma transacción.
+  // El flujo DT de oposición de 48 horas sigue pendiente y se marca como brecha.
+  const db=await pool.getConnection();
+  let id,integrityProof;
+  try{
+    await db.beginTransaction();
+    const [result]=await db.execute(
+      `INSERT INTO attendance_records
+       (employee_id,record_type,registered_at,notes,correction_reason,created_by_admin_id,device_name,mark_method)
+       VALUES(?,?,?,?,?,?,'Administración','MANUAL')`,
+      [parsed.data.employeeId,parsed.data.type,parsed.data.registeredAt.replace('T',' '),
+       `Marca manual admin ${req.admin.username}`,parsed.data.reason,req.admin.id]
+    );
+    id=result.insertId;
+    integrityProof=await createAttendanceProof(db,id);
+    await recordAudit(req.admin,'create_manual_record','attendance_record',id,{
+      employeeId:parsed.data.employeeId,type:parsed.data.type,
+      registeredAt:parsed.data.registeredAt,reason:parsed.data.reason
+    },db);
+    await db.commit();
+  }catch(e){await db.rollback();throw e;}finally{db.release();}
   await sendAttendanceNotification({
-    employee: employees[0],
-    record: {
-      id: result.insertId,
-      type: parsed.data.type,
-      registeredAt: parsed.data.registeredAt
-    },
-    source: 'manual'
+    employee:employees[0],
+    record:{id,type:parsed.data.type,registeredAt:parsed.data.registeredAt,integrityProof},
+    source:'manual'
   });
-  await recordAudit(req.admin, 'create_manual_record', 'attendance_record', result.insertId, {
-    employeeId: parsed.data.employeeId,
-    type: parsed.data.type,
-    registeredAt: parsed.data.registeredAt,
-    reason: parsed.data.reason
+  res.status(201).json({
+    id,message:'Marca manual creada; el procedimiento DT de rectificación sigue pendiente.',
+    integrityProof,integrityStatus:'VERIFIED'
   });
-
-  res.status(201).json({ id: result.insertId, message: 'Marca manual creada' });
 }));
 
 attendanceRouter.delete('/records/:id', requireAdmin, asyncHandler(async (req, res) => {
