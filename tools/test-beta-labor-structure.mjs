@@ -31,10 +31,15 @@ try{
    const r=await call('/labor-structure/catalog');
    assert.equal(r.status,200);
    work=r.data;
-   ids={worker:context.worker,company:context.company,otherCompany:context.otherCompany};
-   assert.ok(work.workers.some(x=>x.id===ids.worker));
+   ids={company:context.company,otherCompany:context.otherCompany};
+   assert.ok(work.workers.some(x=>x.id===context.worker));
    assert.ok(work.companies.some(x=>x.id===ids.company));
    assert.ok(work.shifts.some(x=>x.id===context.shift));
+   // Evita colisiones con pruebas P2/DT previas, que ya crean relaciones en context.worker.
+   const fresh=await call('/employee-files','POST',{firstName:'LABOR',firstLastName:'CICLO',
+    companyId:ids.company,employmentStatus:'ACTIVO'});
+   assert.equal(fresh.status,201,JSON.stringify(fresh.data));
+   ids.worker=fresh.data.file.id;
  });
  await check('1A sucursales por empresa, revisión optimista y duplicado bloqueado',async()=>{
   const suffix=crypto.randomBytes(3).toString('hex');
