@@ -31,6 +31,7 @@ import {migrateFamilyIncome} from './familyIncome.js';
 import {migrateJobDuties} from './jobDuties.js';
 
 import {migrateTerminalCompanies} from './terminalCompanies.js';
+import {migrateEmploymentHistory} from './employmentHistory.js';
 
 let pending;
 export function runMigrations() {
@@ -173,6 +174,8 @@ async function migrate() {
     await migrateBankAuthorizations(connection);
     await migrateFamilyIncome(connection);
     await migrateJobDuties(connection);
+    // Esquema P2 solamente: migración aditiva sin importar ni reinterpretar fichas.
+    await migrateEmploymentHistory(connection);
     const [violations] = await connection.execute("PRAGMA foreign_key_check");
     if (violations.length)
       throw new Error(
