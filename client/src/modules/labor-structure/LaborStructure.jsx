@@ -11,7 +11,7 @@ const emptyShift={validFrom:'',shiftId:'',evidenceRef:''};
 const emptyPrevision={validFrom:'',afpEntityId:'',healthEntityId:'',planAmountHundredths:'',
  planUnit:'',evidenceRef:''};
 const emptyFinish={endedOn:'',reason:'',evidenceRef:''};
-const emptyLink={fileId:'',kind:'CONTRACT',evidenceRef:''};
+const emptyLink={fileId:'',kind:'CONTRACT',documentDate:'',evidenceRef:''};
 const n=x=>x===''||x===null?null:Number(x);
 const choice=(id,text)=><option key={id} value={id}>{text}</option>;
 const displayDate=x=>x||'Vigente';
@@ -287,7 +287,7 @@ export default function LaborStructure({onGoEmployeeFile,onGoCompanies}){
    <summary><strong>1C. Asociar PDFs contractuales ya existentes</strong></summary>
    <p>Los PDFs se adjuntan primero en la Ficha del trabajador. Esta acción solamente vincula el archivo existente a la relación correcta.</p>
    <form onSubmit={e=>{e.preventDefault();execute('/employments/'+relationId+'/documents',{
-    fileId:Number(link.fileId),kind:link.kind,evidenceRef:link.evidenceRef},
+    fileId:Number(link.fileId),kind:link.kind,documentDate:link.documentDate,evidenceRef:link.evidenceRef},
     {clear:()=>setLink(emptyLink)});}}>
     <div className="ef-grid">
      <label>PDF existente<select required value={link.fileId}
@@ -298,6 +298,8 @@ export default function LaborStructure({onGoEmployeeFile,onGoCompanies}){
      <label>Tipo<select value={link.kind} onChange={e=>setLink({...link,kind:e.target.value})}>
       <option value="CONTRACT">Contrato</option><option value="ANNEX">Anexo</option>
       <option value="OTHER">Otro respaldo</option></select></label>
+     <label>Fecha del documento<input type="date" required value={link.documentDate}
+      onChange={e=>setLink({...link,documentDate:e.target.value})}/></label>
      <label className="ef-field-wide">Evidencia de asociación<input required minLength={8} value={link.evidenceRef}
       onChange={e=>setLink({...link,evidenceRef:e.target.value})}/></label>
     </div>
@@ -327,7 +329,7 @@ export default function LaborStructure({onGoEmployeeFile,onGoCompanies}){
     ['Condiciones',worker.terms,x=>x.effectiveFrom+' → '+displayDate(x.effectiveUntil)+' · '+x.monthlyBaseSalaryClp+' CLP · '+x.weeklyHours+' h/sem'],
     ['Turnos versionados',worker.shifts,x=>x.validFrom+' → '+displayDate(x.validUntil)+' · '+x.shiftName],
     ['Previsión',worker.prevision,x=>x.validFrom+' → '+displayDate(x.validUntil)+' · '+(x.afpName||'Sin AFP')+' / '+(x.healthName||'Sin salud')],
-    ['PDF vinculados',worker.documents,x=>x.filename+' · '+x.kind+' · SHA256 '+x.sha256.slice(0,12)+'…'],
+    ['PDF vinculados',worker.documents,x=>x.filename+' · '+x.kind+' · documento '+x.documentDate+' · SHA256 '+x.sha256.slice(0,12)+'…'],
     ['Eventos inmutables',worker.events,x=>x.effectiveOn+' · '+x.kind+' · '+x.evidenceRef]
    ].map(([heading,items,summary])=><div key={heading}><h4>{heading} ({items.length})</h4>
     {items.length?<ul>{items.map(x=><li key={x.id}>{summary(x)}</li>)}</ul>:<p>Sin antecedentes versionados todavía.</p>}
