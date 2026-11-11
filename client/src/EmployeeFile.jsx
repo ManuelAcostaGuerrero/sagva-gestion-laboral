@@ -13,6 +13,7 @@ import ContractTerms from "./ContractTerms.jsx";
 import ConfiguredFields from './ConfiguredFields.jsx';
 import EmployeeFamilyBenefits from './EmployeeFamilyBenefits.jsx';
 import EmployeeBankDetails from './EmployeeBankDetails.jsx';
+import EmployeeBonuses from './EmployeeBonuses.jsx';
 import {assembledWorkerName,normalizeLabel,workerNumberFromRut,completeFileMissing,SEX_OPTIONS,CIVIL_STATUS_OPTIONS,NATIONALITIES} from "../../server/src/workerFileStandards.js";
 import {checkRut,formatRut} from '../../server/src/rut.js';
 import {currentContractEnd, validContractDate} from '../../server/src/employeeContracts.js';
@@ -627,6 +628,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                   positionName={draft.positionName} positions={positions}
                   onDirtyChange={setContractDirty} /> : <p className="ef-note ef-field-wide">Guarda primero al trabajador para registrar condiciones contractuales.</p>)}
                 {["admin","supervisor"].includes(role)&&<ConfiguredFields ref={configuredContractRef} key={(draft.id||'new')+'-contract'} employeeId={draft.id} target="CONTRATO" onDirtyChange={setConfiguredContractDirty} onPendingChange={setMissingContractConfigured}/>}
+                 {draft.id && ['admin','supervisor'].includes(role) && <EmployeeBonuses key={draft.id} employeeId={draft.id}/>}
                 <div className="ef-field-wide"><strong>Estado laboral</strong></div>
                 <label>Estado laboral
                   <select aria-label="Estado laboral" value={draft.employmentStatus || ''} onChange={e => change('employmentStatus',e.target.value)}>
