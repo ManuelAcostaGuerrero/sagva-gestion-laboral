@@ -49,6 +49,7 @@ test('1A-1E: ciclo contractual completo versionado, aislado por Root, transaccio
   let branchId=a.data.result.id;
   const branchEdit=await call('/branches/'+branchId,'PUT',{name:'LOCAL UNO ACTUALIZADO',address:'OTRA DIRECCION',active:true,revision:1});
   assert.equal(branchEdit.status,200,JSON.stringify(branchEdit.data));
+  await assert.rejects(pool.execute('UPDATE company_branches SET company_id=? WHERE id=?',[otherCompany.insertId,branchId]));
   assert.equal((await call('/branches','POST',{companyId:company.insertId,code:'LOCAL-1',
    name:'DUPLICADO',address:''})).status,409,'Código de local duplicado');
   assert.equal((await call('/branches/'+branchId,'PUT',{name:'OTRO',address:'',active:true,revision:1})).status,409);
@@ -60,6 +61,8 @@ test('1A-1E: ciclo contractual completo versionado, aislado por Root, transaccio
    {employeeId:worker.insertId,companyId:company.insertId,startedOn:'2026-01-01',evidenceRef:'CONTRATO FICTICIO 001'});
   assert.equal(hired.status,201,JSON.stringify(hired.data));
   const id=hired.data.result.id;
+  await assert.rejects(pool.execute('UPDATE employment_relationships SET employee_id=? WHERE id=?',[otherWorker.insertId,id]));
+  await assert.rejects(pool.execute('DELETE FROM employment_relationships WHERE id=?',[id]));
   const again=await call('/employments','POST',
    {employeeId:worker.insertId,companyId:company.insertId,startedOn:'2026-04-01',evidenceRef:'CONTRATO FICTICIO 002'});
   assert.equal(again.status,409);
