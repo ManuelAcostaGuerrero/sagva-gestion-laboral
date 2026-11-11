@@ -10,6 +10,7 @@ import DocumentCatalog from './DocumentCatalog.jsx';
 import DocumentAudit from './DocumentAudit.jsx';
 import Companies from './Companies.jsx';
 import LaborAccounting from './LaborAccounting.jsx';
+import LaborStructure from './modules/labor-structure/LaborStructure.jsx';
 import React, { useEffect, useMemo, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -539,6 +540,13 @@ function Login({ onLogin, setMessage }) {
 
 function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
   const [adminModule, setAdminModule] = useState('dashboard');
+  const [laborStructureRoot,setLaborStructureRoot]=useState(false);
+  useEffect(()=>{let live=true;api('/auth/me').then(result=>{
+   if(live)setLaborStructureRoot(result.admin?.accessProfile==='root');
+  }).catch(()=>{if(live)setLaborStructureRoot(false);});
+   return()=>{live=false;};
+  },[]);
+
   const adminRole = (() => { try { const token = localStorage.getItem('token'); return JSON.parse(window.atob(token.split('.')[1])).role || ''; } catch { return ''; } })();
   const canManageDocumentCatalog = adminRole === 'admin';
   const canAuditDocuments = ['admin', 'supervisor'].includes(adminRole);
@@ -1573,6 +1581,7 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
     records: ['Marcaciones', 'Consulta, correccion y permanencia efectiva.'],
     reports: ['Reportes', 'Exportacion y lectura ejecutiva de asistencia.'],
     laborAccounting: ['Contabilidad Laboral', 'Parámetros previsionales, AFP, salud, aportes y vigencias auditadas.'],
+    laborStructure: ['Estructura laboral', 'Contratación, recontratación, condiciones y previsión histórica por empresa/local.'],
     calendar: ['Calendario', 'Revision mensual por empleado o grupo.'],
     weekly: ['Horario semanal', 'Planificacion visual por area y cobertura.'],
     security: ['Seguridad', 'Claves, recuperacion, roles e historial.'],
@@ -1646,6 +1655,9 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
           <button className={adminModule === 'employeeFile' ? 'active' : ''} onClick={() => setAdminModule('employeeFile')}>
             <FileText size={18} /> Ficha del trabajador
           </button>
+          {laborStructureRoot && <button className={adminModule === 'laborStructure' ? 'active' : ''} onClick={() => setAdminModule('laborStructure')}>
+            <BriefcaseBusiness size={18}/> Estructura laboral
+          </button>}
           {canManageDocumentCatalog && <button className={adminModule === 'companies' ? 'active' : ''} onClick={() => setAdminModule('companies')}>
             <Building2 size={18}/> Empresas
           </button>}
@@ -1846,6 +1858,11 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
           <TokenCredentials onMessage={setMessage} canBulk={adminRole==='admin'} canRevokeTerminal={adminRole==='admin'}/>
         </div>
       )}
+
+      {adminModule === 'laborStructure' && laborStructureRoot && <LaborStructure
+        onGoEmployeeFile={()=>setAdminModule('employeeFile')}
+        onGoCompanies={()=>setAdminModule('companies')}
+      />}
 
       <div hidden={adminModule !== 'employeeFile'}><EmployeeFile active={adminModule === 'employeeFile'} areas={areas} positions={positions} onSaved={loadEmployees} onMessage={setMessage}
         workerNavigation={workerNavigation} onWorkerNavigationHandled={() => setWorkerNavigation(current=>({...current,id:null}))} /></div>

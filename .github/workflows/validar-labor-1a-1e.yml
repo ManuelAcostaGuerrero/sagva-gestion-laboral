@@ -1,0 +1,86 @@
+name: Validar beta estructura laboral 1A-1E
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'client/**'
+      - 'server/**'
+      - 'tools/test-beta-labor-*.mjs'
+      - 'tools/crear-base-ensayo-dt.mjs'
+      - 'tools/configurar-beta-dt.mjs'
+      - 'tools/iniciar-beta-dt.mjs'
+      - '.github/workflows/validar-labor-1a-1e.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  beta-laboral:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SAGVA_LABOR_BETA_CI: '1'
+      PLAYWRIGHT_MODULE: '@playwright/test'
+      SAGVA_BROWSER_CHANNEL: 'chrome'
+      CI: 'true'
+    steps:
+      - name: Código del PR en runner aislado
+        uses: actions/checkout@v4
+      - name: Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependencias, comprobar servidor y compilar React
+        run: |
+          npm ci
+          npm run test:server
+          npm run build --workspace client
+          # validate-update.mjs invoca git.exe: su ejecución se reserva a Windows físico.
+          node --check tools/validate-update.mjs
+      - name: Usar Chrome Chromium preinstalado para pruebas UI reales
+        run: |
+          npm install --no-save --ignore-scripts @playwright/test@1.58.2
+          google-chrome --version
+      - name: Base SQLite vacía y pruebas beta de ciclo completo
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          mkdir -p .local
+          test ! -e .local/beta-dt.json
+          node tools/crear-base-ensayo-dt.mjs > .local/clean-database.json
+          node tools/configurar-beta-dt.mjs
+          node tools/iniciar-beta-dt.mjs > .local/beta-runtime.log 2>&1 &
+          beta_pid=$!
+          trap 'kill "$beta_pid" 2>/dev/null || true' EXIT
+          ready=0
+          for i in $(seq 1 40); do
+            if curl --silent --show-error --fail http://127.0.0.1:5195/api/health > /dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+          test "$ready" -eq 1
+          node tools/test-beta-dt.mjs
+          node tools/test-beta-dt-storage.mjs
+          node tools/test-beta-labor-structure.mjs
+          node tools/test-beta-dt-browser.mjs
+          node tools/test-beta-labor-browser.mjs
+      - name: Publicar evidencias sintéticas, nunca claves ni base
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: beta-labor-1a-1e-sintetico
+          path: |
+            .local/clean-database.json
+            .local/beta-api-results.json
+            .local/beta-storage-results.json
+            .local/beta-browser-results.json
+            .local/beta-labor-api-results.json
+            .local/beta-labor-browser-results.json
+            .local/beta-labor-ui-desktop.png
+            .local/beta-labor-ui-mobile-emulated.png
+            .local/beta-labor-ui-error.png
+          if-no-files-found: ignore
