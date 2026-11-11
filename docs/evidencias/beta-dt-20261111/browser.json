@@ -1,0 +1,30 @@
+[
+  {
+    "name": "Alta de ficha desde UI real",
+    "status": "PASS"
+  },
+  {
+    "name": "Edición y guardado UI",
+    "status": "PASS"
+  },
+  {
+    "name": "AFP y Fonasa guardados UI",
+    "status": "PASS"
+  },
+  {
+    "name": "Isapre guardada UI",
+    "status": "PASS"
+  },
+  {
+    "name": "PDF real subido y descargado UI; SHA256 idéntico",
+    "status": "PASS"
+  },
+  {
+    "name": "Panel Root UI",
+    "status": "PASS"
+  },
+  {
+    "name": "Pantalla móvil emulada (no teléfono físico)",
+    "status": "PASS"
+  }
+]

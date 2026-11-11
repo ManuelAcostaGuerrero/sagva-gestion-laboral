@@ -1,0 +1,12 @@
+{
+  "primaryCommitUnchanged": true,
+  "betaApiPort": 4022,
+  "isolatedDatabase": true,
+  "primaryProcessesUnchanged": true,
+  "betaWebPort": 5195,
+  "primaryPorts": [
+    4010,
+    5183
+  ],
+  "primaryConfigurationUnchanged": true
+}

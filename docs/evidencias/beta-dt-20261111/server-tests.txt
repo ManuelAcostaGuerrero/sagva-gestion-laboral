@@ -1,0 +1,264 @@
+
+> asistencia-huella-4500@1.19.2 test:server
+> npm test --workspace server
+
+
+> attendance-fingerprint-server@1.19.2 test
+> node --test
+
+✔ Cliente API distingue una conexión fallida de una contraseña incorrecta sin reenviar el login (127.8285ms)
+✔ calcula permanencia descontando colacion cerrada con marcas opuestas (2.7974ms)
+✔ acepta colacion iniciada con entrada_colacion y cerrada con salida_colacion (0.4443ms)
+✔ filtra por fecha y tipo despues de calcular pares (0.7591ms)
+(node:9948) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Eliminar áreas y cargos: lista de activos/inactivos, liberación y protección de horarios (720.3669ms)
+(node:6988) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Correos institucional y soporte por empresa: validar, persistir y conservar al editar (618.1381ms)
+(node:12984) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ P1: al configurar Root, los PDF contractuales requieren permiso individual (648.2309ms)
+(node:11688) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Preparación del contrato requiere identidad y fechas válidas, sin habilitar generación prematura (11.8026ms)
+✔ PDF de contrato/anexo: autenticación, vinculación, revisión, historial, auditoría y respaldo en SQLite (590.2498ms)
+(node:9176) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ P1: estado laboral atómico, empresa estable, reactivación y bloqueo de finiquito (752.6655ms)
+✔ P0: auditoría cuenta discrepancias sin devolver RUT, nombres, rutas ni modificar tablas (8.5751ms)
+✔ P0: una base sin schema laboral devuelve diagnóstico claro sin migrarla (2.1675ms)
+(node:14760) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ normaliza visualmente alias y clasifica sin escribir (3.084ms)
+✔ GET auditoría detecta faltantes, incompletos y patrón IRL sin modificar documentos (526.1834ms)
+(node:8632) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Catálogo de documentos: roles, asignación, corrección de reglas, bloqueo de borrado e historial (779.2776ms)
+(node:7312) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Los indicadores separan soporte físico, entrega digital y PDF cargado (2.4159ms)
+✔ Estado físico del documento: auditoría, concurrencia, permisos y PDF intacto (623.5617ms)
+(node:17508) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ DT: evidencia SHA-256 inmutable con auditoría; sin backfill de marcas anteriores (552.1571ms)
+✔ DT: base de ensayo nueva y aislada sin sobreescritura ni datos reales (639.1911ms)
+(node:3552) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ DT: parámetros por vigencia sin reescribir contratos, con advertencia no bloqueante (467.4372ms)
+(node:19164) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Contratos 0/1/2 anexos, fechas reales, prórroga posterior y orden (19.9495ms)
+✔ Migración aditiva idempotente conserva registros históricos y verifica claves foráneas (31.0021ms)
+✔ Guardar anexos es atómico, auditado y concurrente; conserva históricos, estado inactivo y término inicial (311.355ms)
+✔ Avisos del informe muestran etiqueta y ambos valores; avisos antiguos se presentan sin reescribirlos (1.8361ms)
+(node:2648) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Vencimiento automático calcula meses de calendario, años y días correctamente (5.0691ms)
+✔ Catálogo inicial y anexos financieros; administración crea tipos y cada renovación conserva fechas/PDF (736.146ms)
+✔ Exporta lista mínima de trabajadores, incluidos inactivos, sin datos privados extra (13.9154ms)
+✔ XLSX es un ZIP OOXML con hoja Trabajadores y texto literal, no fórmulas (5.0401ms)
+✔ Nombres de archivos consistentes en ambos sistemas y formato validado (49.4919ms)
+✔ La lista visible usa la misma validación que el servidor y apunta a campos reales (6.4114ms)
+✔ Guardar correctamente elimina la advertencia de la ficha general (5.4309ms)
+✔ Solo hay advertencia si quedaron cambios reales en otra pestaña (0.4571ms)
+✔ Al completar y validar se cierra la ficha si no hay cambios ajenos sin guardar (0.5196ms)
+✔ Control de revisión temporal: aparece solo en fichas aún no validadas (1.8828ms)
+(node:13980) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Migración de fichas preserva IDs, marcas, huellas, historial y referencias; admite varios RUT vacíos (21.2563ms)
+✔ Migración rechaza duplicados de RUT normalizado y revierte sin borrar historial (12.6912ms)
+✔ Ficha API: persistencia, revisión suave, filtros, RUT único, concurrencia y auditoría atómica (593.8263ms)
+✔ Importación A–F: faltantes reales, fechas dudosas, finiquitado, jornadas y repetición sin sobrescribir correcciones (16.4101ms)
+✔ Guardar ficha persiste todas las secciones modificadas, en orden (6.1534ms)
+✔ Desde cualquier pestaña guarda solo los datos que cambiaron (0.8934ms)
+✔ Al validar guarda primero ficha general y luego datos pendientes (3.7025ms)
+✔ Error parcial detiene las secciones siguientes y conserva aviso de lo ya guardado (4.974ms)
+✔ Un formulario sin cambios no emite escrituras (0.7957ms)
+(node:5452) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ P2: esquema vacio, multiempresa, recontratacion, vigencias, integridad y rollback (239.8365ms)
+(node:8316) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Entrega 1: empresas y domicilios encadenados, RUT y fichas históricas (612.2575ms)
+(node:560) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Entrega 1: buscador independiente del formato RUT sin modificar búsqueda textual (3.2641ms)
+✔ Entrega 1: catálogo encadenado completo y selectores sin localidades inventadas (1.1434ms)
+✔ Entrega 1: payload empresarial normaliza para validación sin inventar RUT (0.929ms)
+(node:16676) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/salaryAnnex.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Entrega 2: fórmula sueldo y protección borradores (7.6756ms)
+✔ Entrega 2: aprobación exige PDF firmado y solo aplica una vez conservando historial (707.8396ms)
+✔ fecha DD/MM/AAAA siempre limita el año a cuatro dígitos (3.2394ms)
+✔ fecha rechaza días, meses y límites inválidos antes de actualizar el valor ISO (1.1174ms)
+(node:4360) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Reglas independientes: RUT, composición de nombres y teléfono (4.4057ms)
+✔ Empresa, ficha provisional/validada y condiciones contractuales preservan historial y permisos (764.9577ms)
+(node:11832) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Identifica anexos financieros sin confundir contratos ni documentos generales (4.2865ms)
+✔ Aumento y bono guardan montos por entrega, validan importes y preservan históricos, permisos y sueldo base (863.5809ms)
+(node:18060) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/laborAccounting.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Previsiones: valores a fecha y normalización de porcentajes (29.0013ms)
+✔ Contabilidad Laboral: precarga, roles, nuevas vigencias e instituciones sin borrar historial (651.0371ms)
+(node:10580) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ BL-003/004/005: bancos CMF, bandas SUSESO, cargas auditables y cuenta cifrada con acceso explícito (802.358ms)
+(node:8008) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ bonos: simulación no deduce automáticamente salario (2.2712ms)
+✔ bonos: permisos, asignación múltiple, evaluación auditable y versionada (586.6947ms)
+(node:12264) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Etapa 3: definición versionada, valores individuales, historial y permisos por campo (768.3659ms)
+(node:12608) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/familyAllowance.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ asignación familiar: renta acreditada, vigencia y montos oficiales no editables (2.2355ms)
+✔ pruebas integradas: funciones, jornada, pago mixto, renta y autorización de cuenta de tercero (701.8739ms)
+(node:15452) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Fechas de licencia son inclusivas y excluyen calendarios inválidos (4.8542ms)
+✔ Licencia no borra turno preexistente, devuelve fechas sin diagnósticos y bloquea asignación nueva (706.5229ms)
+(node:15064) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ La ficha médica es privada, editable, auditada y se guarda sin invadir la ficha laboral (603.4211ms)
+(node:11444) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ P3: expand vacio, autoridad canonica, prevision versionada y JSON original intacto (250.4058ms)
+✔ P3: informe solo agrega indicadores sin emitir datos personales ni reescribir JSON (4.0573ms)
+✔ Ojo de clave: se muestra solo durante pulsación y vuelve a ocultarse al soltar, salir o perder foco (3.0483ms)
+✔ Crear usuario exige confirmación idéntica antes de enviar y no expone la confirmación al API (1.5904ms)
+✔ Deshacer conserva la revision actual incluso despues de guardar y mantiene mas de cinco movimientos (6.0316ms)
+✔ Copiar horario conserva semana destino, crea filas nuevas y elimina indisponibilidad historica (10.1434ms)
+✔ Cambiar una persona de fila la mueve solo dentro de la semana y deja la anterior por asignar (0.8918ms)
+✔ URL API: localhost, red y HTTPS usan el mismo enlace aunque el .env conserve direcciones antiguas (2.6166ms)
+✔ Web publica: API conserva autenticación/cuerpo y no publica fuentes ni archivos privados (267.5893ms)
+(node:19012) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Buscar trabajadores a demanda, emitir lote sin revocar QR y limitarlo a admin (793.2209ms)
+(node:13960) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Etapa 2: Root concede permisos individuales; deniega y revoca sin esperar JWT; no activa admin local inseguro (761.9666ms)
+(node:1236) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Login por la web local, Rotativo común a todas las áreas y CRUD de turnos/horarios conservan referencias (1546.2385ms)
+✔ Normalizar Rotativo consolida duplicados sin alterar horas ni referencias armadas (27.6675ms)
+(node:18044) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ API SQLite: login, empleados, identificación QR/PIN, marcacion, reportes, horarios y auditoria (2037.7083ms)
+✔ SQLite conserva restricciones, ids, parametros y configura fechas locales (15.0334ms)
+✔ Una transaccion fallida revierte y las consultas concurrentes esperan su final (6.7999ms)
+✔ Respaldo SQLite incorpora WAL y permite recuperar datos sin duplicarlos (66.9799ms)
+(node:15960) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Terminal-empresa-trabajador: QR/PIN aislados, vista previa sin escrituras, cámara autorizada e idempotencia (1943.5635ms)
+(node:9488) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ QR/PIN: terminal obligatoria, activación única, credenciales hash, rotación/revocación, auditoría e idempotencia (3666.1956ms)
+✔ Prevalidación detecta JSX truncado y JavaScript/manifiestos incorrectos antes de instalar (811.2425ms)
+(node:14480) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Modelos: normal, nocturno y partido descuentan una sola colacion (4.7681ms)
+✔ Reportes: noche y tramos partidos excluyen el intervalo, mantienen atrasos e incompletos (5.5429ms)
+✔ Migracion conserva asignaciones anteriores y aplica cada modelo una sola vez (22.5729ms)
+✔ Planificador API: borrador, cobertura, conflictos, revision, publicacion atomica y reporte nocturno (837.2829ms)
+✔ Migración de cargos idempotente, nombres mayúsculos y referencias conservadas (15.1361ms)
+(node:14272) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ RUT módulo 11 local: puntos, guion, K/k, faltantes y formatos incorrectos (3.4371ms)
+✔ Migración conserva nombre legal literal, IDs, historial y propuestas conocidas sin inventar apellidos (28.3856ms)
+✔ Ficha: partes independientes, legal literal, vacíos protegidos, revisión atribuida y provisional seguro (547.2909ms)
+(node:6512) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ Nombre corto usa primer nombre y apellido, conservando nombres completos y abreviaciones anteriores (14.1417ms)
+✔ Enriquecer completa vacíos, preserva RUT/fechas/inactivos/revisión y usa la última fila duplicada (269.896ms)
+(node:1020) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///<BETA>/shared/chileTerritory.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to \\?\<BETA>\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✔ RUT con puntos mantiene la validación y el correo en mayúsculas se valida correctamente (3.8977ms)
+✔ Normalización histórica es idempotente, conserva originales, nombre legal y RUT, e invalida revisiones antiguas (8.1265ms)
+✔ Guardar normaliza nombres/correo y corregir RUT sin campo de motivo conserva historial automático (272.3356ms)
+ℹ tests 100
+ℹ suites 0
+ℹ pass 100
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15037.6522
