@@ -52,7 +52,7 @@ export async function laborWorker(db,employeeId){
  LEFT JOIN labor_entities health ON health.id=p.health_entity_id
  WHERE p.employee_id=? ORDER BY p.valid_from DESC,p.id DESC`,[employeeId]);
  const [documents]=await db.execute(`SELECT l.id,l.employment_id AS employmentId,l.contract_file_id AS fileId,
- l.document_kind AS kind,l.evidence_ref AS evidenceRef,f.filename,f.sha256,
+ l.document_kind AS kind,l.document_date AS documentDate,l.evidence_ref AS evidenceRef,f.filename,f.sha256,
  l.linked_at AS linkedAt FROM employment_documents l
  JOIN employment_relationships r ON r.id=l.employment_id
  JOIN employee_contract_files f ON f.id=l.contract_file_id
