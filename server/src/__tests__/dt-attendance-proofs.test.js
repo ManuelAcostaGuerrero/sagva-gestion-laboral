@@ -54,6 +54,14 @@ test('DT: evidencia SHA-256 inmutable con auditoría; sin backfill de marcas ant
     assert.equal(response.status,201,JSON.stringify(payload));
     assert.match(payload.integrityProof.digest,/^[a-f0-9]{64}$/);
     assert.equal((await verifyAttendanceProof(pool,payload.id)).valid,true);
+    const summaryResponse=await fetch('http://127.0.0.1:'+server.address().port+'/api/attendance/summary?date=2026-11-11',{
+      headers:{Authorization:'Bearer '+token}
+    });
+    assert.equal(summaryResponse.status,200);
+    const summary=(await summaryResponse.json()).summary;
+    const manual=summary.recentRecords.find(record=>record.id===payload.id);
+    assert.equal(manual.markMethod,'MANUAL','El resumen no debe presentar una marca administrativa nueva como histórica');
+    assert.equal(manual.terminalName,'Administración');
     const [audits]=await pool.execute(
       "SELECT COUNT(*) AS n FROM audit_logs WHERE entity_type='attendance_record' AND action='create_manual_record' AND entity_id=?",
       [String(payload.id)]);

@@ -1731,7 +1731,7 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
                 <button onClick={() => loadSummary().catch((error) => setMessage(error.message))}><RefreshCw size={16} /> Actualizar</button>
               </div>
               <table>
-                <thead><tr><th>Hora</th><th>Empleado</th><th>Tipo</th></tr></thead>
+                <thead><tr><th>Hora</th><th>Empleado</th><th>Tipo</th><th>Origen</th></tr></thead>
                 <tbody>
                   {summary.recentRecords?.length ? summary.recentRecords.map((record) => (
                     <tr key={record.id}>

@@ -106,7 +106,9 @@ attendanceRouter.get('/summary', requireAdmin, asyncHandler(async (req, res) => 
   );
   const [records] = await pool.execute(
     `SELECT ar.id, ar.employee_id AS employeeId, ar.record_type AS type, ar.registered_at AS registeredAt,
-            e.full_name AS fullName
+            e.full_name AS fullName,
+            COALESCE(ar.mark_method,'ANTERIOR') AS markMethod,
+            CASE WHEN ar.mark_method IS NOT NULL THEN ar.device_name ELSE 'Registro anterior' END AS terminalName
      FROM attendance_records ar
      INNER JOIN employees e ON e.id = ar.employee_id
      WHERE DATE(ar.registered_at) = :date
