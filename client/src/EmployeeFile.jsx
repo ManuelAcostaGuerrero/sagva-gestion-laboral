@@ -625,7 +625,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                 </div>}
                 <ContractFiles file={draft} dirty={dirty} onMessage={onMessage} />
                 {["admin","supervisor"].includes(role)&& (draft.id ? <ContractTerms ref={contractRef} key={draft.id+'-'+contractReload} employeeId={draft.id} suggestedWorkplace={draft.extra?.branch||selectedCompany?.defaultBranch||''}
-                  positionName={draft.positionName} positions={positions}
+                  positionName={draft.positionName} areaId={draft.workAreaId} positions={positions}
                   onDirtyChange={setContractDirty} /> : <p className="ef-note ef-field-wide">Guarda primero al trabajador para registrar condiciones contractuales.</p>)}
                 {["admin","supervisor"].includes(role)&&<ConfiguredFields ref={configuredContractRef} key={(draft.id||'new')+'-contract'} employeeId={draft.id} target="CONTRATO" onDirtyChange={setConfiguredContractDirty} onPendingChange={setMissingContractConfigured}/>}
                  {draft.id && ['admin','supervisor'].includes(role) && <EmployeeBonuses key={draft.id} employeeId={draft.id}/>}
@@ -638,8 +638,11 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                     <option value="FINIQUITADO">Finiquitado</option>
                   </select>
                 </label>
-                {renderField('terminationReason','Motivo / observación de término')}
-                {extras.filter(([key]) => ['hierarchyUnit','costCenter','branch'].includes(key)).map(renderExtra)}
+                {draft.employmentStatus!=='ACTIVO'&&renderField('terminationReason','Motivo / observación de término')}
+                <div className="ef-field-wide"><details><summary>Datos organizacionales adicionales (si corresponde)</summary>
+                 <p className="ef-note">Sucursal y razón social se registran una sola vez arriba. Centro de costo y unidad jerárquica son códigos internos distintos; no se completan con datos inventados.</p>
+                 <div className="ef-grid">{extras.filter(([key]) => ['hierarchyUnit','costCenter'].includes(key)).map(renderExtra)}</div>
+                </details></div>
               </div>
             </fieldset>
             </div>
