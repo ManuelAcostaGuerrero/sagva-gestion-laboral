@@ -126,13 +126,13 @@ test('1A-1E: ciclo contractual completo versionado, aislado por Root, transaccio
    (employee_id,filename,pdf,sha256,contract_snapshot_json,uploaded_by)
    VALUES(?,?,?,?,?,?)`,[worker.insertId,'contrato-ficticio.pdf',pdf,sha,'{}',root.insertId]);
   const linked=await call('/employments/'+id+'/documents','POST',
-   {fileId:file.insertId,kind:'CONTRACT',evidenceRef:'PDF CONTRACTUAL FICTICIO'});
+   {fileId:file.insertId,kind:'CONTRACT',documentDate:'2026-01-01',evidenceRef:'PDF CONTRACTUAL FICTICIO'});
   assert.equal(linked.status,201,JSON.stringify(linked.data));
   const otherHired=await call('/employments','POST',
    {employeeId:otherWorker.insertId,companyId:otherCompany.insertId,startedOn:'2026-01-01',evidenceRef:'OTRO CONTRATO FICTICIO'});
   assert.equal(otherHired.status,201);
   const linkWrong=await call('/employments/'+otherHired.data.result.id+'/documents','POST',
-   {fileId:file.insertId,kind:'CONTRACT',evidenceRef:'VINCULO FICTICIO INCORRECTO'});
+   {fileId:file.insertId,kind:'CONTRACT',documentDate:'2026-01-01',evidenceRef:'VINCULO FICTICIO INCORRECTO'});
   assert.equal(linkWrong.status,403);
 
   const jan=await call('/workers/'+worker.insertId+'/as-of?on=2026-04-01');
@@ -147,6 +147,7 @@ test('1A-1E: ciclo contractual completo versionado, aislado por Root, transaccio
   assert.equal(workerHistory.data.terms.length,3);
   assert.equal(workerHistory.data.prevision.length,2);
   assert.equal(workerHistory.data.documents.length,1);
+  assert.equal(workerHistory.data.documents[0].documentDate,'2026-01-01');
 
   const finish=await call('/employments/'+id+'/finish','POST',{
    endedOn:'2026-12-31',reason:'TERMINO FICTICIO DOCUMENTADO',
