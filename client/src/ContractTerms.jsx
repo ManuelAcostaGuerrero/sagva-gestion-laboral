@@ -1,10 +1,12 @@
 import React,{forwardRef,useEffect,useImperativeHandle,useState} from 'react';
 import {api} from './services/api.js';
 import {blankContractTerms} from '../../server/src/contractTerms.js';
+import ContractShiftSelector,{summarizeShiftPlan} from './ContractShiftSelector.jsx';
 
-const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName,positions=[],suggestedWorkplace='',onDirtyChange},ref){
+const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName,areaId,positions=[],suggestedWorkplace='',onDirtyChange},ref){
  const [draft,setDraft]=useState(blankContractTerms),[saved,setSaved]=useState(null);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[loading,setLoading]=useState(true);
+ const [jobTemplates,setJobTemplates]=useState([]);
  const dirty=saved!==null&&JSON.stringify(saved)!==JSON.stringify(draft);
  useEffect(()=>{onDirtyChange?.(dirty);return()=>onDirtyChange?.(false);},[dirty,onDirtyChange]);
  useEffect(()=>{
@@ -14,7 +16,16 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
   }).catch(e=>{if(active)setError(e.message);}).finally(()=>{if(active)setLoading(false);});
   return ()=>{active=false;};
  },[employeeId]);
+ useEffect(()=>{let active=true;api('/labor-job-duties').then(x=>{if(active)setJobTemplates(x.templates||[]);}).catch(()=>{});
+  return()=>{active=false;};
+ },[]);
  const change=(key,value)=>setDraft(current=>({...current,[key]:value}));
+ const template=jobTemplates.find(x=>Number(x.areaId)===Number(areaId)&&x.positionName===positionName);
+ useEffect(()=>{
+  if(loading||saved===null||!template?.duties)return;
+  setDraft(current=>current.jobDuties?.trim()?current:{...current,jobDuties:template.duties});
+ },[loading,saved?.revision,template?.revision,areaId,positionName]);
+ const changeShiftPlan=plan=>setDraft(current=>({...current,shiftPlan:plan,shiftDistribution:summarizeShiftPlan(plan)}));
  async function saveChanges(){
   if(!dirty)return;
   if(loading||busy||saved===null)throw new Error('Las condiciones aún están cargando.');
@@ -32,7 +43,8 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
   {error&&<p className="ef-note" role="alert">{error}</p>}
   {loading?<p>Cargando condiciones…</p>:<div className="ef-grid">
    <label>Sueldo base mensual (CLP)
-    <input type="number" min="0" step="1" value={draft.monthlyBaseSalary} onChange={e=>change('monthlyBaseSalary',e.target.value===''?'':Number(e.target.value))}/></label>
+    <input type="text" inputMode="numeric" pattern="[0-9.]*" value={draft.monthlyBaseSalary===''?'':Number(draft.monthlyBaseSalary||0).toLocaleString('es-CL')}
+     onChange={e=>{const digits=e.target.value.replace(/[^0-9]/g,'');change('monthlyBaseSalary',digits===''?'':Number(digits));}}/></label>
    <label>Gratificación<select value={draft.gratification} onChange={e=>change('gratification',e.target.value)}>
     <option value="">Por definir</option><option value="ART_50">Artículo 50</option><option value="ART_47">Artículo 47</option><option value="OTHER">Otra modalidad (revisión)</option></select></label>
    <label>Horas semanales pactadas
@@ -40,20 +52,27 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
    <label>Colación (minutos)
     <input type="number" min="0" max="240" step="1" value={draft.breakMinutes} onChange={e=>change('breakMinutes',e.target.value===''?'':Number(e.target.value))}/></label>
    <label>Medio de pago<select value={draft.paymentMethod} onChange={e=>change('paymentMethod',e.target.value)}>
-    <option value="">Por definir</option>{['TRANSFERENCIA','EFECTIVO','CHEQUE','OTRO'].map(v=><option key={v} value={v}>{v}</option>)}</select></label>
+    <option value="">Por definir</option>
+    <option value="TRANSFERENCIA">Transferencia</option><option value="EFECTIVO">Efectivo</option>
+    <option value="MIXTO">Transferencia y efectivo</option><option value="CHEQUE">Cheque</option><option value="OTRO">Otro</option></select></label>
+   {draft.paymentMethod==='MIXTO'&&<label className="ef-field-wide">Detalle del pago mixto
+    <input maxLength={1000} placeholder="Indicar distribución entre transferencia y efectivo" value={draft.paymentDetails||''} onChange={e=>change('paymentDetails',e.target.value)}/></label> 
    <label>Lugar habitual de prestación
     <input value={draft.workplace} maxLength={500} onChange={e=>change('workplace',e.target.value.toLocaleUpperCase('es-CL'))} placeholder={suggestedWorkplace||'Por definir'}/></label>
    {suggestedWorkplace&&<div className="ef-field-wide">
     <button type="button" disabled={draft.workplace===suggestedWorkplace} onClick={()=>change('workplace',suggestedWorkplace)}>Usar sucursal sugerida: {suggestedWorkplace}</button>
     <p className="ef-note">Sugerencia opcional; no modifica el lugar histórico sin confirmación.</p>
    </div>}
-   <label className="ef-field-wide">Distribución contractual de jornada / turnos
-    <textarea rows={3} maxLength={2000} value={draft.shiftDistribution}
+   <ContractShiftSelector value={draft.shiftPlan||[]} disabled={busy||loading} onChange={changeShiftPlan}/>
+   <label className="ef-field-wide">Resumen textual de jornada para revisión
+    <textarea rows={3} maxLength={2000} value={draft.shiftDistribution||''}
      onChange={e=>change('shiftDistribution',e.target.value)}/></label>
    <label className="ef-field-wide">Funciones del cargo
     <textarea rows={4} maxLength={5000} value={draft.jobDuties}
      onChange={e=>change('jobDuties',e.target.value)}/></label>
-   {position?.description&&<div className="ef-field-wide">
+   {template?.duties&&<div className="ef-field-wide"><button type="button" className="la-small" onClick={()=>change('jobDuties',template.duties)}>Usar funciones aprobadas: {template.areaName} · {positionName}</button>
+     <p className="ef-note">Puedes personalizar el texto de esta ficha sin modificar el catálogo ni contratos históricos.</p></div>}
+   {!template?.duties&&position?.description&&<div className="ef-field-wide">
      <button type="button" onClick={()=>change('jobDuties',position.description)}>Usar descripción del cargo {position.name}</button>
    </div>}
    <label className="ef-field-wide">Condiciones adicionales para revisión jurídica
