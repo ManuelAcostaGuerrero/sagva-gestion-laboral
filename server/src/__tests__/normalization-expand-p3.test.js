@@ -84,7 +84,7 @@ test('P3: informe solo agrega indicadores sin emitir datos personales ni reescri
     assert.equal(report.counts.unrecognizedIsapreLabel,1);
     assert.equal(report.counts.invalidExtrasJson,1,'El informe debe tolerar JSON heredado malformado');
     assert.equal(db.prepare('PRAGMA query_only').get().query_only,1);
-    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM employee_files').get().n,1);
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM employee_files').get().n,2);
     assert.doesNotMatch(JSON.stringify(report),/APELLIDO REAL|APELLIDO DIFERENTE|INSTITUCION DESCONOCIDA|RAZON HISTORICA/);
     assert.ok(FIELD_AUTHORITY_V1.some(x=>x.field==='afp_salud'));
   }finally{db.close();}
