@@ -22,6 +22,7 @@ jobs:
     env:
       SAGVA_LABOR_BETA_CI: '1'
       PLAYWRIGHT_MODULE: '@playwright/test'
+      SAGVA_BROWSER_CHANNEL: 'chrome'
       CI: 'true'
     steps:
       - name: Código del PR en runner aislado
@@ -38,10 +39,10 @@ jobs:
           npm run build --workspace client
           # validate-update.mjs invoca git.exe: su ejecución se reserva a Windows físico.
           node --check tools/validate-update.mjs
-      - name: Instalar Chromium para UI sin mocks
+      - name: Usar Chrome Chromium preinstalado para pruebas UI reales
         run: |
           npm install --no-save --ignore-scripts @playwright/test@1.58.2
-          npx playwright install --with-deps chromium
+          google-chrome --version
       - name: Base SQLite vacía y pruebas beta de ciclo completo
         shell: bash
         run: |
