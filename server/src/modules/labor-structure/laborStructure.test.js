@@ -139,7 +139,7 @@ test('1A-1E: ciclo contractual completo versionado, aislado por Root, transaccio
   const finish=await call('/employments/'+id+'/finish','POST',{
    endedOn:'2026-12-31',reason:'TERMINO FICTICIO DOCUMENTADO',
    evidenceRef:'FINIQUITO O DOCUMENTO FICTICIO'});
-  assert.equal(finish.status,201,JSON.stringify(finish.data));
+  assert.equal(finish.status,200,JSON.stringify(finish.data));
   assert.equal((await call('/employments/'+id+'/finish','POST',{
    endedOn:'2026-12-31',reason:'TERMINO REPETIDO FICTICIO',evidenceRef:'DOCUMENTO FICTICIO'})).status,409);
   assert.equal((await call('/employments','POST',
