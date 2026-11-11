@@ -56,3 +56,4 @@ export default function ContractShiftSelector({value=[],onChange,disabled=false}
   })}</div>
   <small>Selección propia del trabajador: los turnos de la biblioteca no se eliminan. Confirmar compatibilidad y jornada total al formalizar contrato.</small>
  </section>;
+}
