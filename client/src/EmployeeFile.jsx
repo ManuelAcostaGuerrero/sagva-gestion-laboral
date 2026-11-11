@@ -509,7 +509,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                   </select>
                 </label>
                 <label>Sistema de salud
-                  <select value={draft.extra?.healthSystem||''} onChange={e=>change('extra',{...draft.extra,healthSystem:e.target.value,
+                  <select aria-label="Sistema de salud" value={draft.extra?.healthSystem||''} onChange={e=>change('extra',{...draft.extra,healthSystem:e.target.value,
                     ...(e.target.value==='FONASA'?{isapreName:'',healthPlanAmount:'',healthPlanUnit:''}:{})})}>
                     <option value="">Sin informar</option><option value="FONASA">FONASA</option><option value="ISAPRE">ISAPRE</option>
                     {draft.extra?.healthSystem&&!['FONASA','ISAPRE'].includes(draft.extra.healthSystem)&&

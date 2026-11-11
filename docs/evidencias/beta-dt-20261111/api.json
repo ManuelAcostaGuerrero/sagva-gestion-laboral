@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Login Root beta",
+    "status": "PASS"
+  },
+  {
+    "name": "Empresas, área y cargo API",
+    "status": "PASS"
+  },
+  {
+    "name": "Ficha alta, edición y conflicto de revisión",
+    "status": "PASS"
+  },
+  {
+    "name": "Jornada por fecha y régimen no evaluado",
+    "status": "PASS"
+  },
+  {
+    "name": "Catálogos AFP y salud",
+    "status": "PASS"
+  },
+  {
+    "name": "Turno y asignación",
+    "status": "PASS"
+  },
+  {
+    "name": "QR, PIN y empresa ajena bloqueada",
+    "status": "PASS"
+  },
+  {
+    "name": "Marca administrativa y reporte",
+    "status": "PASS"
+  },
+  {
+    "name": "Root acceso bancario habilitado",
+    "status": "PASS"
+  },
+  {
+    "name": "Guardados concurrentes: sólo una revisión aceptada",
+    "status": "PASS"
+  },
+  {
+    "name": "Reporte jornada y exceso técnico sin pagos automáticos",
+    "status": "PASS"
+  },
+  {
+    "name": "QR revocado rechazado",
+    "status": "PASS"
+  }
+]

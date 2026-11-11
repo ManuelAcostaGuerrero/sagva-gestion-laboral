@@ -1,0 +1,17 @@
+{
+  "integrity": "ok",
+  "fk": 0,
+  "counts": {
+    "employees": 14,
+    "company_profiles": 10,
+    "company_branches": 6,
+    "employment_relationships": 6,
+    "employment_assignments": 3,
+    "employment_terms_versions": 6,
+    "employee_prevision_versions": 3,
+    "attendance_records": 27,
+    "attendance_integrity_proofs": 27,
+    "employee_contract_files": 3,
+    "schema_migrations": 36
+  }
+}

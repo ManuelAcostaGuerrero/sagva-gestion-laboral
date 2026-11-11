@@ -12,6 +12,7 @@ import {getConfiguredDateTime,getSystemSettings} from '../systemSettings.js';
 import {sendAttendanceNotification} from '../pushNotifications.js';
 import {workerName} from '../workerNames.js';
 import {ATTENDANCE_TYPES} from '../attendanceSchema.js';
+import {createAttendanceProof,verifyAttendanceProof} from '../attendanceProofs.js';
 
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
 const random=()=>crypto.randomBytes(32).toString('base64url');
@@ -173,9 +174,18 @@ tokenRouter.post('/mark',requireTerminal,asyncHandler(async(req,res)=>{
       if(!employee || !await bcrypt.compare(input.pin,employee.pinHash||'')){await c.execute("INSERT INTO pin_attempts(terminal_id,employee_id,attempted_at,outcome) VALUES(?,?,?,'failed')",[req.terminal.id,input.employeeId,now]);await recordAudit(null,'failed_worker_pin','employee',input.employeeId,{terminalId:req.terminal.id},c);await c.commit();throw error('PIN incorrecto.',401);}
     }else throw error('Presenta tu QR o selecciona tu nombre e ingresa el PIN.');
     const [prior]=await c.execute('SELECT id,record_type AS type,registered_at AS registeredAt,employee_id,terminal_id FROM attendance_records WHERE request_key=?',[input.requestId]);
-    if(prior.length){if(prior[0].employee_id!==employee.id||prior[0].terminal_id!==req.terminal.id||prior[0].type!==input.type)throw error('La solicitud anterior corresponde a otra marcación.',409);record=prior[0];await c.commit();return res.json({employee:{id:employee.id,displayName:workerName(employee)},record:{id:record.id,type:record.type,registeredAt:record.registeredAt},repeated:true});}
+    if(prior.length){if(prior[0].employee_id!==employee.id||prior[0].terminal_id!==req.terminal.id||prior[0].type!==input.type)throw error('La solicitud anterior corresponde a otra marcación.',409);record=prior[0];
+      const proof=await verifyAttendanceProof(c,record.id);
+      if(proof.exists&&!proof.valid)throw error('Inconsistencia de integridad en marcación anterior. Requiere revisión.',409);
+      await c.commit();
+      return res.json({employee:{id:employee.id,displayName:workerName(employee)},
+        record:{id:record.id,type:record.type,registeredAt:record.registeredAt,
+          integrityProof:proof.valid?{algorithm:proof.algorithm,digest:proof.digest}:null,
+          integrityStatus:proof.valid?'VERIFIED':'LEGACY_UNVERIFIED'},repeated:true});}
     const [created]=await c.execute('INSERT INTO attendance_records(employee_id,record_type,registered_at,device_name,mark_method,terminal_id,request_key) VALUES(?,?,?,?,?,?,?)',[employee.id,input.type,time,req.terminal.name,method,req.terminal.id,input.requestId]);
     record={id:created.insertId,type:input.type,registeredAt:time,method,terminal:req.terminal.name};
+    record.integrityProof=await createAttendanceProof(c,record.id);
+    record.integrityStatus='VERIFIED';
     await recordAudit(null,'register_attendance','attendance_record',record.id,{employeeId:employee.id,method,terminalId:req.terminal.id,companyId:req.terminal.companyId,source:input.source||'MANUAL'},c);await c.commit();
   }catch(e){await c.rollback();throw e;}finally{c.release();}
   await sendAttendanceNotification({employee:{id:employee.id,fullName:employee.fullName},record,source:method});

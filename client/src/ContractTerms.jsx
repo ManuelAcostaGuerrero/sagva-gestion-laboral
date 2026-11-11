@@ -7,6 +7,11 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
  const [draft,setDraft]=useState(blankContractTerms),[saved,setSaved]=useState(null);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[loading,setLoading]=useState(true);
  const [jobTemplates,setJobTemplates]=useState([]);
+ // Fecha/regimen explícitos: no inferir vigencias desde contratos anteriores.
+ const [assessmentDate,setAssessmentDate]=useState('');
+ const [assessmentRegime,setAssessmentRegime]=useState('');
+ const [jornadaAssessment,setJornadaAssessment]=useState(null);
+ const [jornadaAssessmentError,setJornadaAssessmentError]=useState('');
  const previousTemplate=useRef('');
  const dirty=saved!==null&&JSON.stringify(saved)!==JSON.stringify(draft);
  useEffect(()=>{onDirtyChange?.(dirty);return()=>onDirtyChange?.(false);},[dirty,onDirtyChange]);
@@ -20,6 +25,16 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
  useEffect(()=>{let active=true;api('/labor-job-duties').then(x=>{if(active)setJobTemplates(x.templates||[]);}).catch(()=>{});
   return()=>{active=false;};
  },[]);
+ useEffect(()=>{
+  let active=true;
+  setJornadaAssessment(null);setJornadaAssessmentError('');
+  if(!assessmentDate||!assessmentRegime||draft.weeklyHours===''||draft.weeklyHours===null)return ()=>{active=false;};
+  const query=new URLSearchParams({on:assessmentDate,regime:assessmentRegime,weeklyHours:String(draft.weeklyHours)});
+  api('/contract-terms/jornada/assessment?'+query.toString())
+   .then(result=>{if(active)setJornadaAssessment(result);})
+   .catch(e=>{if(active)setJornadaAssessmentError(e.message);});
+  return ()=>{active=false;};
+ },[assessmentDate,assessmentRegime,draft.weeklyHours]);
  const change=(key,value)=>setDraft(current=>({...current,[key]:value}));
  const template=jobTemplates.find(x=>Number(x.areaId)===Number(areaId)&&x.positionName===positionName);
  useEffect(()=>{
@@ -52,6 +67,21 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
     <option value="">Por definir</option><option value="ART_50">Artículo 50</option><option value="ART_47">Artículo 47</option><option value="OTHER">Otra modalidad (revisión)</option></select></label>
    <label>Horas semanales pactadas
     <input type="number" min="0" max="45" step=".5" value={draft.weeklyHours} onChange={e=>change('weeklyHours',e.target.value===''?'':Number(e.target.value))}/></label>
+   <label>Fecha para evaluar la jornada (no se guarda)
+    <input type="date" value={assessmentDate} onChange={e=>setAssessmentDate(e.target.value)}/></label>
+   <label>Régimen de jornada a evaluar (no se guarda)
+    <select value={assessmentRegime} onChange={e=>setAssessmentRegime(e.target.value)}>
+     <option value="">Seleccionar régimen</option>
+     <option value="GENERAL">General</option>
+     <option value="SPECIAL">Especial: revisión jurídica</option>
+     <option value="EXEMPT">Exceptuado: revisión jurídica</option>
+    </select></label>
+   {jornadaAssessmentError&&<p className="ef-note ef-field-wide" role="alert">No se pudo comprobar el límite normativo: {jornadaAssessmentError}</p>}
+   {jornadaAssessment&&<p className="ef-note ef-field-wide" role={jornadaAssessment.warning?'alert':'status'}>
+    {jornadaAssessment.verified?'Máximo ordinario general vigente: '+jornadaAssessment.maxWeeklyHours+' horas semanales.':'Régimen sin validación automática.'}
+    {jornadaAssessment.warning&&' '+jornadaAssessment.warning}
+    {' '}Advertencia orientativa: no modifica, valida ni firma el contrato.
+   </p>}
    <label>Colación (minutos)
     <input type="number" min="0" max="240" step="1" value={draft.breakMinutes} onChange={e=>change('breakMinutes',e.target.value===''?'':Number(e.target.value))}/></label>
    <label>Medio de pago<select value={draft.paymentMethod} onChange={e=>change('paymentMethod',e.target.value)}>

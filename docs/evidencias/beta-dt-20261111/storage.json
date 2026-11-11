@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Migraciones repetidas sin duplicar esquema",
+    "status": "PASS"
+  },
+  {
+    "name": "P2: contratación, término, recontratación, locales y sueldo a fecha",
+    "status": "PASS"
+  },
+  {
+    "name": "P3: AFP e Isapre por vigencia, JSON legado intacto",
+    "status": "PASS"
+  },
+  {
+    "name": "DT: SHA256 de todas las marcas y rechazo de alteración",
+    "status": "PASS"
+  },
+  {
+    "name": "Restauración beta, integridad, FK y contenido idéntico",
+    "status": "PASS"
+  }
+]
