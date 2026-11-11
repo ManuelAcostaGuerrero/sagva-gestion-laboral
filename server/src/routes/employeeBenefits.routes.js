@@ -1,5 +1,6 @@
 
-import { Router } from 'express';
+import { Router, raw } from 'express';
+import {createHash} from 'node:crypto';
 import { z } from 'zod';
 import { pool } from '../db.js';
 import { runMigrations } from '../migrations.js';
@@ -25,7 +26,7 @@ const entry=z.object({
   referenceCode:z.string().trim().max(120).nullable().optional()
 }).strict();
 const familySchema=z.object({revision:z.number().int().nonnegative(),status:z.enum(['NONE','PENDING','RECOGNIZED']),dependents:z.array(entry).max(30)}).strict();
-const bankSchema=z.object({revision:z.number().int().nonnegative(),bankId:z.number().int().positive(),accountType:z.enum(['CORRIENTE','VISTA','CUENTARUT','AHORRO','OTRA']),accountNumber:z.string().trim().min(3).max(55).regex(/^[0-9A-Za-z.-]+$/),holderName:z.string().trim().min(2).max(160),holderRut:z.string().trim().min(7).max(15),requestedOn:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),authorizationRef:z.string().trim().min(3).max(160)}).strict();
+const bankSchema=z.object({revision:z.number().int().nonnegative(),bankId:z.number().int().positive(),accountType:z.enum(['CORRIENTE','VISTA','CUENTARUT','AHORRO','OTRA']),accountNumber:z.string().trim().min(3).max(55).regex(/^[0-9A-Za-z.-]+$/),holderName:z.string().trim().min(2).max(160),holderRut:z.string().trim().min(7).max(15),requestedOn:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),authorizationRef:z.string().trim().max(160).default('')}).strict();
 async function employee(db,id){
  const [rows]=await db.execute('SELECT id,document_id AS documentId FROM employees WHERE id=?',[id]);
  if(!rows.length)throw fail('Trabajador no encontrado.',404);
@@ -109,8 +110,13 @@ employeeBenefitsRouter.put('/:id/bank',restricted(mayEditBank),asyncHandler(asyn
  try{
   await db.beginTransaction();
   const worker=await employee(db,id);
-  if(worker.documentId&&normalizeRut(worker.documentId)!==normalizeRut(d.holderRut))
-    throw fail('La cuenta debe estar a nombre del trabajador registrado.');
+  const thirdParty=!!worker.documentId&&normalizeRut(worker.documentId)!==normalizeRut(d.holderRut);
+  if(thirdParty){
+   const ref=/^BANCARIA-([1-9][0-9]*)$/.exec(d.authorizationRef);
+   if(!ref)throw fail('Una cuenta de tercero requiere PDF de autorización.');
+   const [documents]=await db.execute('SELECT id FROM employee_bank_authorizations WHERE id=? AND employee_id=?',[Number(ref[1]),id]);
+   if(!documents.length)throw fail('La autorización bancaria no corresponde a este trabajador.');
+  }
   const [banks]=await db.execute('SELECT id FROM labor_banks WHERE id=? AND active=1',[d.bankId]);
   if(!banks.length)throw fail('Banco no activo o no encontrado.');
   const [previous]=await db.execute('SELECT revision,payload_ciphertext AS payload FROM employee_bank_accounts WHERE employee_id=?',[id]);
@@ -124,4 +130,43 @@ employeeBenefitsRouter.put('/:id/bank',restricted(mayEditBank),asyncHandler(asyn
   await recordAudit(req.admin,'update','employee_bank_account',id,{changedFields:Object.keys(payload),revision:revision+1,encrypted:true},db);
   await db.commit();res.json({message:'Cuenta registrada con cifrado y auditoría.',revision:revision+1});
  }catch(e){await db.rollback();throw e;}finally{db.release();}
+}));
+
+employeeBenefitsRouter.post('/:id/bank-authorization',restricted(mayEditBank),raw({type:'application/pdf',limit:'8mb'}),asyncHandler(async(req,res)=>{
+ const id=idOf(req.params.id);if(!id)throw fail('Trabajador inválido.');
+ if(!bankReady())throw fail('Cifrado bancario no configurado.',503);
+ const pdf=req.body;
+ if(!Buffer.isBuffer(pdf)||pdf.length===0||pdf.length>8*1024*1024||
+  pdf.subarray(0,5).toString('latin1')!=='%PDF-'||
+  !pdf.subarray(Math.max(0,pdf.length-2048)).includes(Buffer.from('%%EOF')))
+  throw fail('Adjunta un PDF válido de hasta 8 MB.');
+ const hash=createHash('sha256').update(pdf).digest('hex');
+ const db=await pool.getConnection();
+ try{
+  await db.beginTransaction();await employee(db,id);
+  const [exists]=await db.execute('SELECT id FROM employee_bank_authorizations WHERE employee_id=? AND sha256=?',[id,hash]);
+  if(exists.length)throw fail('Este respaldo ya fue cargado.',409);
+  const cipher=encryptBank({pdfBase64:pdf.toString('base64')});
+  const [r]=await db.execute('INSERT INTO employee_bank_authorizations(employee_id,pdf_ciphertext,sha256,uploaded_by) VALUES(?,?,?,?)',[id,cipher,hash,req.admin.id]);
+  await recordAudit(req.admin,'upload','employee_bank_authorization',r.insertId,{employeeId:id,sha256:hash,bytes:pdf.length},db);
+  await db.commit();res.status(201).json({id:r.insertId,authorizationRef:'BANCARIA-'+r.insertId,message:'Autorización bancaria cifrada y vinculada al trabajador.'});
+ }catch(e){await db.rollback();throw e;}finally{db.release();}
+}));
+employeeBenefitsRouter.get('/:id/bank-authorizations',restricted(mayReadBank),asyncHandler(async(req,res)=>{
+ const id=idOf(req.params.id);if(!id)throw fail('Trabajador inválido.');
+ await employee(pool,id);
+ const [rows]=await pool.execute('SELECT id,uploaded_at AS uploadedAt FROM employee_bank_authorizations WHERE employee_id=? ORDER BY id DESC',[id]);
+ res.json({documents:rows});
+}));
+employeeBenefitsRouter.get('/:id/bank-authorizations/:authorizationId/pdf',restricted(mayReadBank),asyncHandler(async(req,res)=>{
+ const id=idOf(req.params.id),aid=idOf(req.params.authorizationId);
+ if(!id||!aid)throw fail('Identificador inválido.');
+ if(!bankReady())throw fail('Cifrado bancario no configurado.',503);
+ const [rows]=await pool.execute('SELECT pdf_ciphertext AS cipher FROM employee_bank_authorizations WHERE employee_id=? AND id=?',[id,aid]);
+ if(!rows.length)throw fail('Respaldo no encontrado.',404);
+ await recordAudit(req.admin,'read','employee_bank_authorization',aid,{employeeId:id});
+ const pdf=Buffer.from(decryptBank(rows[0].cipher).pdfBase64,'base64');
+ res.set('Cache-Control','private, no-store');res.set('X-Content-Type-Options','nosniff');
+ res.set('Content-Disposition','attachment; filename="autorizacion-bancaria-'+aid+'.pdf"');
+ res.type('application/pdf').send(pdf);
 }));
