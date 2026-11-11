@@ -119,7 +119,7 @@ laborStructureRouter.post('/employments/:id/documents',asyncHandler(async(req,re
 }));
 // No devolver SQL interno a la UI. Los conflictos son del usuario, no fallos fatales.
 laborStructureRouter.use((err,_req,res,next)=>{
- if(String(err?.code||'').startsWith('SQLITE_CONSTRAINT'))
+ if(err?.errcode===1811||String(err?.code||'').startsWith('SQLITE_CONSTRAINT'))
   return res.status(409).json({message:'Conflicto de datos o vigencias. Revisa el historial y vuelve a intentarlo.'});
  next(err);
 });
