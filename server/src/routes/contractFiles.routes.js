@@ -12,7 +12,7 @@ const idOf=value=>Number.isSafeInteger(Number(value)) && Number(value)>0 ? Numbe
 export const contractFilesRouter=Router();
 contractFilesRouter.use(requireRoles('admin','supervisor','operator'));
 // Compatibilidad temporal: el operador anterior podía adjuntar contratos antes de activar Root.
-// Con Root, los permisos individualizados son obligatorios y respetan empresa/sucursal.
+// Con Root, permisos individuales obligatorios; delegación por empresa/sucursal aún pendiente.
 function canAccessContract(req,file,write=false){
   if(!req.admin.hasRoot&&req.admin.role==='operator')return true;
   return permitted(req.admin,write?'personal.contract.write':'personal.contract.read',
@@ -60,11 +60,14 @@ contractFilesRouter.get('/:id/pdf',asyncHandler(async(req,res)=>{
   await runMigrations();
   const id=idOf(req.params.id);
   if(!id)throw fail('Archivo inválido.');
-  const [files]=await pool.execute('SELECT employee_id AS employeeId,filename,pdf FROM employee_contract_files WHERE id=?',[id]);
+  const [files]=await pool.execute('SELECT employee_id AS employeeId,filename FROM employee_contract_files WHERE id=?',[id]);
   if(!files.length)throw fail('PDF no encontrado.',404);
   const [workers]=await pool.execute(`${fileSelect} WHERE e.id=?`,[files[0].employeeId]);
   if(!workers.length||!canAccessContract(req,presentFile(workers[0])))throw fail('Sin permiso para consultar contratos.',403);
+  // Sólo leer el BLOB tras autorizar al solicitante.
+  const [contents]=await pool.execute('SELECT pdf FROM employee_contract_files WHERE id=?',[id]);
+  if(!contents.length)throw fail('PDF no encontrado.',404);
   res.set('Cache-Control','no-store');res.set('X-Content-Type-Options','nosniff');
   res.set('Content-Disposition',`attachment; filename="${files[0].filename}"`);
-  res.type('application/pdf').send(Buffer.from(files[0].pdf));
+  res.type('application/pdf').send(Buffer.from(contents[0].pdf));
 }));
