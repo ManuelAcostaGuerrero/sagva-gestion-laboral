@@ -1,22 +1,30 @@
 
 import React,{forwardRef,useEffect,useImperativeHandle,useState} from 'react';
 import {api} from './services/api.js';
+import {familyAllowancePreview} from '../../shared/familyAllowance.js';
 
 const blank=()=>({fullName:'',relationship:'HIJO',recognitionStatus:'PENDING',institution:'',recognitionDate:'',validFrom:'',validUntil:'',referenceCode:''});
-const empty=()=>({revision:0,status:'NONE',dependents:[]});
+const empty=()=>({revision:0,status:'NONE',dependents:[],averageIncomeClp:null,incomePeriod:'',incomeVerified:false});
+const localDay=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);};
+const institutions=['IPS','CAJA DE COMPENSACIÓN','ENTIDAD PREVISIONAL'];
+const money=v=>Number(v||0).toLocaleString('es-CL');
 const EmployeeFamilyBenefits=forwardRef(function EmployeeFamilyBenefits({employeeId,role,onDirtyChange},ref){
  const [data,setData]=useState(empty),[saved,setSaved]=useState(JSON.stringify(empty()));
  const [error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const [bands,setBands]=useState([]),[salary,setSalary]=useState(null);
  const permitted=['admin','supervisor'].includes(role);
  const editable=role==='admin';
  const dirty=JSON.stringify(data)!==saved;
  useEffect(()=>{let valid=true;setData(empty());setSaved(JSON.stringify(empty()));setError('');
   if(!employeeId||!permitted)return()=>{valid=false;};
+  api('/labor-benefits/family-brackets?on='+localDay()).then(v=>{if(valid)setBands(v.current||[]);}).catch(e=>{if(valid)setError(e.message);});
+  api('/contract-terms/workers/'+employeeId).then(v=>{if(valid)setSalary(Number.isSafeInteger(v.terms?.monthlyBaseSalary)?v.terms.monthlyBaseSalary:null);}).catch(()=>{if(valid)setSalary(null);});
   api('/employee-benefits/'+employeeId+'/family').then(v=>{
    if(valid){setData(v);setSaved(JSON.stringify(v));}
   }).catch(e=>{if(valid)setError(e.message);});return()=>{valid=false;};
  },[employeeId,permitted]);
  useEffect(()=>{onDirtyChange?.(dirty);},[dirty,onDirtyChange]);
+ const {recognized,bracket:matching,totalClp:amount}=familyAllowancePreview({...data,brackets:bands,on:localDay()});
  const update=(i,k,value)=>setData(prev=>({...prev,dependents:prev.dependents.map((row,index)=>i===index?{...row,[k]:value}:row)}));
  const save=async()=>{
   if(!employeeId||!editable||busy)return;
@@ -42,6 +50,14 @@ const EmployeeFamilyBenefits=forwardRef(function EmployeeFamilyBenefits({employe
    </label>
   </div>
   {data.status!=='NONE'&&<>
+   <div className="ef-grid">
+    <label>Renta promedio acreditada para el semestre (CLP)
+     <input type="number" min="0" step="1" disabled={!editable} value={data.averageIncomeClp??''} onChange={e=>setData(p=>({...p,averageIncomeClp:e.target.value===''?null:Number(e.target.value),incomeVerified:false}))}/></label>
+    <label>Semestre de ingresos de referencia<input disabled={!editable} maxLength={120} placeholder="Ej.: enero a junio de 2026" value={data.incomePeriod||''} onChange={e=>setData(p=>({...p,incomePeriod:e.target.value,incomeVerified:false}))}/></label>
+    <label className="la-check"><input type="checkbox" disabled={!editable||data.averageIncomeClp===null||!data.incomePeriod?.trim()} checked={!!data.incomeVerified} onChange={e=>setData(p=>({...p,incomeVerified:e.target.checked}))}/> Renta verificada con antecedente</label>
+   </div>
+   {salary!==null&&<div className="la-inline-actions"><span>Sueldo base de ficha: {money(salary)} CLP (no equivale necesariamente al ingreso promedio legal).</span>
+    {editable&&<button className="la-small" type="button" onClick={()=>setData(p=>({...p,averageIncomeClp:salary,incomeVerified:false}))}>Copiar sueldo como referencia pendiente</button>}</div>}
    {data.dependents.map((row,i)=><fieldset className="ef-section" key={row.id||'new-'+i}>
     <legend>Carga {i+1}{row.recognitionStatus==='ENDED'?' · histórica':''}</legend>
     <div className="ef-grid">
@@ -52,7 +68,10 @@ const EmployeeFamilyBenefits=forwardRef(function EmployeeFamilyBenefits({employe
      <label>Estado del reconocimiento<select disabled={!editable} value={row.recognitionStatus} onChange={e=>update(i,'recognitionStatus',e.target.value)}>
       <option value="PENDING">Pendiente</option><option value="RECOGNIZED">Reconocida</option><option value="ENDED">Finalizada (conservar histórico)</option>
      </select></label>
-     <label>Institución acreditadora<input disabled={!editable} value={row.institution||''} onChange={e=>update(i,'institution',e.target.value)}/></label>
+     <label>Institución acreditadora<select disabled={!editable} value={row.institution||''} onChange={e=>update(i,'institution',e.target.value)}>
+      <option value="">Seleccionar</option>{institutions.map(x=><option key={x} value={x}>{x}</option>)}
+      {row.institution&&!institutions.includes(row.institution)&&<option value={row.institution}>{row.institution} (histórico)</option>}
+     </select></label>
      <label>Fecha reconocimiento<input type="date" disabled={!editable} value={row.recognitionDate||''} onChange={e=>update(i,'recognitionDate',e.target.value)}/></label>
      <label>Inicio vigencia<input type="date" disabled={!editable} value={row.validFrom||''} onChange={e=>update(i,'validFrom',e.target.value)}/></label>
      <label>Término vigencia<input type="date" disabled={!editable} value={row.validUntil||''} onChange={e=>update(i,'validUntil',e.target.value)}/></label>
@@ -63,7 +82,13 @@ const EmployeeFamilyBenefits=forwardRef(function EmployeeFamilyBenefits({employe
    {editable&&<button type="button" onClick={()=>setData(prev=>({...prev,dependents:[...prev.dependents,blank()]}))}>Agregar otra carga</button>}
   </>}
   {data.status==='NONE'&&data.dependents.length>0&&<p className="ef-note">Hay cargas históricas. Para indicar «No», finaliza cada reconocimiento conservando sus antecedentes.</p>}
-  <p className="ef-note">Los montos por tramo se administran únicamente desde Gestión → Contabilidad Laboral. El sistema no genera asignaciones ni pagos.</p>
+  <div className="ef-note" aria-live="polite">
+   <strong>Asignación familiar calculada (solo consulta)</strong>
+   <p>Cargas reconocidas y vigentes: {recognized}. {matching?'Tramo '+matching.tier+' · '+money(matching.amountClp)+' CLP por carga.':'No hay renta semestral acreditada y tramo aplicable.'}</p>
+   <p>Total: <strong>{amount===null?'Pendiente de acreditación':money(amount)+' CLP'}</strong> · valor no editable.</p>
+   {matching&&<p>Vigencia de tabla desde {matching.effectiveFrom}. Referencia: {matching.incomeReference}. <a href={matching.sourceUrl} target="_blank" rel="noreferrer">Fuente SUSESO</a>.</p>}
+   <p>No se genera pago ni liquidación automáticamente; se requiere reconocimiento vigente y validación del ingreso de referencia.</p>
+  </div>
   {dirty&&<p className="ef-note">Cambios pendientes: usa «Guardar ficha» para conservar también esta sección.</p>}
  </fieldset>;
 });

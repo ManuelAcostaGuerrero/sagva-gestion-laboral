@@ -5,6 +5,8 @@ import './employeeFile.css';
 import './laborAccounting.css';
 import LaborBenefits from './LaborBenefits.jsx';
 import LaborFieldConfigurator from './LaborFieldConfigurator.jsx';
+import LaborBonuses from './LaborBonuses.jsx';
+import LaborJobDuties from './LaborJobDuties.jsx';
 const today=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);};
 const format=v=>v?laborValue(v.valueHundredths).toLocaleString('es-CL',{maximumFractionDigits:2})+' '+(v.unit==='PERCENT'?'%':v.unit):'Sin configurar';
 export default function LaborAccounting({role='admin',onMessage}){
@@ -40,9 +42,11 @@ export default function LaborAccounting({role='admin',onMessage}){
   {error&&<p role="alert" className="ef-note">{error}</p>}
   {message&&<p role="status" className="ef-note">{message}</p>}
   <nav className="la-tabs" aria-label="Secciones previsionales">
-   {[['rates','Valores y vigencias'],['entities','AFP e Isapres'],['banks','Bancos'],['family','Asignación familiar'],['fields','Configuración de campos'],['history','Historial']].map(([key,label])=>
+   {[['rates','Valores y vigencias'],['entities','AFP e Isapres'],['banks','Bancos'],['family','Asignación familiar'],['bonuses','Bonos y otros conceptos'],['duties','Funciones por cargo'],['fields','Configuración de campos'],['history','Historial']].map(([key,label])=>
     <button type="button" key={key} className={section===key?'selected':''} onClick={()=>setSection(key)}>{label}</button>)}
   </nav>
+  {section==='bonuses'&&<LaborBonuses/>}
+  {section==='duties'&&<LaborJobDuties/>}
   {section==='rates'&&<>
    <fieldset className="ef-section"><legend>Tasas vigentes</legend>
     <label>Fecha de consulta <input type="date" value={date} onChange={e=>setDate(e.target.value||today())}/></label>

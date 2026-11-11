@@ -25,6 +25,8 @@ import { laborAccountingRouter } from './routes/laborAccounting.routes.js';
 import { laborBenefitsRouter } from './routes/laborBenefits.routes.js';
 import { employeeBenefitsRouter } from './routes/employeeBenefits.routes.js';
 import {laborFieldsRouter} from './routes/laborFields.routes.js';
+import {laborBonusesRouter} from './routes/laborBonuses.routes.js';
+import {jobDutiesRouter} from './routes/jobDuties.routes.js';
 
 export const app = express();
 const allowedOrigins = String(process.env.CLIENT_ORIGIN || 'http://localhost:5183')
@@ -89,6 +91,8 @@ app.use('/api/medical-profiles', medicalProfilesRouter);
 app.use('/api/companies', companiesRouter);
 app.use('/api/labor-accounting', laborAccountingRouter);
 app.use('/api/labor-fields', laborFieldsRouter);
+app.use('/api/labor-bonuses', laborBonusesRouter);
+app.use('/api/labor-job-duties', jobDutiesRouter);
 app.use('/api/labor-benefits', laborBenefitsRouter);
 app.use('/api/employee-benefits', employeeBenefitsRouter);
 app.use('/api/contract-terms', contractTermsRouter);

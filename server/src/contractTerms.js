@@ -1,7 +1,7 @@
 export const TERMS_MIGRATION='20261011_016_contract_terms';
 export const blankContractTerms=()=>({
  revision:0,monthlyBaseSalary:'',gratification:'',weeklyHours:'',
- shiftDistribution:'',breakMinutes:'',workplace:'',paymentMethod:'',
+ shiftDistribution:'',shiftPlan:[],breakMinutes:'',workplace:'',paymentMethod:'',paymentDetails:'',
  jobDuties:'',additionalTerms:''
 });
 export async function migrateContractTerms(db){

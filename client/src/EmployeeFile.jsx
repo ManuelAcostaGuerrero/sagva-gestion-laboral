@@ -13,6 +13,7 @@ import ContractTerms from "./ContractTerms.jsx";
 import ConfiguredFields from './ConfiguredFields.jsx';
 import EmployeeFamilyBenefits from './EmployeeFamilyBenefits.jsx';
 import EmployeeBankDetails from './EmployeeBankDetails.jsx';
+import EmployeeBonuses from './EmployeeBonuses.jsx';
 import {assembledWorkerName,normalizeLabel,workerNumberFromRut,completeFileMissing,SEX_OPTIONS,CIVIL_STATUS_OPTIONS,NATIONALITIES} from "../../server/src/workerFileStandards.js";
 import {checkRut,formatRut} from '../../server/src/rut.js';
 import {currentContractEnd, validContractDate} from '../../server/src/employeeContracts.js';
@@ -624,9 +625,10 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                 </div>}
                 <ContractFiles file={draft} dirty={dirty} onMessage={onMessage} />
                 {["admin","supervisor"].includes(role)&& (draft.id ? <ContractTerms ref={contractRef} key={draft.id+'-'+contractReload} employeeId={draft.id} suggestedWorkplace={draft.extra?.branch||selectedCompany?.defaultBranch||''}
-                  positionName={draft.positionName} positions={positions}
+                  positionName={draft.positionName} areaId={draft.workAreaId} positions={positions}
                   onDirtyChange={setContractDirty} /> : <p className="ef-note ef-field-wide">Guarda primero al trabajador para registrar condiciones contractuales.</p>)}
                 {["admin","supervisor"].includes(role)&&<ConfiguredFields ref={configuredContractRef} key={(draft.id||'new')+'-contract'} employeeId={draft.id} target="CONTRATO" onDirtyChange={setConfiguredContractDirty} onPendingChange={setMissingContractConfigured}/>}
+                 {draft.id && ['admin','supervisor'].includes(role) && <EmployeeBonuses key={draft.id} employeeId={draft.id}/>}
                 <div className="ef-field-wide"><strong>Estado laboral</strong></div>
                 <label>Estado laboral
                   <select aria-label="Estado laboral" value={draft.employmentStatus || ''} onChange={e => change('employmentStatus',e.target.value)}>
@@ -636,8 +638,11 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                     <option value="FINIQUITADO">Finiquitado</option>
                   </select>
                 </label>
-                {renderField('terminationReason','Motivo / observación de término')}
-                {extras.filter(([key]) => ['hierarchyUnit','costCenter','branch'].includes(key)).map(renderExtra)}
+                {draft.employmentStatus!=='ACTIVO'&&renderField('terminationReason','Motivo / observación de término')}
+                <div className="ef-field-wide"><details><summary>Datos organizacionales adicionales (si corresponde)</summary>
+                 <p className="ef-note">Sucursal y razón social se registran una sola vez arriba. Centro de costo y unidad jerárquica son códigos internos distintos; no se completan con datos inventados.</p>
+                 <div className="ef-grid">{extras.filter(([key]) => ['hierarchyUnit','costCenter'].includes(key)).map(renderExtra)}</div>
+                </details></div>
               </div>
             </fieldset>
             </div>
