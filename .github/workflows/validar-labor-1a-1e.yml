@@ -36,7 +36,8 @@ jobs:
           npm ci
           npm run test:server
           npm run build --workspace client
-          node tools/validate-update.mjs
+          # validate-update.mjs invoca git.exe: su ejecución se reserva a Windows físico.
+          node --check tools/validate-update.mjs
       - name: Instalar Chromium para UI sin mocks
         run: |
           npm install --no-save --ignore-scripts @playwright/test@1.58.2
