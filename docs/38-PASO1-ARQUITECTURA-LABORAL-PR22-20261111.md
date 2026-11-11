@@ -10,7 +10,7 @@ Un **monolito modular** en Node.js + Express + React, con SQLite para desarrollo
 
 **Relaciones, asignaciones y condiciones**: las nuevas tablas P2/P3 de los PR #19/#20 ya existen como modelo; reutilizarlas, no duplicarlas. Una nueva vigencia se registra con motivo/documento, usuario, fecha y auditoría. Nunca reescribir sueldo, cargo, institución previsional ni asistencia de un período pasado.
 
-**Advertencia contractual:** un identificador `evidenceRef` en el formulario no prueba por sí solo que exista un contrato firmado. Los documentos firmados deben cargarse y revisarse de forma independiente. No confundir `confirmed_by` (validación interna) con una firma o autorización DT.
+**Advertencia contractual:** la fecha documental de un PDF se registra por separado de la fecha de ingreso, sin retrofechar automáticamente su firma. Un identificador `evidenceRef` en el formulario no prueba por sí solo que exista un contrato firmado. Los documentos firmados deben cargarse y revisarse de forma independiente. No confundir `confirmed_by` (validación interna) con una firma o autorización DT.
 
 ## 2. Arquitectura y ubicación real del código
 
@@ -57,10 +57,12 @@ server/src/
 | Sueldo/condiciones | `employment_terms_versions` (P2) | Estado económico/contractual a fecha | Valor anterior intacto, fuente documental |
 | Horario vinculado | `employment_shift_versions` (035) | Biblioteca de turno elegida por empleo y fecha | No modifica `work_shifts` ni calendario pasado |
 | Previsión | `employee_prevision_versions` (P3) | AFP/salud/plan a fecha | Cambios por nueva vigencia, no copiar JSON sin revisión |
-| Documentos | `employee_contract_files` + `employment_documents` (035) | BLOB PDF original; vínculo a relación confirmado | Mismo trabajador y documento inmutable |
+| Documentos | `employee_contract_files` + `employment_documents` (035) | BLOB PDF original; vínculo a relación, fecha documental explícita | Mismo trabajador, fecha aportada por usuario y documento inmutable |
 | Marcaciones | `attendance_records` | Marca original, no actualizar desde esta fase | Enlace explícito sólo con evidencia, no inferir |
 | Evento laboral | `labor_lifecycle_events` (035) | Bitácora append-only HIRE/END/ASSIGNMENT/CONDITIONS/SHIFT/DOCUMENT | No UPDATE/DELETE |
 | Auditoría | `audit_logs` | Acción, autor y referencia | Obligatoria dentro de la transacción |
+
+**Parámetros legales:** en condiciones se requiere elegir explícitamente régimen GENERAL/SPECIAL/EXEMPT. La consulta versionada de jornada del PR #21 devuelve una advertencia no bloqueante si se supera el máximo del régimen general; un régimen especial/exento se marca como **no evaluado**, nunca se aprueba automáticamente.
 
 **Vigencias**: contratos terminados usan `ended_on` **inclusivo** (ej. termina el 30 y reingresa el 1). Asignaciones, sueldo, turnos y previsión utilizan `valid_until`/`effective_until` **exclusivo**. Al cambiar se cierra sólo la columna de fin de la fila anterior; el resto de su contenido permanece intacto. Triggers SQL rechazan otras modificaciones y eliminaciones. Para cambios retroactivos/correcciones de períodos ya cerrados sigue faltando el procedimiento formal con fuente y aprobación; no se puede reescribir la evidencia silenciosamente.
 
