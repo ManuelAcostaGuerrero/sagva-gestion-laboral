@@ -1,4 +1,4 @@
-import React,{forwardRef,useEffect,useImperativeHandle,useState} from 'react';
+import React,{forwardRef,useEffect,useImperativeHandle,useRef,useState} from 'react';
 import {api} from './services/api.js';
 import {blankContractTerms} from '../../server/src/contractTerms.js';
 import ContractShiftSelector,{summarizeShiftPlan} from './ContractShiftSelector.jsx';
@@ -7,6 +7,7 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
  const [draft,setDraft]=useState(blankContractTerms),[saved,setSaved]=useState(null);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[loading,setLoading]=useState(true);
  const [jobTemplates,setJobTemplates]=useState([]);
+ const previousTemplate=useRef('');
  const dirty=saved!==null&&JSON.stringify(saved)!==JSON.stringify(draft);
  useEffect(()=>{onDirtyChange?.(dirty);return()=>onDirtyChange?.(false);},[dirty,onDirtyChange]);
  useEffect(()=>{
@@ -23,7 +24,9 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
  const template=jobTemplates.find(x=>Number(x.areaId)===Number(areaId)&&x.positionName===positionName);
  useEffect(()=>{
   if(loading||saved===null||!template?.duties)return;
-  setDraft(current=>current.jobDuties?.trim()?current:{...current,jobDuties:template.duties});
+  const oldText=previousTemplate.current;
+  setDraft(current=>(!current.jobDuties?.trim()||(oldText&&current.jobDuties===oldText))?{...current,jobDuties:template.duties}:current);
+  previousTemplate.current=template.duties;
  },[loading,saved?.revision,template?.revision,areaId,positionName]);
  const changeShiftPlan=plan=>setDraft(current=>({...current,shiftPlan:plan,shiftDistribution:summarizeShiftPlan(plan)}));
  async function saveChanges(){
