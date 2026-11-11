@@ -25,7 +25,7 @@ const entry=z.object({
   recognitionDate:date,validFrom:date,validUntil:date,
   referenceCode:z.string().trim().max(120).nullable().optional()
 }).strict();
-const familySchema=z.object({revision:z.number().int().nonnegative(),status:z.enum(['NONE','PENDING','RECOGNIZED']),dependents:z.array(entry).max(30)}).strict();
+const familySchema=z.object({revision:z.number().int().nonnegative(),status:z.enum(['NONE','PENDING','RECOGNIZED']),dependents:z.array(entry).max(30),averageIncomeClp:z.number().int().nonnegative().nullable().optional(),incomePeriod:z.string().trim().max(120).optional(),incomeVerified:z.boolean().optional()}).strict();
 const bankSchema=z.object({revision:z.number().int().nonnegative(),bankId:z.number().int().positive(),accountType:z.enum(['CORRIENTE','VISTA','CUENTARUT','AHORRO','OTRA']),accountNumber:z.string().trim().min(3).max(55).regex(/^[0-9A-Za-z.-]+$/),holderName:z.string().trim().min(2).max(160),holderRut:z.string().trim().min(7).max(15),requestedOn:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),authorizationRef:z.string().trim().max(160).default('')}).strict();
 async function employee(db,id){
  const [rows]=await db.execute('SELECT id,document_id AS documentId FROM employees WHERE id=?',[id]);
@@ -41,12 +41,16 @@ employeeBenefitsRouter.get('/:id/family',requireRoles('admin','supervisor'),asyn
  await employee(pool,id);
  const [status]=await pool.execute('SELECT status,revision FROM employee_family_state WHERE employee_id=?',[id]);
  const [rows]=await pool.execute('SELECT id,full_name AS fullName,relationship,recognition_status AS recognitionStatus,institution,recognition_date AS recognitionDate,valid_from AS validFrom,valid_until AS validUntil,reference_code AS referenceCode FROM employee_family_dependents WHERE employee_id=? ORDER BY id',[id]);
- res.json({status:status[0]?.status||'NONE',revision:status[0]?.revision||0,dependents:rows});
+ const [income]=await pool.execute('SELECT average_income_clp AS averageIncomeClp,income_period AS incomePeriod,verified AS incomeVerified FROM employee_family_income_reference WHERE employee_id=?',[id]);
+ res.json({status:status[0]?.status||'NONE',revision:status[0]?.revision||0,dependents:rows,
+  averageIncomeClp:income[0]?.averageIncomeClp??null,incomePeriod:income[0]?.incomePeriod||'',incomeVerified:!!income[0]?.incomeVerified});
 }));
 employeeBenefitsRouter.put('/:id/family',requireRoles('admin'),asyncHandler(async(req,res)=>{
  const id=idOf(req.params.id),parsed=familySchema.safeParse(req.body);
  if(!id||!parsed.success)throw fail('Datos de cargas familiares inválidos.');
  const d=parsed.data;
+ if(d.incomeVerified && (!(d.averageIncomeClp>=0)||!d.incomePeriod?.trim()))
+  throw fail('La renta acreditada requiere monto e identificación del semestre de referencia.');
  if(d.status==='RECOGNIZED'&&!d.dependents.some(x=>x.recognitionStatus==='RECOGNIZED'))
    throw fail('Debe existir al menos una carga reconocida.');
  if(d.status==='PENDING'&&!d.dependents.some(x=>x.recognitionStatus==='PENDING'))
@@ -83,9 +87,14 @@ employeeBenefitsRouter.put('/:id/family',requireRoles('admin'),asyncHandler(asyn
    }
   }
   await db.execute('INSERT INTO employee_family_state(employee_id,status,revision,updated_by) VALUES(?,?,?,?) ON CONFLICT(employee_id) DO UPDATE SET status=excluded.status,revision=excluded.revision,updated_by=excluded.updated_by,updated_at=CURRENT_TIMESTAMP',[id,d.status,current+1,req.admin.id]);
+  if(Object.prototype.hasOwnProperty.call(d,'averageIncomeClp')){
+   const income=[d.averageIncomeClp??null,d.incomePeriod||'',d.incomeVerified?1:0];
+   await db.execute('INSERT INTO employee_family_income_reference(employee_id,average_income_clp,income_period,verified,updated_by) VALUES(?,?,?,?,?) ON CONFLICT(employee_id) DO UPDATE SET average_income_clp=excluded.average_income_clp,income_period=excluded.income_period,verified=excluded.verified,updated_by=excluded.updated_by,updated_at=CURRENT_TIMESTAMP',[id,...income,req.admin.id]);
+   await db.execute('INSERT INTO employee_family_income_history(employee_id,average_income_clp,income_period,verified,changed_by) VALUES(?,?,?,?,?)',[id,...income,req.admin.id]);
+  }
   const [nextSnapshot]=await db.execute('SELECT id,full_name AS fullName,relationship,recognition_status AS recognitionStatus,institution,recognition_date AS recognitionDate,valid_from AS validFrom,valid_until AS validUntil,reference_code AS referenceCode FROM employee_family_dependents WHERE employee_id=? ORDER BY id',[id]);
   await db.execute('INSERT INTO employee_family_history(employee_id,revision,before_status,after_status,changed_ids_json,snapshot_before_json,snapshot_after_json,changed_by) VALUES(?,?,?,?,?,?,?,?)',[id,current+1,s[0]?.status||null,d.status,JSON.stringify(changes),JSON.stringify(previousSnapshot),JSON.stringify(nextSnapshot),req.admin.id]);
-  await recordAudit(req.admin,'update','employee_family',id,{statusBefore:s[0]?.status||'NONE',statusAfter:d.status,changedIds:changes,revision:current+1},db);
+  await recordAudit(req.admin,'update','employee_family',id,{statusBefore:s[0]?.status||'NONE',statusAfter:d.status,changedIds:changes,incomeReferenceUpdated:Object.prototype.hasOwnProperty.call(d,'averageIncomeClp'),revision:current+1},db);
   await db.commit();res.json({message:'Cargas familiares guardadas con historial.',revision:current+1});
  }catch(e){await db.rollback();throw e;}finally{db.release();}
 }));
