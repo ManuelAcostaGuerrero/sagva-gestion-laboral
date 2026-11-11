@@ -69,6 +69,8 @@ test('Entrega 2: aprobación exige PDF firmado y solo aplica una vez conservando
    assert.equal((await req('/employee-documents/workers/'+worker.insertId)).entries.find(e=>e.id===first.id).approvedSalary,500000);
    terms=(await req('/contract-terms/workers/'+worker.insertId,'PUT',{...terms,workplace:'SUCURSAL CENTRO'})).terms;
    assert.equal(terms.revision,2);
+   await req('/contract-terms/workers/'+worker.insertId,'PUT',{...terms,monthlyBaseSalary:999999},409);
+   assert.equal((await req('/contract-terms/workers/'+worker.insertId)).terms.monthlyBaseSalary,500000);
    const second=await req(url,'POST',{typeId:type.id,deliveredOn:'2026-11-09',startOn:'2026-12-01',agreedAmount:50000,amountMeaning:'INCREASE'},201);
    await signedPdf(second.id);
    const increment=await req('/employee-documents/entries/'+second.id+'/approve-salary','POST',{});
