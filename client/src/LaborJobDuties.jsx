@@ -32,3 +32,4 @@ export default function LaborJobDuties(){
   </fieldset></form>
   {!canManage&&<p className="ef-note">Solo lectura. Para editar funciones se requiere permiso de configuración de campos laborales.</p>}
  </section>;
+}
