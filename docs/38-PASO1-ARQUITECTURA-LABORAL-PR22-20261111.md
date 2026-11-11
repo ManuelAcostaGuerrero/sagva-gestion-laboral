@@ -119,3 +119,9 @@ La interfaz utiliza la pantalla antigua de ficha para crear personas y la pantal
 Un PR no se aprueba solo por existir una vista o tabla. Exigir: CI verde, flujo UI+API comprobado en beta, historial por fecha, rollback correcto, pruebas negativas de permisos y alcance de PR documentado; además respaldo/restauración y aceptación de la persona propietaria antes de cualquier instalación real.
 
 **Registro de cambios de esta rama:** no se han migrado, importado, eliminado ni modificado fichas, contratos, marcaciones, empresas o documentos de producción. Las pruebas son enteramente sintéticas.
+
+## 9. Ejecución reproducible en GitHub Actions (solo beta sintética)
+
+El workflow `.github/workflows/validar-labor-1a-1e.yml` ejecuta una **base nueva aislada en el runner GitHub**, completamente distinta de la SQLite del usuario. Ejecuta `npm ci`, pruebas de servidor, build, validación del actualizador, crea una base ficticia y lanza el backend/web en loopback. Luego ejecuta `tools/test-beta-dt.mjs`, `tools/test-beta-dt-storage.mjs`, `tools/test-beta-labor-structure.mjs` (recorrido 1A–1E por HTTP), `tools/test-beta-dt-browser.mjs` y `tools/test-beta-labor-browser.mjs` (Chromium real, móvil emulado). La suite bloquea el flujo ante cualquier error y guarda solamente resúmenes/capturas ficticias como artefactos. Nunca publica `.local/beta-access.txt`, JWT ni SQLite beta.
+
+GitHub Actions **no sustituye** el ensayo físico Windows y Android, la prueba de permisos en todas las rutas heredadas, la inspección y firma de contratos reales, ni la certificación/autorización DT. Los resultados se incorporarán al PR después de comprobar las ejecuciones reales, no antes.
