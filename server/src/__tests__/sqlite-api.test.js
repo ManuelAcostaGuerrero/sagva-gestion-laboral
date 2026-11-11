@@ -61,7 +61,11 @@ test('API SQLite: login, empleados, identificación QR/PIN, marcacion, reportes,
     await request('/tokens/mark','POST',{employeeId:employee,pin:'wrong',type:'entrada',requestId:'00000000-0000-4000-8000-000000000001'},401);
     const codeMark=await request('/tokens/mark','POST',{employeeId:employee,pin:'4321',type:'entrada',requestId:'00000000-0000-4000-8000-000000000002'},201);
     assert.match(codeMark.record.registeredAt,/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
-    await pool.execute('UPDATE attendance_records SET registered_at=? WHERE id=?',['2026-09-30 09:00:00',codeMark.record.id]);
+    assert.match(codeMark.record.integrityProof.digest,/^[a-f0-9]{64}$/);
+    await assert.rejects(
+      pool.execute('UPDATE attendance_records SET registered_at=? WHERE id=?',['2026-09-30 09:00:00',codeMark.record.id]),
+      /No modificar datos originales/
+    );
     await request('/attendance/register','POST',{template:'synthetic',type:'entrada'},410);
     await request('/auth/login-fingerprint','POST',{template:'synthetic'},410);
     await request('/employees/'+employee+'/fingerprint','PUT',{fingerLabel:'indice_derecho',template:'synthetic'},410);
