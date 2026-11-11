@@ -37,9 +37,9 @@ Las categorías son `PARCIAL`, `NO_IMPLEMENTADO` y `NO_DEMOSTRADO`. Ningún íte
 | ID | Exigencia y referencia | Estado | Evidencia de código actual y acción necesaria | Prioridad |
 |---|---|---|---|---|
 | DT-01 | Art. 33 CT: autorización | NO_DEMOSTRADO | Certificación de tercero y resolución de autorización DT todavía no aportadas | **Bloqueante** |
-| DT-02 | Res. 38 art. 8: hash/checksum de cada marca y verificación web | NO_IMPLEMENTADO | `token.routes.js` graba `attendance_records` y audita, pero no emite hash público verificable por registro; diseñar protección criptográfica real y prueba contra adulteración | **Bloqueante** |
+| DT-02 | Res. 38 art. 8: hash/checksum de cada marca y verificación web | PARCIAL | `attendanceProofs.js` añade hash SHA-256 y verificación interna de marcas nuevas QR/PIN y manuales, con origen inmutable y pruebas. **Faltan verificación web pública con privacidad, anclaje externo y auditoría externa**; marcas antiguas quedan sin prueba retrospectiva | **Bloqueante** |
 | DT-03 | Res. 38 arts. 9-10: transmisión central y contingencia | NO_DEMOSTRADO | SQLite local; definir transmisión online y cola offline segura con antirreplay y sincronización comprobada | **Bloqueante** |
-| DT-04 | Res. 38 arts. 12-13: comprobante con datos exigidos | PARCIAL | Existe notificación tras marcar, pero sin evidencia completa de comprobante, contenido, firma/hash y entrega consistente | **Bloqueante** |
+| DT-04 | Res. 38 arts. 12-13: comprobante con datos exigidos | PARCIAL | Notificación tras marcar y hash interno para nuevas marcas; falta generar, entregar y verificar comprobantes con **todos** los campos legales, sello y constancia de entrega | **Bloqueante** |
 | DT-05 | Res. 38 art. 14: seguridad, replicación y continuidad | NO_DEMOSTRADO | `Respaldar.bat` local ayuda a preservar, pero no demuestra plataforma de alta disponibilidad, servidores replicados ni retención de cinco años | **Bloqueante** |
 | DT-06 | Res. 38 arts. 22-23: portal DT remoto y accesos | NO_IMPLEMENTADO | Root ≠ portal fiscalizador. Diseñar autenticación DT, consulta y registros de acceso según resolución, sin inventar cuentas oficiales | **Bloqueante** |
 | DT-07 | Res. 38 art. 27: reportes diarios/semanales auditables | PARCIAL | Existen reportes de asistencia, pero estructura, precisión y exportaciones normativas no están acreditadas | **Bloqueante** |
@@ -58,6 +58,12 @@ Los artículos citados definen el trabajo a revisar; la conformidad formal depen
 ## Jornada general versionada — desarrollo en esta rama
 
 `server/src/dtJornadaNormativa.js` crea tabla con vigencia histórica 45 h hasta 25-04-2024, 44 h desde 26-04-2024, 42 h desde 26-04-2026, 40 h desde 26-04-2028. La consulta interna `assessWeeklyOrdinaryHours` y el endpoint autenticado `GET /api/contract-terms/jornada/assessment?on=2026-11-11&weeklyHours=45&regime=GENERAL` **advierten**, no rechazan la carga. `regime=SPECIAL` y `regime=EXEMPT` responden sin determinar conformidad, exigiendo revisión particular. Se conserva el esquema versionado, sin cambios automáticos a contratos.
+
+## Integridad técnica inicial de marcaciones (todavía no conforme DT)
+
+`server/src/attendanceProofs.js` crea tabla `attendance_integrity_proofs` vacía e inmutable. Al insertar una marcación nueva vía terminal QR/PIN o una marca manual administrativa, en la **misma transacción** conserva un snapshot de datos esenciales e identidad del momento y un `SHA-256` con nonce aleatorio. El mecanismo interno `verifyAttendanceProof` verifica hash y consistencia con los campos originales, sin publicar RUT ni nombres. Nuevos registros devuelven `integrityProof`/ `integrityStatus`; reintentos anteriores sin prueba se marcan como `LEGACY_UNVERIFIED`, nunca se inventa un hash retroactivo.
+
+**Limitaciones explícitas:** no hay aún portal web oficial de verificación por hash, sello de tiempo externo, recibo de marca con contenido/formato normativo y entrega acreditada, sincronización central/alta disponibilidad, ni protocolo completo de corrección con aviso y oposición de 48 h. La prueba SHA-256 aislada no garantiza por sí sola invulnerabilidad ante administradores de base. **No declarar el control DT-02 aprobado ni el sistema apto para fiscalización.**
 
 ## Fase C — procedimiento de reconstrucción segura
 
