@@ -1,8 +1,10 @@
 # A03 — Reportes por período y precisión de segundos (12-11-2026)
 
+**Estado:** [PR #29 fusionado a `main`](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/29), commit `eb6ad497`, con CI de proyecto, QR móvil y beta laboral aprobado. **Faltan pruebas físicas y validación operativa.**
+
 **Alcance:** exclusivamente desarrollo de las subtareas A03.1, A03.2 y A03.4 del [plan de asistencia](42-PLAN-TRABAJO-ASISTENCIA-20261112.md). No se ejecuta conciliación con datos reales ni se certifican horas extras.
 
-## Programado en esta rama
+## Desarrollo integrado en `main`
 
 - **A03.1**: desde `Reportes`, consultar asistencia **diaria, semanal y mensual** del mes elegido y por trabajador; las semanas empiezan en lunes y al cruzar el mes se cuentan solo los días del mes filtrado. Conserva el reporte mensual anterior.
 - **A03.2**: calcular jornada, colación, atraso, salida anticipada, faltante y exceso técnico **en segundos** antes de sumar o truncar; conservar los campos de minutos anteriores por compatibilidad. El tiempo no calculable por marcas incompletas se indica aparte y no se presenta como jornada completa.
@@ -17,9 +19,9 @@
 
 ## Verificación técnica exigida
 
-1. `npm test --workspace server`, incluye `attendance-reports-a03.test.js`: segundos fraccionarios, agregación por persona/semana, límites de mes, CSV seguro, control de acceso y auditoría SHA-256 sin alterar marcaciones.
-2. `npm run build --workspace client`, reporte desde menú existente.
-3. Workflows GitHub: **Verificar proyecto**, **Validar mejoras QR móvil** y **Validar beta estructura laboral 1A–1E** en commit final.
+1. **Aprobado en CI:** `npm test --workspace server`, incluye `attendance-reports-a03.test.js`: segundos fraccionarios, agregación por persona/semana, límites de mes, CSV seguro, control de acceso y auditoría SHA-256 sin alterar marcaciones.
+2. **Aprobado en CI:** `npm run build --workspace client`, reporte desde menú existente.
+3. **Aprobados en el SHA del PR:** **Verificar proyecto**, **Validar mejoras QR móvil** y **Validar beta estructura laboral 1A–1E**.
 4. Antes de instalar: respaldo/restauración probada, actualización **manual** `Actualizar.bat`, pruebas en dispositivo físico y verificación de accesos. Sin despliegue automático ni manipulación de SQLite real desde este PR.
 
 **Fuente:** `server/src/attendanceReport.js`, `server/src/attendancePeriodReport.js`, `server/src/routes/attendance.routes.js`, `client/src/AttendancePeriodReports.jsx`. No duplica el módulo laboral ni introduce una base distinta. No acredita conformidad con DT.
