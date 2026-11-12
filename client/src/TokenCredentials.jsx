@@ -136,12 +136,12 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
         <strong>{card.name}</strong><img src={card.qrDataUrl} alt="Tarjeta QR personal"/>
         <p>Guarda o imprime ahora. El QR privado no puede recuperarse del servidor.</p>
         <a href={card.qrDataUrl} download="tarjeta-asistencia.png">Guardar QR</a>
-        <button type="button" onClick={()=>printQrCard(card).catch(e=>setError(e.message))}>Imprimir tarjeta</button>
+        <button type="button" onClick={()=>printQrCard(card).catch(e=>setError(e.message))}>Imprimir credencial RED TAURUS · carta</button>
         <button type="button" onClick={()=>setCard(null)}>Cerrar tarjeta</button>
       </div>}
 
       {canBulk&&<section className="tk-bulk">
-        <h3>Impresión múltiple · tamaño tarjeta personal</h3>
+        <h3>Credenciales plegables RED TAURUS · hoja carta</h3>
         <p>Solo se pueden emitir en lote tarjetas de trabajadores que todavía no tienen QR.
           Los QR ya emitidos no se regeneran ni se invalidan.</p>
         {workers.filter(w=>w.isActive&&!w.issuedAt).length>0&&<div className="tk-bulk-choices">
@@ -154,7 +154,7 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
             {w.displayName}
           </label>)}
         </div>}
-        <p>Seleccionados: {count} / 20</p>
+        <p>Seleccionados: {count} / 20 · {count ? Math.ceil(count / 4) : 0} hoja(s) carta. Máximo 4 credenciales por hoja, cada una con dos caras idénticas de 54 × 85 mm y QR de 20 × 20 mm.</p>
         {count>0&&<div className="tk-buttons">
           <button type="button" disabled={busy} onClick={()=>setBatchConfirm(true)}>Emitir {count} QR nuevos</button>
           <button type="button" disabled={busy} onClick={()=>{setBatchSelected({});setBatchConfirm(false);}}>Limpiar selección</button>
@@ -167,7 +167,7 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
         </div>}
         {batchCards.length>0&&<div className="tk-note">
           <strong>{batchCards.length} tarjetas nuevas generadas</strong>
-          <p>Formato ISO ID-1 (85,6 × 54 mm), varias tarjetas por hoja A4. No cierres esta pantalla antes de imprimir o guardar en PDF.</p>
+          <p>Formato RED TAURUS aprobado: 54 × 85 mm por cara, plegable de 108 × 85 mm. {Math.ceil(batchCards.length / 4)} hoja(s) carta, 4 credenciales por página. Imprimir a tamaño real (100 %, sin ajustar a página). No cierres antes de imprimir o guardar en PDF.</p>
           <button type="button" onClick={()=>printQrCards(batchCards).catch(e=>setError(e.message))}>Imprimir todas / Guardar PDF</button>
           <button type="button" onClick={()=>setBatchCards([])}>Cerrar tarjetas</button>
         </div>}
