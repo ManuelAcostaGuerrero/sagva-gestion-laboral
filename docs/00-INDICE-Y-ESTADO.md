@@ -1,3 +1,5 @@
+> **Plan K01-K06 de terminal de asistencia:** [portal Asistencia/Administración, QR primero, captura de hora, activación y retorno automático](47-PLAN-PANTALLA-ASISTENCIA-ESCANEO-PRIMERO-20261112.md). Planificado, sin cambios funcionales; el uso de la hora del escaneo como hora legal requiere revisión DT.
+
 > **Ficha contractual / jornada:** [simplificación de evaluación DT y resumen agrupado de horarios](46-FICHA-CONTRATO-RESUMEN-JORNADA-20261112.md). No modifica contratos ni historial; requiere revisión jurídica de horarios efectivos.
 
 > **Credenciales RED TAURUS en hoja carta:** [medidas invariables y distribución de 1 a 20 QR](45-CREDENCIALES-QR-CARTA-MEDIDAS-FIJAS-20261112.md). 54 × 85 mm por cara vertical, QR de 20 mm, cuatro pares plegables por carta. Pendiente validación de impresión física.
