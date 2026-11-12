@@ -1,5 +1,7 @@
 > **Plan de Asistencia del 12-11-2026:** [Comprobantes, rectificaciones, reportes y fases posteriores](42-PLAN-TRABAJO-ASISTENCIA-20261112.md). 13 subtareas seleccionadas para desarrollar, no completadas.
 
+> **A01 en revisión:** [PR #28: comprobantes de marcación](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/28) y [detalle técnico, pruebas y pendientes](43-A01-COMPROBANTES-20261112.md). No fusionado ni certificado.
+
 > **Estado vigente al 12-11-2026:** consultar [Consolidación de ramas, alcance y pendientes](40-CONSOLIDACION-RAMAS-Y-PENDIENTES-20261112.md). El plan antiguo de Propinas e integración de una base maestra conjunta **queda aplazado**; no bloquea SAGVA Gestión Laboral. Las secciones anteriores permanecen como registro histórico.
 
 # 00. Índice maestro y estado del proyecto
