@@ -4,6 +4,17 @@ import './tokens.css';
 import CameraIdentityPreview from './CameraIdentityPreview.jsx';
 import TerminalActivationScanner from './TerminalActivationScanner.jsx';
 import {requestId} from './requestId.js';
+import {printAttendanceReceipt} from './printAttendanceReceipt.js';
+
+const deliveryLabels={
+  ACCEPTED_BY_PROVIDER:'El servicio de correo aceptó el envío; recepción aún no confirmada.',
+  CONFIG_PENDING:'Envío pendiente: falta configurar el servicio de correo.',
+  EMAIL_MISSING:'No se envió: falta un correo válido del trabajador.',
+  EMAIL_DUPLICATED:'Envío retenido: correo duplicado entre trabajadores.',
+  FAILED:'No se pudo enviar el correo. Administración puede reintentar.',
+  DELIVERY_LOG_ERROR:'No se pudo confirmar el registro del envío.',
+  NOT_ATTEMPTED:'Comprobante generado. Envío aún no intentado.'
+};
 
 const actions=[
   ['entrada','Entrada turno'],
@@ -67,6 +78,13 @@ export default function TokenKiosk({setMessage}){
     return ()=>{active=false;};
   },[terminal?.token,alternativesOpen,mode]);
 
+  useEffect(()=>{
+    if(!last)return undefined;
+    // Terminal compartida: no mantener a la vista información personal indefinidamente.
+    const timeout=setTimeout(()=>setLast(null),30000);
+    return ()=>clearTimeout(timeout);
+  },[last]);
+
   async function activate(e){
     e.preventDefault();setBusy(true);
     try{
@@ -104,7 +122,7 @@ export default function TokenKiosk({setMessage}){
 
   async function cameraRead(token){
     if(activeRequest.current)throw new Error('Espera la lectura anterior.');
-    activeRequest.current=true;setBusy(true);
+    activeRequest.current=true;setBusy(true);setLast(null);
     try{
       const result=await api('/tokens/identify',{method:'POST',
         headers:{'X-Terminal-Token':terminal.token},body:JSON.stringify({token})});
@@ -150,7 +168,7 @@ export default function TokenKiosk({setMessage}){
       {actions.map(([value,label])=><button type="button" key={value}
         aria-pressed={action===value} className={action===value?'selected':''}
         disabled={busy} onClick={()=>{
-          setAction(value);attempt.current=null;credentialInput.current?.focus();
+          setAction(value);setLast(null);attempt.current=null;credentialInput.current?.focus();
         }}>{label}</button>)}
     </div>
 
@@ -207,11 +225,18 @@ export default function TokenKiosk({setMessage}){
             {busy?'Registrando…':`Registrar ${actions.find(a=>a[0]===action)[1].toLowerCase()}`}
           </button>
         </form>
-        {last&&<aside className="tk-last">
-          <strong>{last.employee.displayName}</strong>
-          <p>{actions.find(a=>a[0]===last.record.type)?.[1]} · {last.record.registeredAt}</p>
-        </aside>}
+
       </div>}
     </div>
+    {last?.record?.receipt&&<aside className="tk-last tk-receipt" aria-live="polite">
+      <strong>Comprobante #{last.record.id} · {last.employee.displayName}</strong>
+      <p>{actions.find(a=>a[0]===last.record.type)?.[1]} · {last.record.registeredAt}</p>
+      <p>{deliveryLabels[last.record.receipt.deliveryStatus]||'Estado del envío no disponible.'}</p>
+      {last.record.receipt.authenticityStatus!=='SIGNED'&&
+        <p>Firma de autenticidad pendiente de configuración; integridad SHA-256 conservada.</p>}
+      <button type="button" onClick={()=>{
+        if(!printAttendanceReceipt(last.record.receipt))setMessage('El navegador bloqueó la ventana de impresión.');
+      }}>Ver e imprimir comprobante</button>
+    </aside>}
   </section>;
 }
