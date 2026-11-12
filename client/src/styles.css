@@ -1945,3 +1945,68 @@ button.enrolled {
 @media (min-width: 1600px){
  .app-shell{max-width: min(98.5vw,2400px);}
 }
+
+/* Cabeceras responsivas: evita el overflow del logo y el menú en teléfonos.
+   La versión pública usa una sola columna al pasar de escritorio a móvil. */
+.admin-shell,.public-shell,.admin-sidebar,.public-main,.public-content{min-width:0}
+.sidebar-brand{object-fit:contain;max-height:132px}
+@media (max-width:820px){
+ .app-shell{width:100%;max-width:100%;box-sizing:border-box;padding:clamp(8px,3.2vw,16px)}
+ .public-shell,.admin-shell{width:100%;max-width:100%;min-width:0;gap:12px}
+ .public-sidebar{
+  grid-template-columns:minmax(0,1fr);
+  justify-content:stretch;
+  justify-items:center;
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+  gap:10px;
+  padding:12px;
+ }
+ .public-sidebar .sidebar-brand{
+  width:min(100%,280px);
+  max-width:100%;
+  height:auto;
+  max-height:108px;
+  margin:0 auto;
+  object-fit:contain;
+ }
+ .public-sidebar .sidebar-nav{
+  width:100%;
+  min-width:0;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+ }
+ .public-sidebar .sidebar-nav p{display:none}
+ .public-sidebar .sidebar-nav button{
+  width:100%;
+  min-width:0;
+  min-height:48px;
+  justify-content:center;
+  font-size:clamp(12px,3.3vw,15px);
+  padding:9px 7px;
+  gap:6px;
+  white-space:normal;
+  overflow-wrap:anywhere;
+ }
+ .public-sidebar .app-version{justify-self:center}
+ .public-sidebar .sidebar-footer-actions{width:100%;min-width:0}
+ .admin-sidebar{
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+  justify-items:stretch;
+ }
+ .admin-sidebar .sidebar-brand{
+  width:min(100%,280px);
+  max-width:100%;
+  max-height:112px;
+  object-fit:contain;
+ }
+ .public-main,.public-content,.module-heading{max-width:100%;min-width:0}
+}
+@media (max-width:420px){
+ .public-sidebar .sidebar-brand{max-height:88px}
+ .public-sidebar .sidebar-nav button{font-size:13px}
+ .module-heading h1{font-size:clamp(26px,8vw,38px)}
+}
