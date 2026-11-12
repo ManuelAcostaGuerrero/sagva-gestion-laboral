@@ -78,6 +78,24 @@ test('A01: comprobante inmutable, firma, consulta sin datos personales y bitáco
       headers:{Authorization:'Bearer '+signAdmin({id:admin.insertId,username:'a01',role:'admin'})}});
     assert.equal(authorized.status,200);
     assert.equal((await authorized.json()).receipt.worker.name,'TRABAJADORA SINTETICA');
-    assert.equal((await readAttendanceReceipt(pool,mark.insertId)).deliveryStatus,'ACCEPTED_BY_PROVIDER');
+    const payload=JSON.stringify({type:'email.delivered',data:{email_id:'synthetic-provider-id'}});
+    const secretBytes=Buffer.from('synthetic-resend-secret-32-bytes-in-tests');
+    process.env.RESEND_WEBHOOK_SECRET='whsec_'+secretBytes.toString('base64');
+    const eventId='evt-a01-synthetic-'+crypto.randomUUID();
+    const timestamp=String(Math.floor(Date.now()/1000));
+    const signature='v1,'+crypto.createHmac('sha256',secretBytes)
+      .update(eventId+'.'+timestamp+'.'+payload).digest('base64');
+    const hook=url+'/api/attendance/receipts/webhook/resend';
+    const invalid=await fetch(hook,{method:'POST',headers:{'Content-Type':'application/json',
+      'svix-id':eventId,'svix-timestamp':timestamp,'svix-signature':'v1,invalid'},body:payload});
+    assert.equal(invalid.status,401);
+    for(let i=0;i<2;i++){
+      const valid=await fetch(hook,{method:'POST',headers:{'Content-Type':'application/json',
+        'svix-id':eventId,'svix-timestamp':timestamp,'svix-signature':signature},body:payload});
+      assert.equal(valid.status,200);
+    }
+    assert.equal((await pool.execute('SELECT COUNT(*) n FROM attendance_receipt_delivery_events'))[0][0].n,1);
+    assert.equal((await readAttendanceReceipt(pool,mark.insertId)).deliveryStatus,'DELIVERED_TO_MAIL_SERVER');
+    delete process.env.RESEND_WEBHOOK_SECRET;
   }finally{await new Promise(resolve=>server.close(resolve));await pool.end();}
 });
