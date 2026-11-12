@@ -62,9 +62,9 @@ const asBool=row=>({...row,taxable:!!row.taxable,overtimeBase:!!row.overtimeBase
  conditions:legacyConditions(row)});
 laborBonusesRouter.get('/catalog',asyncHandler(async(req,res)=>{
  if(!permitted(req.admin,'labor.catalog.read'))throw fail('Sin acceso al catálogo.',403);
- const [rows]=await pool.execute('SELECT '+readFields+',
- (SELECT COUNT(*) FROM employee_bonus_assignments a WHERE a.bonus_id=labor_bonus_definitions.id) AS assignedCount
- FROM labor_bonus_definitions ORDER BY active DESC,kind,name');
+ const [rows]=await pool.execute('SELECT '+readFields+
+  ', (SELECT COUNT(*) FROM employee_bonus_assignments a WHERE a.bonus_id=labor_bonus_definitions.id) AS assignedCount'+
+  ' FROM labor_bonus_definitions ORDER BY active DESC,kind,name');
  res.json({bonuses:rows.map(asBool),canManage:mayManage(req.admin)});
 }));
 laborBonusesRouter.post('/catalog',asyncHandler(async(req,res)=>{
