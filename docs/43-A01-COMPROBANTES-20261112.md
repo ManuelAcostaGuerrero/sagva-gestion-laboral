@@ -9,7 +9,7 @@
 3. El comprobante incluye folio, fecha dd/mm/aa, hora HH:MM:SS, tipo y método, nombre y RUT del trabajador, razón social/RUT del empleador, terminal, dirección/territorio informado y SHA-256 de la marcación.
 4. La ubicación proviene *temporalmente* de la ficha de empresa. **No acredita el domicilio efectivo del local**. Los regímenes excepcionales no tienen aún fuente validada; aparecen como **SIN_VERIFICAR**. Se señalan brechas, nunca se inventan datos.
 5. Terminal QR/PIN ofrece visualización e impresión durante 30 segundos tras la marca. El verificador público usa folio + checksum: `GET /api/attendance/receipts/:id/verify?checksum=...`; devuelve exclusivamente integridad y autenticidad, sin datos personales.
-6. El envío por correo usa un adaptador HTTPS de Resend con remitente de sistema. Se guarda un evento por cada intento y un identificador cuando el proveedor acepta la solicitud; los reintentos se reservan a administración. **Aceptación no significa entrega en buzón**.
+6. El envío por correo usa un adaptador HTTPS de Resend con remitente de sistema. Se guarda un intento inmutable e identificador cuando el proveedor acepta la solicitud; los reintentos se reservan a administración. Un webhook firmado Svix con comprobación de integridad y prevención de repeticiones registra entregas, rebotes y retrasos, sin exponer datos personales. **Aceptación no significa entrega en buzón ni lectura por el trabajador**.
 7. Pruebas sintéticas en `server/src/__tests__/attendance-receipts-a01.test.js`. La suite actual del repositorio prueba también idempotencia QR/PIN y marca administrativa.
 
 ## Migración y compatibilidad
@@ -21,15 +21,16 @@
 - `SAGVA_RECEIPT_SIGNING_KEY`: secreto aleatorio, estable y de al menos 32 caracteres. Debe respaldarse con seguridad; perderlo impide validar firmas anteriores.
 - `RESEND_API_KEY`: token privado del proveedor de correo configurado.
 - `SAGVA_RECEIPT_FROM`: remitente de sistema no nominativo bajo dominio verificado por el proveedor.
+- `RESEND_WEBHOOK_SECRET`: secreto privado de autenticación del webhook emitido por el proveedor (Svix). Configurar evento firmado contra `POST /api/attendance/receipts/webhook/resend`; usar HTTPS público bajo dominio gestionado; nunca exponer claves.
 
-Estados de envío: `EMAIL_MISSING`, `EMAIL_DUPLICATED`, `CONFIG_PENDING`, `FAILED`, `ACCEPTED_BY_PROVIDER`. No presentar `ACCEPTED_BY_PROVIDER` como correo recibido, leído o entregado al trabajador. El envío faltante puede reintentarse de forma auditada mediante `POST /api/attendance/receipts/:id/retry` con perfil administrador.
+Estados de envío: `EMAIL_MISSING`, `EMAIL_DUPLICATED`, `CONFIG_PENDING`, `FAILED`, `ACCEPTED_BY_PROVIDER`, `DELIVERED_TO_MAIL_SERVER`, `BOUNCED`, `DELIVERY_DELAYED`. Los últimos tres requieren un evento auténtico del proveedor. `DELIVERED_TO_MAIL_SERVER` no acredita lectura por el trabajador; no confundir la aceptación de API con recepción efectiva. El envío faltante puede reintentarse de forma auditada mediante `POST /api/attendance/receipts/:id/retry` con perfil administrador.
 
 ## Puertas que siguen abiertas
 
 - [ ] Verificar CI completo de PR #28, test y build web.
 - [ ] Probar marcaciones QR/PIN e impresión en Windows y teléfono físico, con datos ficticios.
 - [ ] Configurar y probar firma HMAC y proveedor de correo desde un entorno aislado.
-- [ ] Comprobar entrega efectiva mediante evento del proveedor autenticado; actualmente solo existe constancia de aceptación.
+- [ ] Probar en un entorno real el webhook firmado del proveedor, registrar entrega efectiva y rebotes, y revisar el tratamiento de información personal. La recepción técnica por servidor de correo no prueba lectura.
 - [ ] Validar correo personal único y reglas de actualizaciones de correo.
 - [ ] Confirmar domicilio real **por terminal/local** y datos de jornada excepcional, EST o subcontratación antes de declarar comprobantes legales completos.
 - [ ] Revisar permisos, segmentación por empresa, auditoría y seguridad; no modificar registros reales.
