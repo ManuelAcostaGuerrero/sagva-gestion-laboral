@@ -67,7 +67,7 @@ employeeDocumentsRouter.get('/types', asyncHandler(async (req, res) => {
 
 employeeDocumentsRouter.post('/types', asyncHandler(async (req, res) => {
   await runMigrations();
-  if ((req.admin.role || 'admin') !== 'admin') throw fail('Solo el administrador puede crear tipos de documentos.', 403);
+  if (req.admin.profile !== 'root' && req.admin.role !== 'admin') throw fail('Solo Root o administración central pueden crear tipos de documentos.', 403);
   const parsed = catalogSchema.safeParse(req.body);
   if (!parsed.success) throw fail('Revisa el nombre y la modalidad de vencimiento.');
   const data = parsed.data;

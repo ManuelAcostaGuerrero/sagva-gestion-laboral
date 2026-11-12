@@ -29,8 +29,9 @@ const viewSql=`SELECT id, legal_name AS legalName,tax_id AS taxId,trade_name AS 
  updated_at AS updatedAt FROM company_profiles`;
 companiesRouter.get('/',asyncHandler(async(req,res)=>{
  const [rows]=await pool.execute(viewSql+' ORDER BY is_active DESC,legal_name');
- const list=rows.filter(row=>row.isActive||req.admin.role==='admin');
- const companies=req.admin.role==='admin'?list:list.map(({id,legalName,tradeName,defaultBranch,defaultAreaId,defaultPositionName,defaultSchedule,isActive})=>
+ const isGlobalAdmin=req.admin.profile==='root'||req.admin.role==='admin';
+ const list=rows.filter(row=>row.isActive||isGlobalAdmin);
+ const companies=isGlobalAdmin?list:list.map(({id,legalName,tradeName,defaultBranch,defaultAreaId,defaultPositionName,defaultSchedule,isActive})=>
    ({id,legalName,tradeName,defaultBranch,defaultAreaId,defaultPositionName,defaultSchedule,isActive}));
  res.json({companies});
 }));
