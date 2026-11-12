@@ -6,12 +6,12 @@
 
 ## 1. Comprobantes — PR-A01 (identificador de planificación, no número de GitHub)
 
-- [ ] Generar comprobante de cada marcación.
-- [ ] Incluir datos legales, fecha, hora y tipo de marca.
-- [ ] Entregar comprobante al trabajador y registrar evidencia de entrega.
-- [ ] Habilitar verificación de autenticidad e integridad.
+- [x] Generar comprobante inmutable de cada marcación nueva; sin retrorelleno histórico (código en PR #28).
+- [ ] Completar datos legales, fecha, hora y tipo de marca: estructura implementada; domicilio efectivo/local, régimen excepcional y casos EST pendientes de validación.
+- [ ] Entregar comprobante al trabajador y registrar evidencia de entrega: impresión y registro de intento implementados; proveedor requiere configuración y la recepción real aún no está probada.
+- [x] Habilitar verificación de integridad y autenticidad: SHA-256 y verificador sin PII; HMAC requiere secreto estable.
 
-**Inicio:** revisar comprobantes, notificaciones y pruebas de integridad ya existentes; completar solo brechas demostradas. **Estado:** seleccionado, sin PR funcional creado.
+**Estado:** [PR #28 en borrador](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/28), pendiente pruebas y cierre de brechas. [Detalle técnico A01](43-A01-COMPROBANTES-20261112.md). No fusionado.
 
 ## 2. Rectificaciones — PR-A02
 
@@ -60,7 +60,7 @@
 
 | Bloque | Seleccionado para el 12-11 | PR real | Estado |
 |---|---:|---|---|
-| PR-A01: Comprobantes | 4/4 | Sin crear | Planificado |
+| PR-A01: Comprobantes | 4/4 | [#28](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/28) | Borrador: 2 ítems implementados y 2 con brechas |
 | PR-A02: Rectificaciones | 4/4 | Sin crear | Planificado |
 | PR-A03: Reportes | 5/5 | Sin crear | Planificado |
 | Seguridad | 0/5 | — | Pendiente |
