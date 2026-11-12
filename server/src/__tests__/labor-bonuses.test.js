@@ -17,6 +17,8 @@ test('bonos: simulación no deduce automáticamente salario',()=>{
 
 test('bonos: permisos, asignación múltiple, evaluación auditable y versionada',async t=>{
  await runMigrations();await runMigrations();
+ const [migration]=await pool.execute("SELECT COUNT(*) AS count FROM schema_migrations WHERE id='20261111_036_bonus_assignment_notes'");
+ assert.equal(migration[0].count,1,'La migración de observaciones se aplica una sola vez');
  const [users]=await pool.execute("INSERT INTO admins(username,password_hash,full_name,role) VALUES('bonus-admin','hash','Administrador','admin')");
  const [worker]=await pool.execute("INSERT INTO employees(full_name,document_id) VALUES('Empleado Ficticio Bono','18.000.000-5')");
  const id=users.insertId,employeeId=worker.insertId;
@@ -39,7 +41,7 @@ test('bonos: permisos, asignación múltiple, evaluación auditable y versionada
  const cat=await call('/labor-bonuses/catalog');
  assert.equal(cat.data.bonuses.length,2);
  assert.equal(cat.data.bonuses.find(b=>b.code==='CAJA').taxable,true);
- const assigned=await call('/labor-bonuses/workers/'+employeeId+'/assignments','POST',{bonusId:created.data.id,amountOverrideClp:null,validFrom:'2026-11-10'});
+ const assigned=await call('/labor-bonuses/workers/'+employeeId+'/assignments','POST',{bonusId:created.data.id,amountOverrideClp:30000,validFrom:'2026-11-10',notes:'Bono asignado por cierres correctos de caja'});
  assert.equal(assigned.status,201,JSON.stringify(assigned.data));
  assert.equal((await call('/labor-bonuses/workers/'+employeeId+'/assignments','POST',{bonusId:second.data.id,amountOverrideClp:null,validFrom:'2026-11-10'})).status,201);
  const bad=await call('/labor-bonuses/workers/'+employeeId+'/assignments/'+assigned.data.id+'/evaluations','POST',{period:'2026-11',plannedUnits:30,correctUnits:31,evidence:'Cierre de prueba',revision:0});
@@ -50,6 +52,25 @@ test('bonos: permisos, asignación múltiple, evaluación auditable y versionada
  assert.equal(evaluated.data.status,'PENDIENTE_REVISION');
  const listed=await call('/labor-bonuses/workers/'+employeeId);
  assert.equal(listed.data.assignments.length,2);
+ const caja=listed.data.assignments.find(a=>a.bonusId===created.data.id);
+ assert.equal(caja.amountOverrideClp,30000);
+ assert.equal(caja.notes,'Bono asignado por cierres correctos de caja');
+ assert.equal(caja.taxable,true);
+ assert.equal(caja.withClause,true);
+ assert.equal(caja.clauseText,'Cierres correctos');
+ const legacyUpdate=await call('/labor-bonuses/workers/'+employeeId+'/assignments/'+caja.id,'PUT',
+  {revision:caja.revision,active:true,amountOverrideClp:30000,validFrom:'2026-11-10'});
+ assert.equal(legacyUpdate.status,200,JSON.stringify(legacyUpdate.data));
+ let updated=(await call('/labor-bonuses/workers/'+employeeId)).data.assignments.find(a=>a.id===caja.id);
+ assert.equal(updated.notes,caja.notes,'Cliente antiguo sin notes no debe borrar observaciones');
+ const withChanges=await call('/labor-bonuses/workers/'+employeeId+'/assignments/'+caja.id,'PUT',
+  {revision:updated.revision,active:true,amountOverrideClp:40000,validFrom:'2026-11-10',notes:'Nueva observación documentada'});
+ assert.equal(withChanges.status,200,JSON.stringify(withChanges.data));
+ updated=(await call('/labor-bonuses/workers/'+employeeId)).data.assignments.find(a=>a.id===caja.id);
+ assert.equal(updated.amountOverrideClp,40000);
+ assert.equal(updated.notes,'Nueva observación documentada');
+ const [assignmentHistory]=await pool.execute('SELECT COUNT(*) AS count FROM employee_bonus_assignment_history WHERE assignment_id=?',[caja.id]);
+ assert.equal(assignmentHistory[0].count,3,'Historial conserva asignación y las dos revisiones');
  assert.equal(listed.data.evaluations.length,1);
  const [history]=await pool.execute('SELECT COUNT(*) AS count FROM employee_bonus_evaluation_history');
  assert.equal(history[0].count,1);
