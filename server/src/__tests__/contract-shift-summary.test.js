@@ -63,7 +63,7 @@ test('Jornada: soporta selección vacía y múltiples grupos sin truncar',()=>{
  }))}));
  const summary=summarizeShiftPlan(distinct);
  assert.ok(summary.length<=2000);
- assert.equal(summary.split('\n').filter(x=>x.includes('alternativa')).length,7);
+ assert.equal(summary.split('\n').filter(x=>/^(LUNES|MARTES|MIÉRCOLES|JUEVES|VIERNES|SÁBADO|DOMINGO):/.test(x)).length,7);
  assert.match(summary,/DOMINGO:/);
  assert.equal(groupContractShiftPlan(distinct).length,7);
 });
