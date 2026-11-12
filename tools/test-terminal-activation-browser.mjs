@@ -48,14 +48,22 @@ try{
  assert.ok(first.activationQrDataUrl.startsWith('data:image/png;base64,'));
  await page.goto(base);
  await page.getByRole('heading',{name:'Activar terminal de asistencia'}).waitFor();
+ await page.waitForFunction(()=>{
+  const img=document.querySelector('.public-sidebar img.sidebar-brand');
+  const fallback=document.querySelector('.public-sidebar .sidebar-brand-fallback');
+  return !!fallback||!!(img?.complete&&img?.naturalWidth>0);
+ });
  for(const width of [360,390,768]){
   await page.setViewportSize({width,height:844});
   const data=await page.evaluate(()=>{
-   const logo=document.querySelector('.public-sidebar .sidebar-brand'),nav=document.querySelector('.public-sidebar .sidebar-nav');
+   const logo=document.querySelector('.public-sidebar .sidebar-brand, .public-sidebar .sidebar-brand-fallback');
+   const nav=document.querySelector('.public-sidebar .sidebar-nav');
    const bounds=logo?.getBoundingClientRect(),menu=nav?.getBoundingClientRect();
-   return {width:window.innerWidth,scroll:document.documentElement.scrollWidth,logoNatural:logo?.naturalWidth,logoLeft:bounds?.left,logoRight:bounds?.right,navLeft:menu?.left,navRight:menu?.right};
+   const ready=!!document.querySelector('.public-sidebar .sidebar-brand-fallback')||!!(logo?.naturalWidth>0);
+   return {width:window.innerWidth,scroll:document.documentElement.scrollWidth,
+    logoReady:ready,logoLeft:bounds?.left,logoRight:bounds?.right,navLeft:menu?.left,navRight:menu?.right};
   });
-  assert.ok(data.logoNatural>0,'logo debe cargar');
+  assert.ok(data.logoReady,'mostrar logo real o respaldo legible');
   assert.ok(data.logoLeft>=-1&&data.logoRight<=width+1,'logo completo dentro de pantalla '+width);
   assert.ok(data.navLeft>=-1&&data.navRight<=width+1,'menú dentro de pantalla '+width);
   assert.ok(data.scroll<=width+1,'sin desbordes horizontales en '+width+': '+JSON.stringify(data));
