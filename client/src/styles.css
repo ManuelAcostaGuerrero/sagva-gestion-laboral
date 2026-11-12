@@ -2010,3 +2010,27 @@ button.enrolled {
  .public-sidebar .sidebar-nav button{font-size:13px}
  .module-heading h1{font-size:clamp(26px,8vw,38px)}
 }
+
+/* Fallback cuando una instalación no trae el archivo opcional del logotipo.
+   No sustituye la imagen original cuando existe. */
+.sidebar-brand-fallback{
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ align-items:center;
+ width:min(100%,280px);
+ max-width:100%;
+ min-height:76px;
+ box-sizing:border-box;
+ border-left:5px solid #d32838;
+ border-radius:6px;
+ padding:10px 14px;
+ background:rgba(0,0,0,.15);
+ color:#fff;
+ text-align:center;
+ line-height:1.15;
+ overflow-wrap:anywhere;
+}
+.sidebar-brand-fallback strong{font-size:clamp(19px,4vw,27px);letter-spacing:.025em}
+.sidebar-brand-fallback span{font-size:clamp(10px,2.6vw,13px);letter-spacing:.12em;margin-top:5px}
+@media(max-width:420px){.sidebar-brand-fallback{min-height:70px;padding:9px 12px}}
