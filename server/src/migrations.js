@@ -25,7 +25,7 @@ import {migrateLaborAccounting} from './laborAccounting.js';
 import {migrateLaborBenefits} from './laborBenefits.js';
 import {migrateAccessControl,bootstrapRoot} from './securityPermissions.js';
 import {migrateLaborFields} from './laborFields.js';
-import {migrateLaborBonuses} from './laborBonuses.js';
+import {migrateLaborBonuses,migrateLaborBonusNotes} from './laborBonuses.js';
 import {migrateBankAuthorizations} from './bankAuthorization.js';
 import {migrateFamilyIncome} from './familyIncome.js';
 import {migrateJobDuties} from './jobDuties.js';
@@ -175,6 +175,7 @@ async function migrate() {
     await bootstrapRoot(connection);
     await migrateLaborFields(connection);
     await migrateLaborBonuses(connection);
+    await migrateLaborBonusNotes(connection);
     await migrateBankAuthorizations(connection);
     await migrateFamilyIncome(connection);
     await migrateJobDuties(connection);

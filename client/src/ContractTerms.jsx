@@ -84,12 +84,6 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
    </p>}
    <label>Colación (minutos)
     <input type="number" min="0" max="240" step="1" value={draft.breakMinutes} onChange={e=>change('breakMinutes',e.target.value===''?'':Number(e.target.value))}/></label>
-   <label>Medio de pago<select value={draft.paymentMethod} onChange={e=>change('paymentMethod',e.target.value)}>
-    <option value="">Por definir</option>
-    <option value="TRANSFERENCIA">Transferencia</option><option value="EFECTIVO">Efectivo</option>
-    <option value="MIXTO">Transferencia y efectivo</option><option value="CHEQUE">Cheque</option><option value="OTRO">Otro</option></select></label>
-   {draft.paymentMethod==='MIXTO'&&<label className="ef-field-wide">Detalle del pago mixto
-    <input maxLength={1000} placeholder="Indicar distribución entre transferencia y efectivo" value={draft.paymentDetails||''} onChange={e=>change('paymentDetails',e.target.value)}/></label>}
    <label>Lugar habitual de prestación
     <input value={draft.workplace} maxLength={500} onChange={e=>change('workplace',e.target.value.toLocaleUpperCase('es-CL'))} placeholder={suggestedWorkplace||'Por definir'}/></label>
    {suggestedWorkplace&&<div className="ef-field-wide">

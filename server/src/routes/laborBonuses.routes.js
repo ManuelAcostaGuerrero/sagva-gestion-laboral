@@ -24,8 +24,8 @@ const definition=z.object({
  revision:z.number().int().nonnegative().optional(),
  reason:z.string().trim().min(10).max(500)
 }).strict();
-const assignmentCreate=z.object({bonusId:z.number().int().positive(),amountOverrideClp:z.number().int().min(0).max(100000000).nullable(),validFrom:date}).strict();
-const assignmentUpdate=z.object({revision:z.number().int().positive(),active:z.boolean(),amountOverrideClp:z.number().int().min(0).max(100000000).nullable(),validFrom:date}).strict();
+const assignmentCreate=z.object({bonusId:z.number().int().positive(),amountOverrideClp:z.number().int().min(0).max(100000000).nullable(),validFrom:date,notes:z.string().trim().max(1000).default('')}).strict();
+const assignmentUpdate=z.object({revision:z.number().int().positive(),active:z.boolean(),amountOverrideClp:z.number().int().min(0).max(100000000).nullable(),validFrom:date,notes:z.string().trim().max(1000).optional()}).strict();
 const evaluation=z.object({period:z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),plannedUnits:z.number().int().min(1).max(366),correctUnits:z.number().int().nonnegative().max(366),evidence:z.string().trim().min(5).max(3000),revision:z.number().int().nonnegative()}).strict().refine(d=>d.correctUnits<=d.plannedUnits,{message:'Los cierres correctos no pueden exceder los previstos.'});
 function mayManage(admin){return permitted(admin,'labor.benefits.manage');}
 async function workerAccess(req,id,write=false){
@@ -77,7 +77,7 @@ laborBonusesRouter.put('/catalog/:id',asyncHandler(async(req,res)=>{
 laborBonusesRouter.get('/workers/:id',asyncHandler(async(req,res)=>{
  const id=idOf(req.params.id);if(!id)throw fail('Trabajador inválido.');
  await workerAccess(req,id);
- const [rows]=await pool.execute('SELECT a.id,a.bonus_id AS bonusId,a.amount_override_clp AS amountOverrideClp,a.valid_from AS validFrom,a.active,a.revision,b.code,b.name,b.kind,b.amount_clp AS amountClp,b.taxable,b.overtime_base AS overtimeBase,b.with_clause AS withClause,b.clause_text AS clauseText,b.evaluation_rules AS evaluationRules,b.legal_reviewed AS legalReviewed,b.active AS catalogActive FROM employee_bonus_assignments a JOIN labor_bonus_definitions b ON b.id=a.bonus_id WHERE a.employee_id=? ORDER BY a.active DESC,b.name',[id]);
+ const [rows]=await pool.execute('SELECT a.id,a.bonus_id AS bonusId,a.amount_override_clp AS amountOverrideClp,a.valid_from AS validFrom,a.notes AS notes,a.active,a.revision,b.code,b.name,b.kind,b.amount_clp AS amountClp,b.taxable,b.overtime_base AS overtimeBase,b.with_clause AS withClause,b.clause_text AS clauseText,b.evaluation_rules AS evaluationRules,b.legal_reviewed AS legalReviewed,b.active AS catalogActive FROM employee_bonus_assignments a JOIN labor_bonus_definitions b ON b.id=a.bonus_id WHERE a.employee_id=? ORDER BY a.active DESC,b.name',[id]);
  const [evals]=await pool.execute("SELECT e.id,e.assignment_id AS assignmentId,e.period,e.planned_units AS plannedUnits,e.correct_units AS correctUnits,e.suggested_clp AS suggestedClp,e.evidence,e.status,e.revision,e.evaluated_at AS evaluatedAt FROM employee_bonus_evaluations e JOIN employee_bonus_assignments a ON a.id=e.assignment_id WHERE a.employee_id=? ORDER BY e.period DESC,e.id DESC",[id]);
  res.json({assignments:rows.map(r=>({...asBool(r),catalogActive:!!r.catalogActive})),evaluations:evals});
 }));
@@ -91,7 +91,7 @@ laborBonusesRouter.post('/workers/:id/assignments',asyncHandler(async(req,res)=>
   const [b]=await db.execute('SELECT id,active FROM labor_bonus_definitions WHERE id=?',[d.bonusId]);
   if(!b[0]?.active)throw fail('El concepto no está activo.',409);
   if((await db.execute('SELECT id FROM employee_bonus_assignments WHERE employee_id=? AND bonus_id=?',[id,d.bonusId]))[0].length)throw fail('Bono ya asignado: edita su asignación.',409);
-  const [r]=await db.execute('INSERT INTO employee_bonus_assignments(employee_id,bonus_id,amount_override_clp,valid_from,updated_by) VALUES(?,?,?,?,?)',[id,d.bonusId,d.amountOverrideClp,d.validFrom,req.admin.id]);
+  const [r]=await db.execute('INSERT INTO employee_bonus_assignments(employee_id,bonus_id,amount_override_clp,valid_from,notes,updated_by) VALUES(?,?,?,?,?,?)',[id,d.bonusId,d.amountOverrideClp,d.validFrom,d.notes,req.admin.id]);
   await db.execute('INSERT INTO employee_bonus_assignment_history(assignment_id,revision,snapshot_json,changed_by) VALUES(?,?,?,?)',[r.insertId,1,JSON.stringify(d),req.admin.id]);
   await recordAudit(req.admin,'create','employee_bonus_assignment',r.insertId,{employeeId:id,bonusId:d.bonusId},db);
   await db.commit();res.status(201).json({id:r.insertId,message:'Bono vinculado al trabajador.'});
@@ -103,11 +103,11 @@ laborBonusesRouter.put('/workers/:id/assignments/:assignmentId',asyncHandler(asy
  await workerAccess(req,id,true);const d=p.data,db=await pool.getConnection();
  try{
   await db.beginTransaction();
-  const [rows]=await db.execute('SELECT revision FROM employee_bonus_assignments WHERE id=? AND employee_id=?',[aid,id]);
+  const [rows]=await db.execute('SELECT revision,notes FROM employee_bonus_assignments WHERE id=? AND employee_id=?',[aid,id]);
   if(!rows.length)throw fail('Asignación no encontrada.',404);
   if(rows[0].revision!==d.revision)throw fail('Asignación modificada en otra sesión.',409);
-  await db.execute('UPDATE employee_bonus_assignments SET amount_override_clp=?,valid_from=?,active=?,revision=revision+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=?',[d.amountOverrideClp,d.validFrom,d.active?1:0,req.admin.id,aid]);
-  await db.execute('INSERT INTO employee_bonus_assignment_history(assignment_id,revision,snapshot_json,changed_by) VALUES(?,?,?,?)',[aid,d.revision+1,JSON.stringify(d),req.admin.id]);
+  await db.execute('UPDATE employee_bonus_assignments SET amount_override_clp=?,valid_from=?,active=?,notes=?,revision=revision+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=?',[d.amountOverrideClp,d.validFrom,d.active?1:0,d.notes??rows[0].notes,req.admin.id,aid]);
+  await db.execute('INSERT INTO employee_bonus_assignment_history(assignment_id,revision,snapshot_json,changed_by) VALUES(?,?,?,?)',[aid,d.revision+1,JSON.stringify({...d,notes:d.notes??rows[0].notes}),req.admin.id]);
   await recordAudit(req.admin,'update','employee_bonus_assignment',aid,{employeeId:id,revision:d.revision+1},db);
   await db.commit();res.json({message:'Asignación actualizada con historial.'});
  }catch(e){await db.rollback();throw e;}finally{db.release();}

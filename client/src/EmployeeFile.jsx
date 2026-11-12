@@ -96,6 +96,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   const [medicalDirty,setMedicalDirty]=useState(false);
   const medicalRef = useRef(null);
   const contractRef = useRef(null);
+  const bonusesRef = useRef(null);
   const [contractDirty,setContractDirty]=useState(false);
   const [documentsDirty,setDocumentsDirty]=useState(false);
   const [contractReload,setContractReload]=useState(0);
@@ -551,7 +552,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                   {companies.map(company=><option key={company.id} value={company.id} disabled={!company.isActive && Number(draft.companyId)!==company.id}>{company.legalName}{!company.isActive ? ' (inactiva)' : ''}</option>)}
                   {draft.companyId&&!companies.some(c=>c.id===Number(draft.companyId))&&<option value={draft.companyId}>{draft.company || 'Empresa histórica'} (fuera del catálogo disponible)</option>}
                 </select></label>
-                <button type="button" onClick={()=>api('/companies').then(result=>setCompanies(result.companies||[])).catch(e=>setError(e.message))}>Actualizar empresas</button>
+                <button type="button" className="ef-refresh-companies" onClick={()=>api('/companies').then(result=>setCompanies(result.companies||[])).catch(e=>setError(e.message))}>Actualizar empresas</button>
                 <label>Sucursal<select aria-label="Sucursal" value={draft.extra?.branch||''} onChange={e=>change('extra',{...draft.extra,branch:e.target.value})}>
                   <option value="" disabled>Sin sucursal registrada</option>
                   {!!selectedCompany?.defaultBranch && <option value={selectedCompany.defaultBranch}>{selectedCompany.defaultBranch}</option>}
@@ -595,6 +596,10 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                   {renderClear('contractType')}
                 </label>
                 {(showContractDetails||fieldPending(missingFields,'hireDate')) && renderField('hireDate','Fecha de inicio')}
+                {['admin','supervisor'].includes(role)&&<div className="ef-field-wide ef-bonus-shortcut">
+                  <span>Bonos del trabajador</span>
+                  <button type="button" className="la-small" onClick={()=>bonusesRef.current?.scrollIntoView({behavior:'smooth',block:'center'})}>Ir a bonos</button>
+                </div>}
                 {draft.contractType === 'INDEFINIDO' && (draft.employmentStatus === 'INACTIVO' || draft.employmentStatus === 'FINIQUITADO' || draft.isActive === 0) && renderField('terminationDate','Fecha de término efectivo')}
                 {draft.contractType === 'INDEFINIDO' && draft.employmentStatus==='ACTIVO' && draft.isActive!==0 &&
                   <p className="ef-note ef-field-wide">Contrato indefinido vigente: sin fecha de vencimiento. Una fecha anterior, si existe, se conserva como historial.</p>}
@@ -628,7 +633,9 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                   positionName={draft.positionName} areaId={draft.workAreaId} positions={positions}
                   onDirtyChange={setContractDirty} /> : <p className="ef-note ef-field-wide">Guarda primero al trabajador para registrar condiciones contractuales.</p>)}
                 {["admin","supervisor"].includes(role)&&<ConfiguredFields ref={configuredContractRef} key={(draft.id||'new')+'-contract'} employeeId={draft.id} target="CONTRATO" onDirtyChange={setConfiguredContractDirty} onPendingChange={setMissingContractConfigured}/>}
-                 {draft.id && ['admin','supervisor'].includes(role) && <EmployeeBonuses key={draft.id} employeeId={draft.id}/>}
+                 {['admin','supervisor'].includes(role) && <div ref={bonusesRef} className="ef-field-wide">
+                   <EmployeeBonuses key={draft.id||'nuevo'} employeeId={draft.id}/>
+                 </div>}
                 <div className="ef-field-wide"><strong>Estado laboral</strong></div>
                 <label>Estado laboral
                   <select aria-label="Estado laboral" value={draft.employmentStatus || ''} onChange={e => change('employmentStatus',e.target.value)}>

@@ -21,3 +21,16 @@ export function calculateBonusPreview(amountClp,plannedUnits,correctUnits){
   throw new Error('Evaluación de bono inválida.');
  return Math.round(amountClp*correctUnits/plannedUnits);
 }
+
+/* Campo aditivo: observación individual sin modificar bonos ni asignaciones existentes.
+   La casilla «Imponible» y la cláusula siguen siendo propiedades del catálogo. */
+export const BONUS_NOTES_MIGRATION='20261111_036_bonus_assignment_notes';
+export async function migrateLaborBonusNotes(db){
+ const [existing]=await db.execute('SELECT id FROM schema_migrations WHERE id=?',[BONUS_NOTES_MIGRATION]);
+ if(existing.length)return;
+ const [columns]=await db.execute('PRAGMA table_info(employee_bonus_assignments)');
+ if(!columns.some(column=>column.name==='notes')){
+  await db.execute("ALTER TABLE employee_bonus_assignments ADD COLUMN notes TEXT NOT NULL DEFAULT ''");
+ }
+ await db.execute('INSERT INTO schema_migrations(id) VALUES(?)',[BONUS_NOTES_MIGRATION]);
+}
