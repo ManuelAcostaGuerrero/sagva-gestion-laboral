@@ -32,7 +32,20 @@ export async function migrateAttendanceReceipts(db){
     "channel TEXT NOT NULL DEFAULT 'EMAIL' CHECK(channel='EMAIL'),",
     "status TEXT NOT NULL CHECK(status IN('CONFIG_PENDING','EMAIL_MISSING','EMAIL_DUPLICATED','ACCEPTED_BY_PROVIDER','FAILED')),",
     'provider_id TEXT,error_code TEXT,attempted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);',
-    'CREATE INDEX attendance_receipt_delivery_record ON attendance_receipt_delivery_attempts(record_id,id);'
+    'CREATE INDEX attendance_receipt_delivery_record ON attendance_receipt_delivery_attempts(record_id,id);',
+    'CREATE TRIGGER attendance_receipt_attempt_no_update BEFORE UPDATE ON attendance_receipt_delivery_attempts',
+    "BEGIN SELECT RAISE(ABORT,'Intento de envio inmutable'); END;",
+    'CREATE TRIGGER attendance_receipt_attempt_no_delete BEFORE DELETE ON attendance_receipt_delivery_attempts',
+    "BEGIN SELECT RAISE(ABORT,'No borrar intento de envio'); END;",
+    'CREATE TABLE attendance_receipt_delivery_events(',
+    'event_id TEXT PRIMARY KEY,record_id INTEGER NOT NULL REFERENCES attendance_receipts(record_id) ON DELETE RESTRICT,',
+    "provider_id TEXT NOT NULL,event_type TEXT NOT NULL CHECK(event_type IN('email.delivered','email.bounced','email.delivery_delayed')),",
+    'received_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP);',
+    'CREATE INDEX receipt_delivery_event_record ON attendance_receipt_delivery_events(record_id,received_at);',
+    'CREATE TRIGGER receipt_delivery_event_no_update BEFORE UPDATE ON attendance_receipt_delivery_events',
+    "BEGIN SELECT RAISE(ABORT,'Evento de entrega inmutable'); END;",
+    'CREATE TRIGGER receipt_delivery_event_no_delete BEFORE DELETE ON attendance_receipt_delivery_events',
+    "BEGIN SELECT RAISE(ABORT,'No borrar evento de entrega'); END;"
   ].join(' '));
   await db.execute('INSERT INTO schema_migrations(id) VALUES(?)',[ATTENDANCE_RECEIPTS_MIGRATION]);
 }
@@ -110,7 +123,10 @@ export async function readAttendanceReceipt(db,recordId){
   const [attempts]=await db.execute(
     'SELECT status,attempted_at AS attemptedAt FROM attendance_receipt_delivery_attempts '+
     'WHERE record_id=? ORDER BY id DESC LIMIT 1',[recordId]);
-  return {...verified,deliveryStatus:attempts[0]?.status||'NOT_ATTEMPTED',deliveryAttemptedAt:attempts[0]?.attemptedAt||null};
+  const [events]=await db.execute('SELECT event_type AS type FROM attendance_receipt_delivery_events WHERE record_id=? ORDER BY rowid DESC LIMIT 1',[recordId]);
+  const event=events[0]?.type;
+  const status=event==='email.delivered'?'DELIVERED_TO_MAIL_SERVER':event==='email.bounced'?'BOUNCED':event==='email.delivery_delayed'?'DELIVERY_DELAYED':attempts[0]?.status||'NOT_ATTEMPTED';
+  return {...verified,deliveryStatus:status,deliveryAttemptedAt:attempts[0]?.attemptedAt||null};
 }
 export function receiptText(receipt){
   const workplace=receipt.workplace;
@@ -124,6 +140,7 @@ export function receiptText(receipt){
     'Lugar: '+workplace.name+' · '+[workplace.address,workplace.commune,workplace.city,workplace.region].filter(Boolean).join(', '),
     'Jornada excepcional: '+receipt.exceptionalRegime,
     'SHA-256 de marcación: '+receipt.attendanceProof.checksum,
+    'SHA-256 de comprobante: '+sha256(JSON.stringify(receipt)),
     ...(receipt.reviewWarnings.length?['Revisión pendiente: '+receipt.reviewWarnings.join('; ')]:[]),
     'La autenticidad se verifica en el servidor; este documento no acredita certificación DT.'
   ].join('\n');
@@ -141,7 +158,8 @@ export async function resendTransport({to,receipt,idempotencyKey}){
       'Content-Type':'application/json','Idempotency-Key':idempotencyKey},
     body:JSON.stringify({from:process.env.SAGVA_RECEIPT_FROM,to:[to],
       subject:'Comprobante de marcación #'+receipt.recordId,
-      text:receiptText(receipt),html:receiptEmailHtml(receipt)})
+      text:receiptText(receipt),html:receiptEmailHtml(receipt)}),
+    signal:AbortSignal.timeout(8000)
   });
   const parsed=await response.json().catch(()=>({}));
   if(!response.ok||!parsed.id)throw Object.assign(new Error('Rechazado por proveedor'),{code:'PROVIDER_REJECTED'});
@@ -149,7 +167,7 @@ export async function resendTransport({to,receipt,idempotencyKey}){
 }
 export async function dispatchAttendanceReceipt(db,recordId,{transport=resendTransport}={}){
   const verified=await readAttendanceReceipt(db,recordId);
-  if(verified.deliveryStatus==='ACCEPTED_BY_PROVIDER')return verified;
+  if(['ACCEPTED_BY_PROVIDER','DELIVERED_TO_MAIL_SERVER'].includes(verified.deliveryStatus))return verified;
   const [rows]=await db.execute('SELECT e.email FROM attendance_records a JOIN employees e ON e.id=a.employee_id WHERE a.id=?',[recordId]);
   const email=clean(rows[0]?.email).toLowerCase();
   let status='FAILED',providerId=null,errorCode=null;
@@ -171,4 +189,42 @@ export async function dispatchAttendanceReceipt(db,recordId,{transport=resendTra
     '(record_id,recipient_email,status,provider_id,error_code) VALUES(?,?,?,?,?)',
     [recordId,email||null,status,providerId,errorCode]);
   return readAttendanceReceipt(db,recordId);
+}
+
+
+// Resend/Svix: validar firma HMAC sobre bytes originales, ventana anti-replay
+// y proveedor conocido antes de aceptar confirmación de entrega.
+export function verifyResendWebhook(raw,headers){
+  const secret=clean(process.env.RESEND_WEBHOOK_SECRET);
+  const id=clean(headers.id),timestamp=clean(headers.timestamp),signature=clean(headers.signature);
+  if(!/^whsec_[A-Za-z0-9+/=]+$/.test(secret)||!id||!/^\d{10}$/.test(timestamp))
+    throw error('Webhook no autorizado.',401);
+  if(Math.abs(Math.floor(Date.now()/1000)-Number(timestamp))>300)
+    throw error('Webhook fuera de plazo.',401);
+  const payload=Buffer.isBuffer(raw)?raw:Buffer.from(raw||'');
+  const encoded=crypto.createHmac('sha256',Buffer.from(secret.slice(6),'base64'))
+    .update(Buffer.concat([Buffer.from(id+'.'+timestamp+'.'),payload])).digest();
+  const accepted=signature.split(/\s+/).some(part=>{
+    if(!/^v1,[A-Za-z0-9+/=]+$/.test(part))return false;
+    const bytes=Buffer.from(part.slice(3),'base64');
+    return bytes.length===encoded.length&&crypto.timingSafeEqual(bytes,encoded);
+  });
+  if(!accepted)throw error('Webhook no autorizado.',401);
+  return payload;
+}
+export async function recordResendDeliveryEvent(db,raw,headers){
+  const verified=verifyResendWebhook(raw,headers);
+  let data;
+  try{data=JSON.parse(verified.toString('utf8'));}catch{throw error('Evento inválido.',400);}
+  const type=clean(data.type),providerId=clean(data.data?.email_id),eventId=clean(headers.id);
+  if(!['email.delivered','email.bounced','email.delivery_delayed'].includes(type))return {ignored:true};
+  if(!providerId||!eventId)throw error('Evento incompleto.',400);
+  const [attempts]=await db.execute(
+    "SELECT record_id AS recordId FROM attendance_receipt_delivery_attempts WHERE provider_id=? AND status='ACCEPTED_BY_PROVIDER' ORDER BY id DESC LIMIT 1",
+    [providerId]);
+  if(!attempts.length)throw error('Envío aún no registrado. Reintentar evento.',409);
+  await db.execute(
+    'INSERT OR IGNORE INTO attendance_receipt_delivery_events(event_id,record_id,provider_id,event_type) VALUES(?,?,?,?)',
+    [eventId,attempts[0].recordId,providerId,type]);
+  return {accepted:true};
 }
