@@ -1,6 +1,6 @@
 # PR-A01 — Comprobantes de marcación (12-11-2026)
 
-**PR real:** [#28](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/28) · **Rama:** `feat/a01-comprobantes-asistencia-20261112` · **Estado:** borrador funcional sujeto a pruebas y configuración externa.
+**PR real:** [#28](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/28) · **Rama:** `feat/a01-comprobantes-asistencia-20261112` · **Estado:** fusionado a `main` de pruebas el 12-11-2026 en `98a5c522`. CI: servidor/compilación, QR móvil y beta laboral aprobados. Configuración externa y validación DT permanecen pendientes.
 
 ## Alcance realizado en la rama
 
@@ -27,7 +27,7 @@ Estados de envío: `EMAIL_MISSING`, `EMAIL_DUPLICATED`, `CONFIG_PENDING`, `FAILE
 
 ## Puertas que siguen abiertas
 
-- [ ] Verificar CI completo de PR #28, test y build web.
+- [x] Verificar CI completo de PR #28, test y build web. Tres flujos aprobados en commit `8c22bcdd` antes de fusionar.
 - [ ] Probar marcaciones QR/PIN e impresión en Windows y teléfono físico, con datos ficticios.
 - [ ] Configurar y probar firma HMAC y proveedor de correo desde un entorno aislado.
 - [ ] Probar en un entorno real el webhook firmado del proveedor, registrar entrega efectiva y rebotes, y revisar el tratamiento de información personal. La recepción técnica por servidor de correo no prueba lectura.
