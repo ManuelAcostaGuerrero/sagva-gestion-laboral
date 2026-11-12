@@ -12,7 +12,7 @@ await pool.execute('INSERT INTO worker_tokens(employee_id,token_hash) VALUES(?,?
 const [device]=await pool.execute("INSERT INTO attendance_terminals(name,company_id,token_hash) VALUES('CELULAR SINTÉTICO',?,?)",[company.insertId,hash(terminal)]);
 let identifies=0;const backend=express();backend.use((req,res,next)=>{if(req.path==='/api/tokens/identify')identifies++;next();});backend.use(app);
 const api=backend.listen(0,'127.0.0.1');await new Promise(r=>api.once('listening',r));
-const web=express();web.get('/__test/print.js',(_req,res)=>res.type('text/javascript').send(fs.readFileSync(path.join(root,'client/src/printQrCard.js'))));web.use(createWebApp({apiTarget:'http://127.0.0.1:'+api.address().port}));const server=web.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));
+const web=express();web.get('/__test/print.js',(_req,res)=>res.type('text/javascript').send(fs.readFileSync(path.join(root,'client/src/printQrCard.js'))));web.get('/__test/printQrCards.js',(_req,res)=>res.type('text/javascript').send(fs.readFileSync(path.join(root,'client/src/printQrCards.js'))));web.get('/__test/qrCredentialPrintLayout.js',(_req,res)=>res.type('text/javascript').send(fs.readFileSync(path.join(root,'client/src/qrCredentialPrintLayout.js'))));web.use(createWebApp({apiTarget:'http://127.0.0.1:'+api.address().port}));const server=web.listen(0,'127.0.0.1');await new Promise(r=>server.once('listening',r));
 const browser=await chromium.launch({headless:true,channel:process.env.TEST_BROWSER_CHANNEL||'chrome'});
 try {
  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
@@ -53,7 +53,9 @@ try {
  const qrDataUrl=await QRCode.toDataURL('asistencia:'+token,{width:360,margin:3});
  await page.evaluate(card=>{window.__card=card;const button=document.createElement('button');button.id='test-print';button.textContent='Imprimir prueba';button.onclick=async()=>{const {printQrCard}=await import('/__test/print.js');window.__printPromise=printQrCard(window.__card);};document.body.append(button);},{name:'TRABAJADOR <PILOTO>',qrDataUrl});
  const popupPromise=context.waitForEvent('page');await page.locator('#test-print').click();const popup=await popupPromise;
- await popup.waitForFunction(()=>window.__printed===true);assert.equal(await popup.locator('h1').textContent(),'TRABAJADOR <PILOTO>');assert.ok(await popup.locator('img').evaluate(img=>img.naturalWidth>0));
+ await popup.waitForFunction(()=>window.__printed===true);assert.equal(await popup.locator('h1').textContent(),'TRABAJADOR <PILOTO>');assert.equal(await popup.locator('.qr-face').count(),2,'cada credencial debe tener dos caras idénticas');assert.ok(await popup.locator('.qr-face-image').first().evaluate(img=>img.naturalWidth>0));
+ const sizes=await popup.locator('.qr-face').first().evaluate(el=>{const rect=el.getBoundingClientRect();const qr=el.querySelector('.qr-face-image').getBoundingClientRect();return {w:rect.width,h:rect.height,qr:qr.width};});
+ const mm=96/25.4;assert.ok(Math.abs(sizes.w-54*mm)<1&&Math.abs(sizes.h-85*mm)<1,'medidas físicas 54x85 mm');assert.ok(Math.abs(sizes.qr-20*mm)<1,'QR fijo de 20 mm');
  await popup.evaluate(()=>{window.close=()=>{};});
  await popup.pdf({path:path.join(out,'qr-print-test.pdf'),printBackground:true});assert.deepEqual(failures,[]);
  console.log('OK: viewport móvil, cámara se detiene tras cada lectura, nombre grande, marcación sintética y QR visible en impresión/PDF. No se probó hardware del teléfono.');
