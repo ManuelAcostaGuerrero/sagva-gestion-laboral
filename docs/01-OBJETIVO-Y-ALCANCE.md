@@ -1,3 +1,5 @@
+> **Actualización de alcance, 12-11-2026:** este documento describe la planificación histórica original. El desarrollo vigente se limita a **SAGVA Gestión Laboral/Asistencia/Contratos/DT/Seguridad**. **No integrar Propinas ni Repartos en esta etapa**. `INT-003` y `INT-005` (Propinas) y la antigua base unificada `INT-004` quedan aplazados y **no bloquean** el desarrollo laboral. Ver [plan vigente y auditoría de ramas](40-CONSOLIDACION-RAMAS-Y-PENDIENTES-20261112.md). No se reescriben funcionalidades existentes.
+
 # 01. Alcance, arquitectura y navegación
 
 ## Visión
