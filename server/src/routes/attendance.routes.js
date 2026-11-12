@@ -236,7 +236,7 @@ attendanceRouter.get('/expected-report', requireAdmin, asyncHandler(async (req, 
 
 
 const attendancePeriodFilters=z.object({
-  month:z.string().regex(/^\\d{4}-(0[1-9]|1[0-2])$/),
+  month:z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
   period:z.enum(['daily','weekly','monthly']),
   employeeId:z.coerce.number().int().min(0).default(0)
 });
