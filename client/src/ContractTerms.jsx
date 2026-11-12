@@ -2,7 +2,7 @@ import React,{forwardRef,useEffect,useImperativeHandle,useRef,useState} from 're
 import {api} from './services/api.js';
 import {blankContractTerms} from '../../server/src/contractTerms.js';
 import ContractShiftSelector from './ContractShiftSelector.jsx';
-import {summarizeShiftPlan,legacySummarizeShiftPlan} from './contractShiftSummary.js';
+import {summarizeShiftPlan,updateDraftShiftPlan} from './contractShiftSummary.js';
 
 function todayInChile(){
  const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Santiago',year:'numeric',month:'2-digit',day:'2-digit'})
@@ -50,13 +50,7 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
   setDraft(current=>(!current.jobDuties?.trim()||(oldText&&current.jobDuties===oldText))?{...current,jobDuties:template.duties}:current);
   previousTemplate.current=template.duties;
  },[loading,saved?.revision,template?.revision,areaId,positionName]);
- const changeShiftPlan=plan=>setDraft(current=>{
-  const previousText=current.shiftDistribution||'';
-  const oldAuto=summarizeShiftPlan(current.shiftPlan||[]);
-  const oldLegacy=legacySummarizeShiftPlan(current.shiftPlan||[]);
-  const canReplace=!previousText.trim()||previousText===oldAuto||previousText===oldLegacy;
-  return {...current,shiftPlan:plan,shiftDistribution:canReplace?summarizeShiftPlan(plan):previousText};
- });
+ const changeShiftPlan=plan=>setDraft(current=>updateDraftShiftPlan(current,plan));
  const automaticShiftSummary=summarizeShiftPlan(draft.shiftPlan||[]);
  async function saveChanges(){
   if(!dirty)return;
