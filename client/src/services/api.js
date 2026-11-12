@@ -41,3 +41,25 @@ export async function api(path, options = {}) {
 
   return payload;
 }
+
+ // Descargar archivos protegidos sin exponer el token en URLs o enlaces públicos.
+export async function downloadApiFile(path){
+  const currentToken=authToken || localStorage.getItem('token') || '';
+  let response;
+  try{
+    response=await fetch(`${API_URL}${path}`,{headers:{
+      ...(currentToken ? {Authorization:`Bearer ${currentToken}`}: {})
+    },cache:'no-store'});
+  }catch(cause){
+    const error=new Error('No se pudo descargar el reporte. Revisa la conexión.',{cause});
+    error.code='NETWORK_ERROR';
+    throw error;
+  }
+  if(!response.ok){
+    const body=await response.json().catch(()=>null);
+    throw new Error(body?.message || 'No fue posible descargar el archivo.');
+  }
+  const disposition=response.headers.get('Content-Disposition')||'';
+  const filename=disposition.match(/filename="([a-z0-9._-]+)"/i)?.[1]||'reporte-asistencia.csv';
+  return {blob:await response.blob(),filename,digest:response.headers.get('X-Report-SHA256')||null};
+}
