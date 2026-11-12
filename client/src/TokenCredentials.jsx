@@ -72,7 +72,7 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
     <h2>Credenciales y terminales</h2>
     <div className="tk-admin-tabs" role="group" aria-label="Seleccionar configuración">
       <button type="button" aria-pressed={section==='workers'} onClick={()=>{
-        setSection('workers');setError('');
+        setSection('workers');setActivation(null);setError('');
       }}>QR y PIN del personal</button>
       <button type="button" aria-pressed={section==='terminals'} onClick={()=>{
         setSection('terminals');setError('');
@@ -179,7 +179,7 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
         No modifica las tarjetas QR del personal.</p>
       <form onSubmit={e=>{e.preventDefault();perform(async()=>{
         const r=await api('/tokens/terminals',{method:'POST',body:JSON.stringify({name,companyId:Number(companyId)})});
-        setActivation(r.activationCode);setName('');
+        setActivation({code:r.activationCode,qrDataUrl:r.activationQrDataUrl});setName('');
       },{refreshTerminals:true});}}>
         <label>Empresa
           <select value={companyId} onChange={e=>setCompanyId(e.target.value)}>
@@ -192,10 +192,14 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
         </label>
         <button disabled={busy||!name.trim()||!companyId}>Crear terminal</button>
       </form>
-      {activation&&<div className="tk-note">
-        <p>Código de activación de un solo uso, vence en 10 minutos.</p>
-        <code className="tk-secret">{activation}</code>
-        <button type="button" onClick={()=>setActivation(null)}>Ocultar código</button>
+      {activation&&<div className="tk-note tk-activation-secret" role="region" aria-label="Código y QR de activación">
+        <strong>Activar equipo con código o QR</strong>
+        <p>Ambos permiten activar el mismo equipo, una sola vez. Vencen en 10 minutos. No compartas este QR públicamente.</p>
+        {activation.qrDataUrl&&<img className="tk-activation-qr" src={activation.qrDataUrl} alt="QR temporal para activar este equipo"/>}
+        <label>Código para ingresar manualmente
+          <code className="tk-secret">{activation.code}</code>
+        </label>
+        <button type="button" onClick={()=>setActivation(null)}>Ocultar código y QR</button>
       </div>}
       <h3>Terminales registradas</h3>
       {terminals.map(t=>{
@@ -221,7 +225,7 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
                 const result=await api('/tokens/terminals/'+t.id+'/config',{
                   method:'POST',body:JSON.stringify({...draft,companyId:Number(draft.companyId)})
                 });
-                if(result.activationCode)setActivation(result.activationCode);
+                if(result.activationCode)setActivation({code:result.activationCode,qrDataUrl:result.activationQrDataUrl});
                 setTerminalDrafts(old=>{const next={...old};delete next[t.id];return next;});
                 onMessage?.(result.message);
               },{refreshTerminals:true})}>Guardar configuración</button>

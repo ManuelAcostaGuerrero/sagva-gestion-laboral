@@ -68,6 +68,7 @@ jobs:
           node tools/test-beta-labor-structure.mjs
           node tools/test-beta-dt-browser.mjs
           node tools/test-beta-labor-browser.mjs
+          PLAYWRIGHT_MODULE=@playwright/test TEST_BROWSER_CHANNEL=chrome node tools/test-terminal-activation-browser.mjs
       - name: Publicar evidencias sintéticas, nunca claves ni base
         if: always()
         uses: actions/upload-artifact@v4
@@ -83,4 +84,5 @@ jobs:
             .local/beta-labor-ui-desktop.png
             .local/beta-labor-ui-mobile-emulated.png
             .local/beta-labor-ui-error.png
+            .local/qa/terminal-activation-mobile-before.png
           if-no-files-found: ignore

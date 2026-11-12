@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import crypto from 'node:crypto';
 process.env.SQLITE_PATH=':memory:';process.env.JWT_SECRET='token-tests-not-real';
-const {app}=await import('../app.js');const {pool}=await import('../db.js');const {runMigrations}=await import('../migrations.js');const {signAdmin}=await import('../auth.js');
+const {app}=await import('../app.js');const {pool}=await import('../db.js');const {runMigrations}=await import('../migrations.js');const {signAdmin}=await import('../auth.js');const {terminalActivationQrPayload,parseTerminalActivationQr}=await import('../terminalActivationQr.js');
 test('QR/PIN: terminal obligatoria, activación única, credenciales hash, rotación/revocación, auditoría e idempotencia',async()=>{
   await runMigrations();const [admin]=await pool.execute("INSERT INTO admins(username,password_hash,full_name) VALUES('token-test','hash','Prueba')");
   const [employee]=await pool.execute("INSERT INTO employees(full_name,document_id) VALUES('Prueba Uno',NULL)");
@@ -14,9 +14,21 @@ test('QR/PIN: terminal obligatoria, activación única, credenciales hash, rotac
   try{
     assert.equal((await req('/terminals',{name:'No permitido'},operator)).status,403);
     const activated=await req('/terminals',{name:'Terminal de prueba',companyId:company.insertId});assert.equal(activated.status,201);
+    assert.match(activated.data.activationCode,/^[A-Za-z0-9_-]{43}$/);
+    assert.ok(activated.data.activationQrDataUrl.startsWith('data:image/png;base64,'));
+    assert.equal(parseTerminalActivationQr(terminalActivationQrPayload(activated.data.activationCode)),activated.data.activationCode);
+    assert.equal(parseTerminalActivationQr('asistencia:at_'+activated.data.activationCode),null);
+    assert.equal(parseTerminalActivationQr('sagva-terminal:not-valid'),null);
+    const [storedActivation]=await pool.execute('SELECT activation_hash AS activationHash FROM attendance_terminals WHERE id=?',[activated.data.id]);
+    assert.equal(storedActivation[0].activationHash,crypto.createHash('sha256').update(activated.data.activationCode).digest('hex'));
+    assert.equal(storedActivation[0].activationHash.includes(activated.data.activationCode),false);
+
     assert.equal((await req('/mark',{token:'at_invalid',type:'entrada',requestId:crypto.randomUUID()},null)).status,401);
     const activation=await req('/activate',{activationCode:activated.data.activationCode},null);assert.equal(activation.status,200);terminal=activation.data.terminalToken;
     assert.equal((await req('/activate',{activationCode:activated.data.activationCode},null)).status,401);
+    assert.equal((await req('/activate',{activationCode:'sagva-terminal:'+activated.data.activationCode},null)).status,401,
+      'El servidor solo acepta el código, no el contenido QR sin validar');
+
     const issued=await req(`/workers/${employee.insertId}/issue`,{});assert.equal(issued.status,201);assert.ok(issued.data.qrDataUrl.startsWith('data:image/png;base64,'));
     const stored=(await pool.execute('SELECT token_hash FROM worker_tokens'))[0][0].token_hash;assert.notEqual(stored,issued.data.token);assert.equal(stored.length,64);
     const body={token:'asistencia:'+issued.data.token,type:'entrada',requestId:crypto.randomUUID()};
