@@ -9,6 +9,7 @@ const addDate = (date, days) =>
     .toISOString()
     .slice(0, 10);
 const minutes = (ms) => Math.max(0, Math.trunc(ms / 60000));
+const seconds = (ms) => Math.max(0, Math.trunc(ms / 1000));
 export function monthRange(month) {
   const first = new Date(`${month}-01T12:00:00Z`);
   if (
@@ -71,20 +72,24 @@ export function summarizeScheduleDay(schedule, records) {
   if (open !== null) incomplete = true;
   const totalRecords = ordered.length,
     mealMarks = ordered.filter((r) => r.type.includes("colacion")).length;
-  const gross = minutes(
+  // Mantener precisión de segundos hasta finalizar la suma y los descuentos.
+  // Los campos históricos *Minutes se conservan para clientes anteriores.
+  const grossSeconds = seconds(
     sessions.reduce((sum, s) => sum + Math.max(0, s.end - s.start), 0),
   );
-  const mealMinutes = mealMs ? minutes(mealMs) : null;
-  const actualMinutes = sessions.length
-    ? Math.max(0, gross - (mealMinutes ?? schedule.shift?.breakMinutes ?? 0))
+  const mealSeconds = mealMs ? seconds(mealMs) : null;
+  const actualSeconds = sessions.length
+    ? Math.max(0, grossSeconds - (mealSeconds ?? (schedule.shift?.breakMinutes ?? 0) * 60))
     : null;
+  const mealMinutes = mealSeconds === null ? null : Math.trunc(mealSeconds / 60);
+  const actualMinutes = actualSeconds === null ? null : Math.trunc(actualSeconds / 60);
   const work = schedule.dayType === "work";
-  let lateMinutes = null,
-    earlyLeaveMinutes = null,
+  let lateSeconds = null,
+    earlyLeaveSeconds = null,
     missingSegments = 0;
   if (work && intervals.length && sessions.length) {
-    lateMinutes = 0;
-    earlyLeaveMinutes = 0;
+    lateSeconds = 0;
+    earlyLeaveSeconds = 0;
     for (const interval of intervals) {
       const matches = sessions.filter(
         (s) => s.start < interval.end && s.end > interval.start,
@@ -93,23 +98,28 @@ export function summarizeScheduleDay(schedule, records) {
         missingSegments++;
         continue;
       }
-      lateMinutes += minutes(
+      lateSeconds += seconds(
         Math.min(...matches.map((s) => s.start)) - interval.start,
       );
-      earlyLeaveMinutes += minutes(
+      earlyLeaveSeconds += seconds(
         interval.end - Math.max(...matches.map((s) => s.end)),
       );
     }
   }
   const expectedMinutes = work ? (schedule.shift?.workMinutes ?? null) : null;
-  const overtimeMinutes =
-    expectedMinutes !== null && actualMinutes !== null
-      ? Math.max(0, actualMinutes - expectedMinutes)
+  const expectedSeconds = expectedMinutes === null ? null : expectedMinutes * 60;
+  const overtimeSeconds =
+    expectedSeconds !== null && actualSeconds !== null
+      ? Math.max(0, actualSeconds - expectedSeconds)
       : null;
-  const missingMinutes =
-    expectedMinutes !== null && actualMinutes !== null
-      ? Math.max(0, expectedMinutes - actualMinutes)
+  const missingSeconds =
+    expectedSeconds !== null && actualSeconds !== null
+      ? Math.max(0, expectedSeconds - actualSeconds)
       : null;
+  const lateMinutes = lateSeconds === null ? null : Math.trunc(lateSeconds / 60);
+  const earlyLeaveMinutes = earlyLeaveSeconds === null ? null : Math.trunc(earlyLeaveSeconds / 60);
+  const overtimeMinutes = overtimeSeconds === null ? null : Math.trunc(overtimeSeconds / 60);
+  const missingMinutes = missingSeconds === null ? null : Math.trunc(missingSeconds / 60);
   const status =
     !work && !totalRecords
       ? schedule.dayType
@@ -121,7 +131,7 @@ export function summarizeScheduleDay(schedule, records) {
           ? "absent"
           : incomplete || missingSegments || !sessions.length
             ? "incomplete"
-            : lateMinutes || earlyLeaveMinutes || missingMinutes
+            : lateSeconds || earlyLeaveSeconds || missingSeconds
               ? "with_observations"
               : "complete";
   return {
@@ -154,6 +164,13 @@ export function summarizeScheduleDay(schedule, records) {
     earlyLeaveMinutes,
     overtimeMinutes,
     missingMinutes,
+    mealSeconds,
+    actualSeconds,
+    expectedSeconds,
+    lateSeconds,
+    earlyLeaveSeconds,
+    overtimeSeconds, // Solo exceso técnico; NO horas extras aprobadas.
+    missingSeconds,
     status,
   };
 }
