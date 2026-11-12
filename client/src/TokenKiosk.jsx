@@ -2,6 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {api} from './services/api.js';
 import './tokens.css';
 import CameraIdentityPreview from './CameraIdentityPreview.jsx';
+import TerminalActivationScanner from './TerminalActivationScanner.jsx';
 import {requestId} from './requestId.js';
 
 const actions=[
@@ -125,11 +126,14 @@ export default function TokenKiosk({setMessage}){
 
   if(!terminal)return <form className="tk-kiosk" onSubmit={activate}>
     <h2>Activar terminal de asistencia</h2>
-    <p>Solicita al administrador el código de activación de este equipo.</p>
+    <p>Solicita al administrador un código o QR de activación. Ambos son de un solo uso y vencen en 10 minutos.</p>
     <label>Código de activación
-      <input value={activation} onChange={e=>setActivation(e.target.value)} autoComplete="off"/>
+      <input value={activation} onChange={e=>setActivation(e.target.value)} autoComplete="off"
+        autoCapitalize="none" autoCorrect="off" spellCheck={false}
+        placeholder="Escribe el código o escanea su QR"/>
     </label>
-    <button className="primary" disabled={busy||!activation}>
+    <TerminalActivationScanner onCode={setActivation}/>
+    <button className="primary" disabled={busy||!activation.trim()}>
       {busy?'Activando…':'Activar este equipo'}
     </button>
   </form>;
