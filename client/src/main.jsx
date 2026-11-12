@@ -557,7 +557,10 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
    return()=>{live=false;};
   },[]);
 
-  const adminRole = (() => { try { const token = localStorage.getItem('token'); return JSON.parse(window.atob(token.split('.')[1])).role || ''; } catch { return ''; } })();
+  // Root se resuelve desde /auth/me (perfil vigente en BD), nunca desde el rol antiguo del JWT.
+  // Si el rol del token quedó desfasado, Root mantiene el menú administrativo completo.
+  const sessionRole = (() => { try { const token = localStorage.getItem('token'); return JSON.parse(window.atob(token.split('.')[1])).role || ''; } catch { return ''; } })();
+  const adminRole = laborStructureRoot ? 'admin' : sessionRole;
   const canManageDocumentCatalog = adminRole === 'admin';
   const canAuditDocuments = ['admin', 'supervisor'].includes(adminRole);
   const [employees, setEmployees] = useState([]);
