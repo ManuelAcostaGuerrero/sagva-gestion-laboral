@@ -1,3 +1,5 @@
+> **Estado vigente al 12-11-2026:** consultar [Consolidación de ramas, alcance y pendientes](40-CONSOLIDACION-RAMAS-Y-PENDIENTES-20261112.md). El plan antiguo de Propinas e integración de una base maestra conjunta **queda aplazado**; no bloquea SAGVA Gestión Laboral. Las secciones anteriores permanecen como registro histórico.
+
 # 00. Índice maestro y estado del proyecto
 
 **Actualizado: 09-11-2026.** Se distingue evidencia del repositorio, pruebas reportadas por el propietario y puertas INT todavía abiertas. [Cierre funcional y hoja de ruta](24-CIERRE-FUNCIONAL-F3-Y-HOJA-RUTA-20261109.md).
