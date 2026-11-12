@@ -13,6 +13,7 @@ import {sendAttendanceNotification} from '../pushNotifications.js';
 import {workerName} from '../workerNames.js';
 import {ATTENDANCE_TYPES} from '../attendanceSchema.js';
 import {createAttendanceProof,verifyAttendanceProof} from '../attendanceProofs.js';
+import {createAttendanceReceipt,readAttendanceReceipt,dispatchAttendanceReceipt} from '../attendanceReceipts.js';
 import {terminalActivationQrPayload} from '../terminalActivationQr.js';
 
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
@@ -179,17 +180,25 @@ tokenRouter.post('/mark',requireTerminal,asyncHandler(async(req,res)=>{
     if(prior.length){if(prior[0].employee_id!==employee.id||prior[0].terminal_id!==req.terminal.id||prior[0].type!==input.type)throw error('La solicitud anterior corresponde a otra marcación.',409);record=prior[0];
       const proof=await verifyAttendanceProof(c,record.id);
       if(proof.exists&&!proof.valid)throw error('Inconsistencia de integridad en marcación anterior. Requiere revisión.',409);
+      const [hasReceipt]=await c.execute('SELECT record_id FROM attendance_receipts WHERE record_id=?',[record.id]);
+      const receipt=hasReceipt.length?await readAttendanceReceipt(c,record.id):null;
       await c.commit();
       return res.json({employee:{id:employee.id,displayName:workerName(employee)},
         record:{id:record.id,type:record.type,registeredAt:record.registeredAt,
           integrityProof:proof.valid?{algorithm:proof.algorithm,digest:proof.digest}:null,
-          integrityStatus:proof.valid?'VERIFIED':'LEGACY_UNVERIFIED'},repeated:true});}
+          integrityStatus:proof.valid?'VERIFIED':'LEGACY_UNVERIFIED',receipt},repeated:true});}
     const [created]=await c.execute('INSERT INTO attendance_records(employee_id,record_type,registered_at,device_name,mark_method,terminal_id,request_key) VALUES(?,?,?,?,?,?,?)',[employee.id,input.type,time,req.terminal.name,method,req.terminal.id,input.requestId]);
     record={id:created.insertId,type:input.type,registeredAt:time,method,terminal:req.terminal.name};
     record.integrityProof=await createAttendanceProof(c,record.id);
     record.integrityStatus='VERIFIED';
+    record.receipt=await createAttendanceReceipt(c,record.id);
     await recordAudit(null,'register_attendance','attendance_record',record.id,{employeeId:employee.id,method,terminalId:req.terminal.id,companyId:req.terminal.companyId,source:input.source||'MANUAL'},c);await c.commit();
   }catch(e){await c.rollback();throw e;}finally{c.release();}
+  try{record.receipt=await dispatchAttendanceReceipt(pool,record.id);}catch(e){
+    console.error('No se pudo registrar el envío de comprobante:',e.code||e.message);
+    record.receipt={...record.receipt,deliveryStatus:'DELIVERY_LOG_ERROR'};
+  }
   await sendAttendanceNotification({employee:{id:employee.id,fullName:employee.fullName},record,source:method});
+  res.set('Cache-Control','private, no-store');
   res.status(201).json({employee:{id:employee.id,displayName:workerName(employee)},record});
 }));

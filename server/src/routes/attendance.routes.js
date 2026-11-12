@@ -3,7 +3,7 @@ import { Router } from 'express';
 import crypto from 'crypto';
 import { z } from 'zod';
 import { pool } from '../db.js';
-import { requireAdmin } from '../auth.js';
+import { requireAdmin,requireRoles } from '../auth.js';
 import { asyncHandler } from '../asyncHandler.js';
 import { getConfiguredDateTime, getSystemSettings } from '../systemSettings.js';
 import { ensureEmployeeAccessColumns } from '../employeeAccess.js';
@@ -13,6 +13,8 @@ import bcrypt from 'bcryptjs';
 import { recordAudit } from '../auditLog.js';
 import { attachAttendanceDurations } from '../attendancePairing.js';
 import {createAttendanceProof} from '../attendanceProofs.js';
+import {createAttendanceReceipt,dispatchAttendanceReceipt,readAttendanceReceipt,verifyReceipt} from '../attendanceReceipts.js';
+import {runMigrations} from '../migrations.js';
 
 export const attendanceRouter = Router();
 
@@ -254,7 +256,7 @@ attendanceRouter.post('/records/manual', requireAdmin, asyncHandler(async (req, 
   // Los registros nuevos se sellan y auditan en una misma transacción.
   // El flujo DT de oposición de 48 horas sigue pendiente y se marca como brecha.
   const db=await pool.getConnection();
-  let id,integrityProof;
+  let id,integrityProof,receipt;
   try{
     await db.beginTransaction();
     const [result]=await db.execute(
@@ -266,12 +268,17 @@ attendanceRouter.post('/records/manual', requireAdmin, asyncHandler(async (req, 
     );
     id=result.insertId;
     integrityProof=await createAttendanceProof(db,id);
+    receipt=await createAttendanceReceipt(db,id);
     await recordAudit(req.admin,'create_manual_record','attendance_record',id,{
       employeeId:parsed.data.employeeId,type:parsed.data.type,
       registeredAt:parsed.data.registeredAt,reason:parsed.data.reason
     },db);
     await db.commit();
   }catch(e){await db.rollback();throw e;}finally{db.release();}
+  try{receipt=await dispatchAttendanceReceipt(pool,id);}catch(e){
+    console.error('No se pudo registrar el envío de comprobante:',e.code||e.message);
+    receipt={...receipt,deliveryStatus:'DELIVERY_LOG_ERROR'};
+  }
   await sendAttendanceNotification({
     employee:employees[0],
     record:{id,type:parsed.data.type,registeredAt:parsed.data.registeredAt,integrityProof},
@@ -279,7 +286,7 @@ attendanceRouter.post('/records/manual', requireAdmin, asyncHandler(async (req, 
   });
   res.status(201).json({
     id,message:'Marca manual creada; el procedimiento DT de rectificación sigue pendiente.',
-    integrityProof,integrityStatus:'VERIFIED'
+    integrityProof,integrityStatus:'VERIFIED',receipt
   });
 }));
 
@@ -329,4 +336,37 @@ attendanceRouter.delete('/records/:id', requireAdmin, asyncHandler(async (req, r
     before: records[0]
   });
   res.json({ message: 'Marca anulada' });
+}));
+
+
+// Verificación pública mínima: quien posee el checksum puede comprobar un folio,
+// pero no puede consultar nombre, RUT, correo ni información del empleador.
+attendanceRouter.get('/receipts/:id/verify',asyncHandler(async(req,res)=>{
+  await runMigrations();
+  const id=Number(req.params.id),checksum=String(req.query.checksum||'').trim().toLowerCase();
+  if(!Number.isSafeInteger(id)||id<1||!/^[a-f0-9]{64}$/.test(checksum))
+    return res.status(400).json({message:'Folio o comprobante inválido.'});
+  const checked=await verifyReceipt(pool,id,checksum);
+  res.set('Cache-Control','no-store');
+  return res.json({valid:checked.valid,integrityStatus:checked.valid?'VERIFIED':'INVALID',
+    authenticityStatus:checked.valid?checked.authenticityStatus:'INVALID'});
+}));
+
+attendanceRouter.get('/receipts/:id',requireRoles('admin'),asyncHandler(async(req,res)=>{
+  await runMigrations();
+  const id=Number(req.params.id);
+  if(!Number.isSafeInteger(id)||id<1)return res.status(400).json({message:'Folio inválido.'});
+  res.set('Cache-Control','private, no-store');
+  res.json(await readAttendanceReceipt(pool,id));
+}));
+
+attendanceRouter.post('/receipts/:id/retry',requireRoles('admin'),asyncHandler(async(req,res)=>{
+  await runMigrations();
+  const id=Number(req.params.id);
+  if(!Number.isSafeInteger(id)||id<1)return res.status(400).json({message:'Folio inválido.'});
+  const result=await dispatchAttendanceReceipt(pool,id);
+  await recordAudit(req.admin,'receipt_email_retry','attendance_record',id,
+    {deliveryStatus:result.deliveryStatus});
+  res.set('Cache-Control','private, no-store');
+  res.json({receiptId:id,deliveryStatus:result.deliveryStatus});
 }));

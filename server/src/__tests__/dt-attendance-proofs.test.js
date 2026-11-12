@@ -53,6 +53,8 @@ test('DT: evidencia SHA-256 inmutable con auditoría; sin backfill de marcas ant
     const payload=await response.json();
     assert.equal(response.status,201,JSON.stringify(payload));
     assert.match(payload.integrityProof.digest,/^[a-f0-9]{64}$/);
+    assert.equal(payload.receipt.receipt.recordId,payload.id);
+    assert.match(payload.receipt.checksum,/^[a-f0-9]{64}$/);
     assert.equal((await verifyAttendanceProof(pool,payload.id)).valid,true);
     const summaryResponse=await fetch('http://127.0.0.1:'+server.address().port+'/api/attendance/summary?date=2026-11-11',{
       headers:{Authorization:'Bearer '+token}

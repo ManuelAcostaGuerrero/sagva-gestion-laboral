@@ -28,6 +28,9 @@ import {laborFieldsRouter} from './routes/laborFields.routes.js';
 import {laborBonusesRouter} from './routes/laborBonuses.routes.js';
 import {jobDutiesRouter} from './routes/jobDuties.routes.js';
 import {laborStructureRouter} from './modules/labor-structure/laborStructure.routes.js';
+import {recordResendDeliveryEvent} from './attendanceReceipts.js';
+import {runMigrations} from './migrations.js';
+import {pool} from './db.js';
 
 export const app = express();
 const allowedOrigins = String(process.env.CLIENT_ORIGIN || 'http://localhost:5183')
@@ -66,6 +69,16 @@ app.use(cors({
     return callback(new Error('Origen no permitido por CORS'));
   }
 }));
+// Webhook sin sesión: firma verificable sobre bytes crudos antes de procesar JSON.
+app.post('/api/attendance/receipts/webhook/resend',express.raw({type:'application/json',limit:'64kb'}),async(req,res,next)=>{
+  try{
+    await runMigrations();
+    await recordResendDeliveryEvent(pool,req.body,{
+      id:req.get('svix-id'),timestamp:req.get('svix-timestamp'),signature:req.get('svix-signature')
+    });
+    res.set('Cache-Control','no-store').json({ok:true});
+  }catch(e){next(e);}
+});
 app.use(express.json({ limit: '2mb' }));
 // Retired identification methods remain archived for historical compatibility;
 // no public route can mark or log in with the old biometric/code flow.
