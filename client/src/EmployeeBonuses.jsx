@@ -52,12 +52,7 @@ export default function EmployeeBonuses({employeeId}){
      <td><div className="la-inline-actions">
       <button type="button" className="la-small" disabled={busy}
        onClick={()=>setEditingAssignment({id:a.id,revision:a.revision,active:a.active,validFrom:a.validFrom,
-        amountOverrideClp:a.amountOverrideClp===null?'':String(a.amountOverrideClp),notes:a.notes||''})}>Editar asignación</button>
-      <button type="button" className="la-small" disabled={busy}
-       onClick={()=>execute(()=>api('/labor-bonuses/workers/'+employeeId+'/assignments/'+a.id,{
-        method:'PUT',body:JSON.stringify({revision:a.revision,active:!a.active,
-         amountOverrideClp:a.amountOverrideClp,validFrom:a.validFrom,notes:a.notes||''})
-       }))}>{a.active?'Suspender':'Reactivar'}</button>
+        amountOverrideClp:a.amountOverrideClp,notes:a.notes||''})}>Editar observación</button>
      </div></td>
     </tr>)}
     {!assigned.length&&<tr><td colSpan={7}>Aún no hay bonos asignados.</td></tr>}
@@ -65,28 +60,19 @@ export default function EmployeeBonuses({employeeId}){
    </table></div>
 
    {editingAssignment&&<div className="ef-bonus-editor">
-    <h4>Editar asignación del trabajador</h4>
-    <div className="ef-grid">
-     <label>Monto individual CLP (vacío = catálogo)
-      <input type="number" min="0" max="100000000" step="1" value={editingAssignment.amountOverrideClp}
-       onChange={e=>setEditingAssignment(v=>({...v,amountOverrideClp:e.target.value}))}/></label>
-     <label>Vigencia desde
-      <input type="date" value={editingAssignment.validFrom}
-       onChange={e=>setEditingAssignment(v=>({...v,validFrom:e.target.value}))}/></label>
-     <label className="ef-field-wide">Observación administrativa
-      <textarea rows={2} maxLength={1000} value={editingAssignment.notes}
-       onChange={e=>setEditingAssignment(v=>({...v,notes:e.target.value}))}/></label>
-    </div>
-    <p className="ef-note">Los cambios económicos con efecto contractual deben respaldarse mediante un anexo. Este formulario no genera anexos ni autoriza pagos.</p>
+    <h4>Observación de la asignación</h4>
+    <p className="ef-note">Monto, vigencia y suspensión quedan bloqueados hasta implementar cambios respaldados por anexo contractual. Esta nota no cambia las condiciones del bono.</p>
+    <label>Observación administrativa
+     <textarea rows={2} maxLength={1000} value={editingAssignment.notes}
+      onChange={e=>setEditingAssignment(v=>({...v,notes:e.target.value}))}/></label>
     <div className="la-inline-actions">
-     <button type="button" className="primary la-small"
-      disabled={busy||!editingAssignment.validFrom||!validMoney(editingAssignment.amountOverrideClp)}
+     <button type="button" className="primary la-small" disabled={busy}
       onClick={async()=>{const d=editingAssignment;
        const ok=await execute(()=>api('/labor-bonuses/workers/'+employeeId+'/assignments/'+d.id,{
         method:'PUT',body:JSON.stringify({revision:d.revision,active:d.active,validFrom:d.validFrom,
-         amountOverrideClp:amountToNumber(d.amountOverrideClp),notes:d.notes})}));
+         amountOverrideClp:d.amountOverrideClp,notes:d.notes})}));
        if(ok)setEditingAssignment(null);
-      }}>Guardar asignación</button>
+      }}>Guardar observación</button>
      <button type="button" className="la-small" onClick={()=>setEditingAssignment(null)}>Cancelar</button>
     </div>
    </div>}
