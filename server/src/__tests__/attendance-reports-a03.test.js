@@ -99,10 +99,12 @@ test('A03: API de reportes protegida y exportación CSV auditada',async()=>{
     assert.equal(report.rows[0].period,'2026-11-12');
     const exported=await fetch(root+path.replace('/period-report?','/period-report/export?'),{headers:{Authorization:'Bearer '+token}});
     assert.equal(exported.status,200);
-    const csv=await exported.text();
+    // El SHA corresponde al archivo en bytes. response.text() puede omitir el BOM UTF-8.
+    const exportedBytes=Buffer.from(await exported.arrayBuffer());
+    const csv=exportedBytes.toString('utf8');
     assert.ok(csv.includes('08:00:25'));
     assert.ok(csv.includes('TRABAJADOR SINTETICO'));
-    const checksum=crypto.createHash('sha256').update(csv).digest('hex');
+    const checksum=crypto.createHash('sha256').update(exportedBytes).digest('hex');
     assert.equal(exported.headers.get('x-report-sha256'),checksum);
     const [audit]=await pool.execute("SELECT details FROM audit_logs WHERE action='export_attendance_period_report' ORDER BY id DESC LIMIT 1");
     assert.equal(JSON.parse(audit[0].details).sha256,checksum);
