@@ -1,8 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
-import {summarizeScheduleDay} from '../attendanceReport.js';
-import {aggregateAttendancePeriods,attendancePeriodCsv,secondsAsHms} from '../attendancePeriodReport.js';
+// SQLite sintética antes de cargar módulos que inicializan el pool.
+process.env.SQLITE_PATH=':memory:';
+process.env.JWT_SECRET='synthetic-a03-test';
+const {summarizeScheduleDay}=await import('../attendanceReport.js');
+const {aggregateAttendancePeriods,attendancePeriodCsv,secondsAsHms}=await import('../attendancePeriodReport.js');
 
 test('A03: calcula en segundos antes del redondeo y mantiene campos legacy de minutos',()=>{
   const day={employeeId:1,fullName:'PERSONA DE PRUEBA',documentId:'FICTICIO',workDate:'2026-11-12',
@@ -70,8 +73,6 @@ test('A03: CSV conserva segundos, identificador, y bloquea fórmulas inyectadas'
 });
 
 test('A03: API de reportes protegida y exportación CSV auditada',async()=>{
-  process.env.SQLITE_PATH=':memory:';
-  process.env.JWT_SECRET='synthetic-a03-test';
   const {app}=await import('../app.js');
   const {pool}=await import('../db.js');
   const {runMigrations}=await import('../migrations.js');
