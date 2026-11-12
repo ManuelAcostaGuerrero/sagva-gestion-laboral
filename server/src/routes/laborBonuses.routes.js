@@ -143,12 +143,16 @@ laborBonusesRouter.put('/workers/:id/assignments/:assignmentId',asyncHandler(asy
  await workerAccess(req,id,true);const d=p.data,db=await pool.getConnection();
  try{
   await db.beginTransaction();
-  const [rows]=await db.execute('SELECT revision,notes FROM employee_bonus_assignments WHERE id=? AND employee_id=?',[aid,id]);
+  const [rows]=await db.execute('SELECT revision,notes,active,amount_override_clp AS amountOverrideClp,valid_from AS validFrom FROM employee_bonus_assignments WHERE id=? AND employee_id=?',[aid,id]);
   if(!rows.length)throw fail('Asignación no encontrada.',404);
   if(rows[0].revision!==d.revision)throw fail('Asignación modificada en otra sesión.',409);
-  await db.execute('UPDATE employee_bonus_assignments SET amount_override_clp=?,valid_from=?,active=?,notes=?,revision=revision+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=?',[d.amountOverrideClp,d.validFrom,d.active?1:0,d.notes??rows[0].notes,req.admin.id,aid]);
+  if(rows[0].amountOverrideClp!==d.amountOverrideClp||
+     rows[0].validFrom!==d.validFrom||Boolean(rows[0].active)!==d.active)
+   throw fail('Monto, vigencia y suspensión de bono asignado requieren un anexo contractual. Por ahora sólo puede actualizarse una observación administrativa.',409);
+  if((d.notes??rows[0].notes)===rows[0].notes)throw fail('No hay cambios de observación para guardar.');
+  await db.execute('UPDATE employee_bonus_assignments SET notes=?,revision=revision+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=?',[d.notes??rows[0].notes,req.admin.id,aid]);
   await db.execute('INSERT INTO employee_bonus_assignment_history(assignment_id,revision,snapshot_json,changed_by) VALUES(?,?,?,?)',[aid,d.revision+1,JSON.stringify({...d,notes:d.notes??rows[0].notes}),req.admin.id]);
-  await recordAudit(req.admin,'update','employee_bonus_assignment',aid,{employeeId:id,revision:d.revision+1},db);
+  await recordAudit(req.admin,'update','employee_bonus_assignment',aid,{employeeId:id,revision:d.revision+1,updated:'administrative_notes_only'},db);
   await db.commit();res.json({message:'Asignación actualizada con historial.'});
  }catch(e){await db.rollback();throw e;}finally{db.release();}
 }));
