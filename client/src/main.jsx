@@ -396,11 +396,20 @@ function App() {
   );
 }
 
+function BrandLogo(){
+  const [failed,setFailed]=useState(false);
+  if(failed)return <div className="sidebar-brand-fallback" role="img" aria-label="RED TAURUS CODEX ASISTENCIA">
+    <strong>RED TAURUS</strong><span>CODEX ASISTENCIA</span>
+  </div>;
+  return <img className="sidebar-brand" src="/brand/red-taurus-sidebar.png"
+    alt="RED TAURUS CODEX ASISTENCIA" onError={()=>setFailed(true)}/>;
+}
+
 function PublicWorkspace({ activeView, children, description, onLogout, onShowAdmin, onShowAttendance, title }) {
   return (
     <section className="public-shell">
       <aside className="admin-sidebar public-sidebar">
-        <img className="sidebar-brand" src="/brand/red-taurus-sidebar.png" alt="Red Taurus Codex Asistencia" />
+        <BrandLogo />
         <nav className="sidebar-nav">
           <p>Acceso</p>
           <button className={activeView === 'attendance' ? 'active' : ''} onClick={onShowAttendance}>
@@ -1643,7 +1652,7 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
   return (
     <section className="admin-shell">
       <aside className="admin-sidebar">
-        <img className="sidebar-brand" src="/brand/red-taurus-sidebar.png" alt="Red Taurus Codex Asistencia" />
+        <BrandLogo />
         <nav className="sidebar-nav">
           <p>Principal</p>
           <button className={adminModule === 'dashboard' ? 'active' : ''} onClick={() => setAdminModule('dashboard')}>
