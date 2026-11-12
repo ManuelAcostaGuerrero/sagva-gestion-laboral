@@ -19,7 +19,7 @@ Evitar transcribir códigos largos de activación en celulares y corregir el des
 6. Si el navegador no tiene BarcodeDetector, cámara o HTTPS, **no se bloquea** el método manual.
 
 ## Cabecera y logotipos
-El problema de la captura se produce por las dos columnas mínimas de `.public-sidebar` en dispositivos angostos. El layout se transforma a una columna en viewport móvil, con logo al centro, `object-fit:contain`, menú en dos botones del mismo ancho, padding adaptable y sin desplazamiento lateral. También se limita el ancho del logo de la vista administrativa.
+El problema de la captura se produce por las dos columnas mínimas de `.public-sidebar` en dispositivos angostos. El layout se transforma a una columna en viewport móvil, con logo al centro, `object-fit:contain`, menú en dos botones del mismo ancho, padding adaptable y sin desplazamiento lateral. También se limita el ancho del logo de la vista administrativa. El recurso opcional `/brand/red-taurus-sidebar.png` **no figura en el árbol de GitHub**: si la instalación lo sirve, se muestra sin recortes; si falta, se renderiza una cabecera textual «RED TAURUS / CODEX ASISTENCIA» en vez de una imagen rota. No se inventa ni sustituye el logo oficial.
 
 ## Pruebas y límites
 - `tokens.test.js`: QR PNG, separación del prefijo QR del trabajador, hash y un solo uso.
