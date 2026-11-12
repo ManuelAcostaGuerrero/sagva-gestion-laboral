@@ -249,3 +249,33 @@
  .ef .csp-day-head select{max-width:100%;flex:1 1 170px}
  .ef .la-small,.ef .csp-chip {min-height:40px}
 }
+
+/* Alineación del botón auxiliar con los selectores de Empresa / Sucursal. */
+.ef .ef-refresh-companies {
+  align-self: end;
+  justify-self: stretch;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  min-height: 39px;
+  white-space: normal;
+}
+.ef .ef-bonus-shortcut {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #d8e6dd;
+  background: #f4faf6;
+  border-radius: 8px;
+  padding: 9px 11px;
+  min-width: 0;
+}
+.ef .ef-bonus-shortcut span {font-weight: 600;color: #36574c;font-size: 13px;}
+.ef .ef-bonus-shortcut button {margin-left: auto;white-space: normal;}
+@media(max-width:850px){
+  .ef .ef-refresh-companies {align-self:stretch;min-height:42px;}
+  .ef .ef-bonus-shortcut button {margin-left:0;}
+}
