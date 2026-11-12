@@ -28,6 +28,7 @@ export async function requireAdmin(req,res,next){
 export function requireRoles(...roles){
  return (req,res,next)=>requireAdmin(req,res,()=>{
   // Los perfiles nuevos no heredan las facultades de su antiguo rol SQL.
+  if(req.admin.profile==='root')return next(); // Perfil verificado en BD, aunque el rol legado/JWT esté desfasado.
   if(['accounting','admin_local'].includes(req.admin.profile))
    return res.status(403).json({message:'No tienes permisos para esta acción'});
   return roles.includes(req.admin.role)?next():res.status(403).json({message:'No tienes permisos para esta acción'});
