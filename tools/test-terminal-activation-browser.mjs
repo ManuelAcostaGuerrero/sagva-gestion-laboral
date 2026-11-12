@@ -36,7 +36,8 @@ try{
  await context.addInitScript(()=>{
   Object.defineProperty(navigator.mediaDevices,'getUserMedia',{configurable:true,value:async()=>{
    const canvas=document.createElement('canvas');canvas.width=180;canvas.height=180;
-   return canvas.captureStream(8);
+   const ctx=canvas.getContext('2d');ctx.fillStyle='white';ctx.fillRect(0,0,180,180);
+   return canvas.captureStream(10);
   }});
   window.BarcodeDetector=class{
    static async getSupportedFormats(){return ['qr_code'];}
@@ -71,7 +72,12 @@ try{
  await page.setViewportSize({width:390,height:844});
  await page.screenshot({path:path.join(out,'terminal-activation-mobile-before.png'),fullPage:true});
  await page.getByRole('button',{name:'Escanear QR de activación'}).click();
- await page.getByText('Enfoca el QR de activación que aparece en Administración.').waitFor();
+ try {
+  await page.getByText('Enfoca el QR de activación que aparece en Administración.').waitFor({timeout:10000});
+ } catch(e) {
+  console.error('Diagnóstico escáner sintético:',await page.locator('.tk-activation-scan').innerText());
+  throw e;
+ }
  await page.evaluate(value=>{window.__testTerminalQr=value;},terminalActivationQrPayload(first.activationCode));
  await page.getByText('Código QR reconocido. Confirma la activación de este equipo.').waitFor();
  assert.equal(await page.getByRole('textbox',{name:'Código de activación'}).inputValue(),first.activationCode);
