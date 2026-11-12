@@ -1,3 +1,5 @@
+> **Ficha contractual / jornada:** [simplificación de evaluación DT y resumen agrupado de horarios](46-FICHA-CONTRATO-RESUMEN-JORNADA-20261112.md). No modifica contratos ni historial; requiere revisión jurídica de horarios efectivos.
+
 > **Credenciales RED TAURUS en hoja carta:** [medidas invariables y distribución de 1 a 20 QR](45-CREDENCIALES-QR-CARTA-MEDIDAS-FIJAS-20261112.md). 54 × 85 mm por cara vertical, QR de 20 mm, cuatro pares plegables por carta. Pendiente validación de impresión física.
 
 > **Plan de Asistencia del 12-11-2026:** [Comprobantes, rectificaciones, reportes y fases posteriores](42-PLAN-TRABAJO-ASISTENCIA-20261112.md). 13 subtareas seleccionadas para desarrollar, no completadas.
