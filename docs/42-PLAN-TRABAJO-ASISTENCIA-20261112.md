@@ -11,7 +11,7 @@
 - [ ] Entregar comprobante al trabajador y registrar evidencia de entrega: impresión y registro de intento implementados; proveedor requiere configuración y la recepción real aún no está probada.
 - [x] Habilitar verificación de integridad y autenticidad: SHA-256 y verificador sin PII; HMAC requiere secreto estable.
 
-**Estado:** [PR #28 en borrador](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/28), pendiente pruebas y cierre de brechas. [Detalle técnico A01](43-A01-COMPROBANTES-20261112.md). No fusionado.
+**Estado:** [PR #28 fusionado a `main`](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/28) el 12-11-2026 (commit `98a5c522`); tres workflows CI aprobados. [Detalle técnico A01](43-A01-COMPROBANTES-20261112.md). Sigue pendiente la configuración operativa y validación legal de comprobantes, sin certificar DT.
 
 ## 2. Rectificaciones — PR-A02
 
@@ -60,7 +60,7 @@
 
 | Bloque | Seleccionado para el 12-11 | PR real | Estado |
 |---|---:|---|---|
-| PR-A01: Comprobantes | 4/4 | [#28](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/28) | Borrador: 2 ítems implementados y 2 con brechas |
+| PR-A01: Comprobantes | 4/4 | [#28](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/28) | Fusionado a `main`; 2 ítems implementados y 2 con brechas |
 | PR-A02: Rectificaciones | 4/4 | Sin crear | Planificado |
 | PR-A03: Reportes | 5/5 | Sin crear | Planificado |
 | Seguridad | 0/5 | — | Pendiente |
