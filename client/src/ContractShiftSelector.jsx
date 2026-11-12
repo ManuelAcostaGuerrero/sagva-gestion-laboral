@@ -1,13 +1,11 @@
 import React,{useEffect,useState} from 'react';
 import {api} from './services/api.js';
 
-const DAYS=['LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES','SÁBADO','DOMINGO'];
+import {CONTRACT_WEEK_DAYS as DAYS,groupContractShiftPlan,contractDaysLabel,contractShiftFullLabels} from './contractShiftSummary.js';
 const copy=items=>structuredClone(items||[]);
 const label=s=>(s.groupName?s.groupName+' · ':'')+(s.label||s.name||((s.startTime||'')+'–'+(s.endTime||'')));
 const snapshot=s=>({id:Number(s.id),name:label(s).slice(0,150),startTime:String(s.startTime||''),endTime:String(s.endTime||'')});
-export function summarizeShiftPlan(plan){
- return (plan||[]).filter(row=>row.enabled&&row.shifts?.length).map(row=>row.day+': '+row.shifts.map(s=>s.name).join(' / ')).join('\n').slice(0,2000);
-}
+export {summarizeShiftPlan} from './contractShiftSummary.js';
 export default function ContractShiftSelector({value=[],onChange,disabled=false}){
  const [library,setLibrary]=useState([]),[error,setError]=useState(''),[history,setHistory]=useState([]);
  const [loading,setLoading]=useState(true);
@@ -17,6 +15,7 @@ export default function ContractShiftSelector({value=[],onChange,disabled=false}
   return()=>{alive=false;};
  },[]);
  const configured=value||[];
+ const grouped=groupContractShiftPlan(configured);
  const apply=next=>{
   setHistory(p=>[...p.slice(-19),copy(configured)]);
   onChange(next);
@@ -54,6 +53,13 @@ export default function ContractShiftSelector({value=[],onChange,disabled=false}
     ):<span>Sin horarios seleccionados</span>}</div>}
    </div>;
   })}</div>
-  <small>Selección propia del trabajador: los turnos de la biblioteca no se eliminan. Confirmar compatibilidad y jornada total al formalizar contrato.</small>
+  {grouped.length>0&&<details className="csp-complete-details">
+   <summary>Ver detalle íntegro de los turnos agrupados por días (sin repetirlos)</summary>
+   {grouped.map(group=><div key={group.days.join('-')} className="csp-group">
+    <strong>{contractDaysLabel(group.days)} · {group.shifts.length} alternativa(s)</strong>
+    <ul>{contractShiftFullLabels(group.shifts).map((entry,index)=><li key={group.shifts[index].id+'-'+index}>{entry}</li>)}</ul>
+   </div>)}
+  </details>}
+  <small>Los turnos marcados son alternativas para revisar, no jornadas simultáneas. El detalle completo queda en la selección; confirmar días, duración semanal, descansos y régimen aplicable antes de formalizar el contrato.</small>
  </section>;
 }
