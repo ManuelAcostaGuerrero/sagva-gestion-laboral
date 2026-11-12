@@ -48,7 +48,7 @@ test('bonos: permisos, asignación múltiple, evaluación auditable y versionada
  assert.equal(bad.status,400);
  const evaluated=await call('/labor-bonuses/workers/'+employeeId+'/assignments/'+assigned.data.id+'/evaluations','POST',{period:'2026-11',plannedUnits:30,correctUnits:20,evidence:'Veinte cierres de treinta',revision:0});
  assert.equal(evaluated.status,200,JSON.stringify(evaluated.data));
- assert.equal(evaluated.data.suggestedClp,66667);
+ assert.equal(evaluated.data.suggestedClp,20000,'La simulación utiliza el monto específico del trabajador');
  assert.equal(evaluated.data.status,'PENDIENTE_REVISION');
  const listed=await call('/labor-bonuses/workers/'+employeeId);
  assert.equal(listed.data.assignments.length,2);
