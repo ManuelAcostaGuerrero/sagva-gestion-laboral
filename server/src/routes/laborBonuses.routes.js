@@ -7,6 +7,7 @@ import {permitted} from '../securityPermissions.js';
 import {recordAudit} from '../auditLog.js';
 import {asyncHandler} from '../asyncHandler.js';
 import {calculateBonusPreview} from '../laborBonuses.js';
+import {randomBytes} from 'node:crypto';
 
 export const laborBonusesRouter=Router();
 laborBonusesRouter.use(requireAdmin);
@@ -15,15 +16,38 @@ laborBonusesRouter.use(asyncHandler(async(_req,_res,next)=>{await runMigrations(
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
 const idOf=v=>Number.isSafeInteger(Number(v))&&Number(v)>0?Number(v):null;
 const date=z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
-const definition=z.object({
+// Sólo los datos necesarios para asistencia. El sistema contable decidirá los cálculos.
+const simpleDefinition=z.object({
+ name:z.string().trim().min(2).max(120),
+ amountClp:z.number().int().min(0).max(100000000),
+ taxable:z.boolean(),
+ conditions:z.string().trim().min(10).max(5000),
+ revision:z.number().int().nonnegative().optional()
+}).strict();
+// Compatibilidad temporal con clientes antiguos: no borrar columnas ni registros existentes.
+const legacyDefinition=z.object({
  code:z.string().trim().regex(/^[A-Z0-9_]{2,40}$/),name:z.string().trim().min(2).max(120),
  kind:z.enum(['BONO','VIATICO','OTRO']),amountClp:z.number().int().min(0).max(100000000),
  taxable:z.boolean(),overtimeBase:z.boolean(),withClause:z.boolean(),
  clauseText:z.string().trim().max(5000),evaluationRules:z.string().trim().max(5000),
  legalReviewed:z.boolean(),active:z.boolean(),
  revision:z.number().int().nonnegative().optional(),
- reason:z.string().trim().min(10).max(500)
+ reason:z.string().trim().min(10).max(500).optional()
 }).strict();
+const definition=z.union([simpleDefinition,legacyDefinition]);
+const legacyConditions=row=>[row.clauseText?.trim(),row.evaluationRules?.trim()]
+ .filter(Boolean).join('\n\n');
+const toRecord=(d,before=null)=>{
+ if('conditions' in d)return {
+  code:before?.code??('BONO_'+randomBytes(6).toString('hex').toUpperCase()),
+  name:d.name,kind:before?.kind??'BONO',amountClp:d.amountClp,taxable:d.taxable,
+  // No relacionar imponibilidad y base extraordinaria automáticamente: son reglas distintas.
+  overtimeBase:before?.overtimeBase??false,
+  withClause:true,clauseText:d.conditions,evaluationRules:'',
+  legalReviewed:before?.legalReviewed??false,active:before?.active??true
+ };
+ return {...d};
+};
 const assignmentCreate=z.object({bonusId:z.number().int().positive(),amountOverrideClp:z.number().int().min(0).max(100000000).nullable(),validFrom:date,notes:z.string().trim().max(1000).default('')}).strict();
 const assignmentUpdate=z.object({revision:z.number().int().positive(),active:z.boolean(),amountOverrideClp:z.number().int().min(0).max(100000000).nullable(),validFrom:date,notes:z.string().trim().max(1000).optional()}).strict();
 const evaluation=z.object({period:z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),plannedUnits:z.number().int().min(1).max(366),correctUnits:z.number().int().nonnegative().max(366),evidence:z.string().trim().min(5).max(3000),revision:z.number().int().nonnegative()}).strict().refine(d=>d.correctUnits<=d.plannedUnits,{message:'Los cierres correctos no pueden exceder los previstos.'});
@@ -34,16 +58,19 @@ async function workerAccess(req,id,write=false){
  if(!permitted(req.admin,write?'personal.contract.write':'personal.contract.read',rows[0]))throw fail('Sin autorización contractual para este trabajador.',403);
 }
 const readFields='id,code,name,kind,amount_clp AS amountClp,taxable,overtime_base AS overtimeBase,with_clause AS withClause,clause_text AS clauseText,evaluation_rules AS evaluationRules,legal_reviewed AS legalReviewed,active,revision';
-const asBool=row=>({...row,taxable:!!row.taxable,overtimeBase:!!row.overtimeBase,withClause:!!row.withClause,legalReviewed:!!row.legalReviewed,active:!!row.active});
+const asBool=row=>({...row,taxable:!!row.taxable,overtimeBase:!!row.overtimeBase,withClause:!!row.withClause,legalReviewed:!!row.legalReviewed,active:!!row.active,
+ conditions:legacyConditions(row)});
 laborBonusesRouter.get('/catalog',asyncHandler(async(req,res)=>{
  if(!permitted(req.admin,'labor.catalog.read'))throw fail('Sin acceso al catálogo.',403);
- const [rows]=await pool.execute('SELECT '+readFields+' FROM labor_bonus_definitions ORDER BY active DESC,kind,name');
+ const [rows]=await pool.execute('SELECT '+readFields+',
+ (SELECT COUNT(*) FROM employee_bonus_assignments a WHERE a.bonus_id=labor_bonus_definitions.id) AS assignedCount
+ FROM labor_bonus_definitions ORDER BY active DESC,kind,name');
  res.json({bonuses:rows.map(asBool),canManage:mayManage(req.admin)});
 }));
 laborBonusesRouter.post('/catalog',asyncHandler(async(req,res)=>{
  if(!mayManage(req.admin))throw fail('Solo un usuario autorizado configura bonos.',403);
- const p=definition.safeParse(req.body);if(!p.success)throw fail('Revisa el bono, monto, clasificación y motivo.');
- const d=p.data,db=await pool.getConnection();
+ const p=definition.safeParse(req.body);if(!p.success)throw fail('Revisa nombre, monto, imponibilidad y condiciones del bono.');
+ const d=toRecord(p.data),db=await pool.getConnection();
  try {
   await db.beginTransaction();
   const [exists]=await db.execute('SELECT id FROM labor_bonus_definitions WHERE code=?',[d.code]);
@@ -51,26 +78,39 @@ laborBonusesRouter.post('/catalog',asyncHandler(async(req,res)=>{
   const [r]=await db.execute('INSERT INTO labor_bonus_definitions(code,name,kind,amount_clp,taxable,overtime_base,with_clause,clause_text,evaluation_rules,legal_reviewed,active,updated_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
    [d.code,d.name,d.kind,d.amountClp,d.taxable?1:0,d.overtimeBase?1:0,d.withClause?1:0,d.clauseText,d.evaluationRules,d.legalReviewed?1:0,d.active?1:0,req.admin.id]);
   await db.execute('INSERT INTO labor_bonus_definition_history(bonus_id,revision,snapshot_json,changed_by) VALUES(?,?,?,?)',[r.insertId,1,JSON.stringify(d),req.admin.id]);
-  await recordAudit(req.admin,'create','labor_bonus_definition',r.insertId,{code:d.code,revision:1,reason:d.reason},db);
+  await recordAudit(req.admin,'create','labor_bonus_definition',r.insertId,{code:d.code,revision:1},db);
   await db.commit();res.status(201).json({id:r.insertId,message:'Concepto de pago registrado con historial.'});
  }catch(e){await db.rollback();throw e;}finally{db.release();}
 }));
 laborBonusesRouter.put('/catalog/:id',asyncHandler(async(req,res)=>{
  if(!mayManage(req.admin))throw fail('Sin autorización para configurar bonos.',403);
  const id=idOf(req.params.id),p=definition.safeParse(req.body);
- if(!id||!p.success||!p.data.revision)throw fail('Revisa versión, campos y motivo.');
- const d=p.data,db=await pool.getConnection();
+ if(!id||!p.success||!p.data.revision)throw fail('Revisa nombre, monto, condiciones y versión del bono.');
+ const db=await pool.getConnection();
  try{
   await db.beginTransaction();
-  const [before]=await db.execute('SELECT id,revision FROM labor_bonus_definitions WHERE id=?',[id]);
+  const [before]=await db.execute('SELECT '+readFields+' FROM labor_bonus_definitions WHERE id=?',[id]);
   if(!before.length)throw fail('Bono no encontrado.',404);
-  if(before[0].revision!==d.revision)throw fail('El bono cambió en otra sesión.',409);
+  if(before[0].revision!==p.data.revision)throw fail('El bono cambió en otra sesión.',409);
+  const existing=asBool(before[0]);
+  const d=toRecord(p.data,existing);
+  const changed=(existing.name!==d.name||existing.amountClp!==d.amountClp||
+   existing.taxable!==d.taxable||existing.clauseText!==d.clauseText||
+   existing.evaluationRules!==d.evaluationRules||existing.withClause!==d.withClause||
+   existing.kind!==d.kind||existing.active!==d.active||
+   existing.overtimeBase!==d.overtimeBase||existing.legalReviewed!==d.legalReviewed);
+  // Los bonos vinculados no cambian por una edición de catálogo: requerir
+  // anexo contractual autorizado (aún no implementado) en una etapa posterior.
+  if(changed){
+   const [linked]=await db.execute('SELECT id FROM employee_bonus_assignments WHERE bonus_id=? LIMIT 1',[id]);
+   if(linked.length)throw fail('Bono ya asignado: modifica sus condiciones mediante un anexo contractual cuando esté disponible, no desde el catálogo.',409);
+  }
   const [duplicate]=await db.execute('SELECT id FROM labor_bonus_definitions WHERE code=? AND id<>?',[d.code,id]);
   if(duplicate.length)throw fail('Código duplicado.',409);
   await db.execute('UPDATE labor_bonus_definitions SET code=?,name=?,kind=?,amount_clp=?,taxable=?,overtime_base=?,with_clause=?,clause_text=?,evaluation_rules=?,legal_reviewed=?,active=?,revision=revision+1,updated_by=?,updated_at=CURRENT_TIMESTAMP WHERE id=?',
    [d.code,d.name,d.kind,d.amountClp,d.taxable?1:0,d.overtimeBase?1:0,d.withClause?1:0,d.clauseText,d.evaluationRules,d.legalReviewed?1:0,d.active?1:0,req.admin.id,id]);
-  await db.execute('INSERT INTO labor_bonus_definition_history(bonus_id,revision,snapshot_json,changed_by) VALUES(?,?,?,?)',[id,d.revision+1,JSON.stringify(d),req.admin.id]);
-  await recordAudit(req.admin,'update','labor_bonus_definition',id,{revision:d.revision+1,reason:d.reason},db);
+  await db.execute('INSERT INTO labor_bonus_definition_history(bonus_id,revision,snapshot_json,changed_by) VALUES(?,?,?,?)',[id,p.data.revision+1,JSON.stringify(d),req.admin.id]);
+  await recordAudit(req.admin,'update','labor_bonus_definition',id,{revision:p.data.revision+1,modifiedFields:['name','amountClp','taxable','conditions']},db);
   await db.commit();res.json({message:'Bono actualizado. La versión histórica se conserva.'});
  }catch(e){await db.rollback();throw e;}finally{db.release();}
 }));
