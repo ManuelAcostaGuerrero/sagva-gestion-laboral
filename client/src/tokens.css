@@ -82,3 +82,19 @@
   .tk-terminal-head .tk-badge{font-size:13px}
   .tk-camera-primary .tk-next-scan{min-height:74px}
 }
+
+/* QR de alta temporal, distinto de las credenciales personales. */
+.tk-activation-secret{display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0}
+.tk-activation-secret .tk-secret{display:block;max-width:100%;text-align:center;user-select:all;overflow-wrap:anywhere}
+.tk-activation-qr{display:block;width:min(100%,260px);height:auto;aspect-ratio:1;object-fit:contain;padding:8px;background:#fff;border:1px solid #cbdad2;border-radius:10px}
+.tk-activation-scan{display:flex;flex-direction:column;gap:9px;min-width:0}
+.tk-activation-scan .tk-camera-area{min-width:0}
+.tk-activation-scan .tk-camera-area video{max-width:100%;width:100%;height:220px;object-fit:cover}
+.tk-activation-scan .tk-scan-toggle{width:100%;min-height:48px}
+.tk-activation-scan small{color:#536961}
+.tk-kiosk input{min-width:0;max-width:100%;box-sizing:border-box}
+@media(max-width:600px){
+ .tk-activation-secret{padding:12px}
+ .tk-activation-qr{width:min(100%,230px)}
+ .tk-kiosk{width:100%;max-width:100%;box-sizing:border-box}
+}
