@@ -1,3 +1,5 @@
+> **Plan de Asistencia del 12-11-2026:** [Comprobantes, rectificaciones, reportes y fases posteriores](42-PLAN-TRABAJO-ASISTENCIA-20261112.md). 13 subtareas seleccionadas para desarrollar, no completadas.
+
 > **Estado vigente al 12-11-2026:** consultar [Consolidación de ramas, alcance y pendientes](40-CONSOLIDACION-RAMAS-Y-PENDIENTES-20261112.md). El plan antiguo de Propinas e integración de una base maestra conjunta **queda aplazado**; no bloquea SAGVA Gestión Laboral. Las secciones anteriores permanecen como registro histórico.
 
 # 00. Índice maestro y estado del proyecto
