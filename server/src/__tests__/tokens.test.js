@@ -33,7 +33,11 @@ test('QR/PIN: terminal obligatoria, activación única, credenciales hash, rotac
     const stored=(await pool.execute('SELECT token_hash FROM worker_tokens'))[0][0].token_hash;assert.notEqual(stored,issued.data.token);assert.equal(stored.length,64);
     const body={token:'asistencia:'+issued.data.token,type:'entrada',requestId:crypto.randomUUID()};
     const mark=await req('/mark',body,null);assert.equal(mark.status,201);assert.equal(mark.data.record.method,'QR');
+    assert.equal(mark.data.record.receipt.receipt.recordId,mark.data.record.id);
+    assert.match(mark.data.record.receipt.checksum,/^[a-f0-9]{64}$/);
+    assert.equal(mark.data.record.receipt.deliveryStatus,'EMAIL_MISSING');
     const repeated=await Promise.all([req('/mark',body,null),req('/mark',body,null)]);assert.ok(repeated.every(r=>r.status===200&&r.data.record.id===mark.data.record.id));
+    assert.ok(repeated.every(r=>r.data.record.receipt.checksum===mark.data.record.receipt.checksum));
     assert.equal((await pool.execute('SELECT COUNT(*) n FROM attendance_records'))[0][0].n,1);
     const replacement=await req(`/workers/${employee.insertId}/issue`,{});assert.equal(replacement.status,201);
     assert.equal((await req('/mark',{...body,requestId:crypto.randomUUID()},null)).status,401);
