@@ -1,3 +1,5 @@
+> **Credenciales RED TAURUS en hoja carta:** [medidas invariables y distribución de 1 a 20 QR](45-CREDENCIALES-QR-CARTA-MEDIDAS-FIJAS-20261112.md). 54 × 85 mm por cara vertical, QR de 20 mm, cuatro pares plegables por carta. Pendiente validación de impresión física.
+
 > **Plan de Asistencia del 12-11-2026:** [Comprobantes, rectificaciones, reportes y fases posteriores](42-PLAN-TRABAJO-ASISTENCIA-20261112.md). 13 subtareas seleccionadas para desarrollar, no completadas.
 
 > **A03 integrado en `main` de pruebas:** [PR #29: reportes diarios/semanales/mensuales, segundos y CSV auditado](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/29) (`eb6ad497`); [detalle y pendientes](44-A03-REPORTES-PERIODOS-SEGUNDOS-20261112.md). Tres tareas de programación completadas con CI; siguen pendientes horas extras autorizadas, conciliación histórica y pruebas físicas.
