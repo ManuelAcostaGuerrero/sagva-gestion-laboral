@@ -6,7 +6,6 @@ import {requireAdmin} from '../auth.js';
 import {permitted} from '../securityPermissions.js';
 import {recordAudit} from '../auditLog.js';
 import {asyncHandler} from '../asyncHandler.js';
-import {calculateBonusPreview} from '../laborBonuses.js';
 import {randomBytes} from 'node:crypto';
 
 export const laborBonusesRouter=Router();
@@ -50,7 +49,6 @@ const toRecord=(d,before=null)=>{
 };
 const assignmentCreate=z.object({bonusId:z.number().int().positive(),amountOverrideClp:z.number().int().min(0).max(100000000).nullable(),validFrom:date,notes:z.string().trim().max(1000).default('')}).strict();
 const assignmentUpdate=z.object({revision:z.number().int().positive(),active:z.boolean(),amountOverrideClp:z.number().int().min(0).max(100000000).nullable(),validFrom:date,notes:z.string().trim().max(1000).optional()}).strict();
-const evaluation=z.object({period:z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),plannedUnits:z.number().int().min(1).max(366),correctUnits:z.number().int().nonnegative().max(366),evidence:z.string().trim().min(5).max(3000),revision:z.number().int().nonnegative()}).strict().refine(d=>d.correctUnits<=d.plannedUnits,{message:'Los cierres correctos no pueden exceder los previstos.'});
 function mayManage(admin){return permitted(admin,'labor.benefits.manage');}
 async function workerAccess(req,id,write=false){
  const [rows]=await pool.execute("SELECT f.company_id AS companyId,json_extract(f.extra_json,'$.branch') AS branch FROM employees e LEFT JOIN employee_files f ON f.employee_id=e.id WHERE e.id=?",[id]);
@@ -158,30 +156,13 @@ laborBonusesRouter.put('/workers/:id/assignments/:assignmentId',asyncHandler(asy
   await db.commit();res.json({message:'Asignación actualizada con historial.'});
  }catch(e){await db.rollback();throw e;}finally{db.release();}
 }));
+// Ruta heredada: historial legible en GET, pero asistencia no calcula ni devenga bonos.
+// Se conserva el endpoint para responder explícitamente a clientes antiguos.
 laborBonusesRouter.post('/workers/:id/assignments/:assignmentId/evaluations',asyncHandler(async(req,res)=>{
- const id=idOf(req.params.id),aid=idOf(req.params.assignmentId),p=evaluation.safeParse(req.body);
- if(!id||!aid||!p.success)throw fail('Revisa periodo, cierres correctos y evidencia.');
- await workerAccess(req,id,true);const d=p.data,db=await pool.getConnection();
- try{
-  await db.beginTransaction();
-  const [a]=await db.execute('SELECT a.*,b.name,b.code,b.amount_clp AS amountClp,b.clause_text AS clauseText,b.evaluation_rules AS evaluationRules,b.revision AS bonusRevision FROM employee_bonus_assignments a JOIN labor_bonus_definitions b ON b.id=a.bonus_id WHERE a.id=? AND a.employee_id=?',[aid,id]);
-  if(!a.length||!a[0].active)throw fail('La asignación no está activa.',409);
-  const base=a[0].amount_override_clp??a[0].amountClp;
-  const suggested=calculateBonusPreview(base,d.plannedUnits,d.correctUnits);
-  const snapshot=JSON.stringify({code:a[0].code,name:a[0].name,amountClp:base,bonusRevision:a[0].bonusRevision,clause:a[0].clauseText,rules:a[0].evaluationRules});
-  const [old]=await db.execute('SELECT id,revision FROM employee_bonus_evaluations WHERE assignment_id=? AND period=?',[aid,d.period]);
-  const prev=old[0]?.revision||0;
-  if(prev!==d.revision)throw fail('La evaluación fue modificada en otra sesión.',409);
-  let evalId;
-  if(old.length){
-   evalId=old[0].id;
-   await db.execute('UPDATE employee_bonus_evaluations SET planned_units=?,correct_units=?,suggested_clp=?,evidence=?,bonus_snapshot_json=?,revision=revision+1,evaluated_by=?,evaluated_at=CURRENT_TIMESTAMP WHERE id=?',
-    [d.plannedUnits,d.correctUnits,suggested,d.evidence,snapshot,req.admin.id,evalId]);
-  }else{
-   const [r]=await db.execute("INSERT INTO employee_bonus_evaluations(assignment_id,period,planned_units,correct_units,suggested_clp,evidence,bonus_snapshot_json,evaluated_by) VALUES(?,?,?,?,?,?,?,?)",[aid,d.period,d.plannedUnits,d.correctUnits,suggested,d.evidence,snapshot,req.admin.id]);evalId=r.insertId;
-  }
-  await db.execute('INSERT INTO employee_bonus_evaluation_history(evaluation_id,revision,snapshot_json,changed_by) VALUES(?,?,?,?)',[evalId,prev+1,JSON.stringify({...d,suggestedClp:suggested,bonusSnapshot:JSON.parse(snapshot)}),req.admin.id]);
-  await recordAudit(req.admin,'evaluate','employee_bonus_evaluation',evalId,{employeeId:id,assignmentId:aid,period:d.period,revision:prev+1},db);
-  await db.commit();res.json({id:evalId,suggestedClp:suggested,status:'PENDIENTE_REVISION',revision:prev+1,message:'Simulación de bono guardada. No modifica remuneraciones.'});
- }catch(e){await db.rollback();throw e;}finally{db.release();}
+ const id=idOf(req.params.id),aid=idOf(req.params.assignmentId);
+ if(!id||!aid)throw fail('Identificador de bono inválido.');
+ await workerAccess(req,id,true);
+ const [rows]=await pool.execute('SELECT id FROM employee_bonus_assignments WHERE id=? AND employee_id=?',[aid,id]);
+ if(!rows.length)throw fail('Bono no asignado a este trabajador.',404);
+ res.status(410).json({message:'El registro de evaluaciones y cálculos de bono se reserva al futuro sistema contable. Las evaluaciones históricas permanecen disponibles para consulta.'});
 }));
