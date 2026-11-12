@@ -73,3 +73,11 @@ export function legacySummarizeShiftPlan(plan){
 export function contractShiftFullLabels(shifts){
  return (shifts||[]).map(printableName);
 }
+
+export function updateDraftShiftPlan(current,plan){
+ const previousText=current.shiftDistribution||'';
+ const oldAuto=summarizeShiftPlan(current.shiftPlan||[]);
+ const oldLegacy=legacySummarizeShiftPlan(current.shiftPlan||[]);
+ const canReplace=!previousText.trim()||previousText===oldAuto||previousText===oldLegacy;
+ return {...current,shiftPlan:plan,shiftDistribution:canReplace?summarizeShiftPlan(plan):previousText};
+}
