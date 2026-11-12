@@ -3,6 +3,7 @@ import MonthField from './MonthField.jsx';
 import DateTimeField from './DateTimeField.jsx';
 import DateField from './DateField.jsx';
 import TokenKiosk from './TokenKiosk.jsx';
+import AttendancePeriodReports from './AttendancePeriodReports.jsx';
 import TokenCredentials from './TokenCredentials.jsx';
 import PressToRevealPassword from './PressToRevealPassword.jsx';
 import EmployeeFile from './EmployeeFile.jsx';
@@ -2155,6 +2156,7 @@ function AdminPanel({ setMessage, onGoAttendance, onLogout }) {
 
       {adminModule === 'reports' && (
         <section className="reports-module module-content">
+          <AttendancePeriodReports employees={employees} defaultMonth={currentMonthValue()} adminRole={adminRole} onMessage={setMessage}/>
           <div className="metric-grid reports-metrics">
             <article className="metric-card"><span>Registros filtrados</span><strong>{recordInsights.totalRecords}</strong><small>Base del reporte</small></article>
             <article className="metric-card"><span>Horas netas</span><strong>{formatDuration(recordInsights.workedSeconds)}</strong><small>Permanencia efectiva</small></article>

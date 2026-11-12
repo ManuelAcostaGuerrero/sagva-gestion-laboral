@@ -15,6 +15,7 @@ import { attachAttendanceDurations } from '../attendancePairing.js';
 import {createAttendanceProof} from '../attendanceProofs.js';
 import {createAttendanceReceipt,dispatchAttendanceReceipt,readAttendanceReceipt,verifyReceipt} from '../attendanceReceipts.js';
 import {runMigrations} from '../migrations.js';
+import {aggregateAttendancePeriods,attendancePeriodCsv} from '../attendancePeriodReport.js';
 
 export const attendanceRouter = Router();
 
@@ -231,6 +232,48 @@ attendanceRouter.get('/expected-report', requireAdmin, asyncHandler(async (req, 
     },
     items
   });
+}));
+
+
+const attendancePeriodFilters=z.object({
+  month:z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/),
+  period:z.enum(['daily','weekly','monthly']),
+  employeeId:z.coerce.number().int().min(0).default(0)
+});
+function readPeriodFilters(query){
+  const result=attendancePeriodFilters.safeParse(query);
+  if(!result.success){const error=new Error('Filtros de reporte inválidos.');error.status=400;throw error;}
+  return result.data;
+}
+async function buildPeriodReport(filters){
+  const days=await expectedAttendanceReport(filters.month,filters.employeeId);
+  return aggregateAttendancePeriods(days,filters.period,filters.month);
+}
+
+// Datos personales: solo administradores y supervisores centrales; no portal público.
+attendanceRouter.get('/period-report',requireRoles('admin','supervisor'),asyncHandler(async(req,res)=>{
+  await ensureAttendanceRecordTypes();
+  const filters=readPeriodFilters(req.query);
+  const report=await buildPeriodReport(filters);
+  res.set('Cache-Control','private, no-store');
+  res.json(report);
+}));
+
+attendanceRouter.get('/period-report/export',requireRoles('admin','supervisor'),asyncHandler(async(req,res)=>{
+  await ensureAttendanceRecordTypes();
+  const filters=readPeriodFilters(req.query);
+  const report=await buildPeriodReport(filters);
+  const exportId=crypto.randomUUID(),generatedAt=new Date().toISOString();
+  const csv=attendancePeriodCsv(report,exportId,generatedAt);
+  const sha256=crypto.createHash('sha256').update(csv,'utf8').digest('hex');
+  await recordAudit(req.admin,'export_attendance_period_report','attendance_report',exportId,{
+    ...filters,rows:report.rows.length,sha256,generatedAt
+  });
+  res.set('Cache-Control','private, no-store');
+  res.set('Content-Type','text/csv; charset=utf-8');
+  res.set('Content-Disposition',`attachment; filename="asistencia-${filters.period}-${filters.month}.csv"`);
+  res.set('X-Report-SHA256',sha256);
+  res.send(csv);
 }));
 
 attendanceRouter.post('/records/manual', requireAdmin, asyncHandler(async (req, res) => {
