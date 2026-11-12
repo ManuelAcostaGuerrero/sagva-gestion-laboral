@@ -13,6 +13,7 @@ import {sendAttendanceNotification} from '../pushNotifications.js';
 import {workerName} from '../workerNames.js';
 import {ATTENDANCE_TYPES} from '../attendanceSchema.js';
 import {createAttendanceProof,verifyAttendanceProof} from '../attendanceProofs.js';
+import {terminalActivationQrPayload} from '../terminalActivationQr.js';
 
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
 const random=()=>crypto.randomBytes(32).toString('base64url');
@@ -102,10 +103,10 @@ tokenRouter.get('/terminals',management,asyncHandler(async(_req,res)=>{
 tokenRouter.post('/terminals',management,asyncHandler(async(req,res)=>{
   const name=String(req.body.name||'').trim();if(!name ||name.length>80)throw error('Indica el nombre de la terminal.');
   const companyId=Number(req.body.companyId);if(!Number.isSafeInteger(companyId)||companyId<1)throw error('Selecciona la empresa de la terminal.');
-  const activationCode=random();const c=await pool.getConnection();try{await c.beginTransaction();
+  const activationCode=random();const activationQrDataUrl=await QRCode.toDataURL(terminalActivationQrPayload(activationCode),{errorCorrectionLevel:'M',width:360,margin:3});const c=await pool.getConnection();try{await c.beginTransaction();
     if(!(await c.execute('SELECT id FROM company_profiles WHERE id=? AND is_active=1',[companyId]))[0].length)throw error('Selecciona una empresa activa.');
     const [created]=await c.execute('INSERT INTO attendance_terminals(name,company_id,activation_hash,activation_expires,created_by) VALUES(?,?,?,?,?)',[name,companyId,hash(activationCode),Date.now()+10*60*1000,req.admin.id]);
-    await recordAudit(req.admin,'create_terminal','terminal',created.insertId,{},c);await c.commit();res.status(201).json({id:created.insertId,activationCode,message:'Código de un solo uso. Vence en 10 minutos.'});
+    await recordAudit(req.admin,'create_terminal','terminal',created.insertId,{},c);await c.commit();res.set('Cache-Control','private, no-store');res.status(201).json({id:created.insertId,activationCode,activationQrDataUrl,message:'Código o QR de un solo uso. Vence en 10 minutos.'});
   }catch(e){await c.rollback();throw e;}finally{c.release();}
 }));
 tokenRouter.post('/terminals/:id/config',management,asyncHandler(async(req,res)=>{
@@ -117,10 +118,11 @@ tokenRouter.post('/terminals/:id/config',management,asyncHandler(async(req,res)=
   if(!companies.length||!rows[0]?.active)throw error('Empresa o terminal no disponible.');
   const changed=rows[0].companyId!==companyId;
   const activationCode=changed?random():null;
+  const activationQrDataUrl=activationCode?await QRCode.toDataURL(terminalActivationQrPayload(activationCode),{errorCorrectionLevel:'M',width:360,margin:3}):null;
   await c.execute('UPDATE attendance_terminals SET company_id=?,camera_mark_enabled=? WHERE id=?',[companyId,req.body.cameraMarkEnabled?1:0,id]);
   if(changed)await c.execute('UPDATE attendance_terminals SET token_hash=NULL,activated_at=NULL,activation_hash=?,activation_expires=? WHERE id=?',[hash(activationCode),Date.now()+600000,id]);
   await recordAudit(req.admin,'configure_terminal','terminal',id,{companyId,cameraMarkEnabled:req.body.cameraMarkEnabled,reissued:changed},c);
-  await c.commit();res.json({activationCode,message:changed?'Empresa asignada. Reactiva el equipo con el nuevo código.':'Permiso de cámara actualizado.'});
+  await c.commit();res.set('Cache-Control','private, no-store');res.json({activationCode,activationQrDataUrl,message:changed?'Empresa asignada. Reactiva el equipo con el nuevo código o QR.':'Permiso de cámara actualizado.'});
  }catch(e){await c.rollback();throw e;}finally{c.release();}
 }));
 
