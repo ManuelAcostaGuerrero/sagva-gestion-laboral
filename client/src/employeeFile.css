@@ -289,3 +289,16 @@
 .ef .ef-bonus-editor h4 {margin:0 0 12px;color:#36574c;}
 .ef .ef-bonus-preview {display:flex;flex-wrap:wrap;gap:8px 14px;background:#f0f6f1;border:1px solid #d9e5dc;border-radius:8px;padding:9px 11px;margin:10px 0;font-size:13px;}
 .ef .ef-bonus-preview span {min-width:0;overflow-wrap:anywhere;}
+
+
+/* Resumen compacto: los turnos con igual selección se muestran una vez por grupo de días. */
+.ef .csp-summary-review{display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:0;padding:12px;border:1px solid #c9dcd3;border-radius:9px;background:#f3f8f5}
+.ef .csp-summary-review strong{color:#214a3e}
+.ef .csp-summary-text{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.55;color:#1d3931;background:#fff;padding:10px;border-radius:6px;border:1px solid #d8e4dc}
+.ef .csp-summary-review small{color:#50665d;line-height:1.45}
+.ef .csp-complete-details{margin-top:10px;padding:10px;border:1px solid #cbdcd3;border-radius:7px;background:#f7faf8}
+.ef .csp-complete-details summary{cursor:pointer;font-weight:650;color:#235446}
+.ef .csp-group{margin-top:12px;border-top:1px solid #dce9e1;padding-top:8px}
+.ef .csp-group ul{margin:6px 0;padding-left:23px;columns:2;column-gap:20px}
+.ef .csp-group li{break-inside:avoid;margin-bottom:4px;overflow-wrap:anywhere;font-size:12px}
+@media(max-width:720px){.ef .csp-group ul{columns:1}}
