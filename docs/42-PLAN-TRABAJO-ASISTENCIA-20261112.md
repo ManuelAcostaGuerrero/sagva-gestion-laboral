@@ -1,7 +1,7 @@
 # SAGVA Asistencia — Plan de trabajo del 12-11-2026
 
 **Repositorio:** `ManuelAcostaGuerrero/sagva-gestion-laboral` · **Base:** `main` (pruebas).  
-**Estado:** planificación aprobada para organizar la jornada; **seleccionado no equivale a implementado**.  
+**Estado:** seguimiento en curso; **seleccionado no equivale a implementado, ni CI aprobado equivale a validación física o legal**.  
 **Alcance de hoy:** 13 subtareas en 3 bloques. Las fases 4–6 se conservan para después.
 
 ## 1. Comprobantes — PR-A01 (identificador de planificación, no número de GitHub)
@@ -24,13 +24,13 @@
 
 ## 3. Reportes — PR-A03
 
-- [ ] Completar reportes diarios, semanales y mensuales.
-- [ ] Registrar tiempos con precisión HH:MM:SS.
-- [ ] Separar horas ordinarias, excesos técnicos y horas extras autorizadas; no inferir pago ni autorización.
-- [ ] Agregar exportación de informes y trazabilidad.
-- [ ] Vincular marcaciones históricas con relaciones laborales **verificadas**, sin asociaciones automáticas por nombre o ID legado.
+- [x] Reportes diarios, semanales y mensuales por trabajador y mes: desarrollo integrado en PR #29, CI aprobado; pruebas físicas pendientes.
+- [x] Registrar tiempos con precisión HH:MM:SS en el motor y en la nueva vista, conservando campos antiguos de minutos: PR #29, CI aprobado.
+- [ ] Separar horas ordinarias, excesos técnicos y horas extras **autorizadas**: se muestra exceso técnico sin conferir autorización; falta diseño/revisión legal.
+- [x] Exportación CSV autenticada y trazable con identificador, SHA-256 y auditoría: PR #29, CI aprobado; uso en instalación real pendiente.
+- [ ] Vincular marcaciones históricas con relaciones laborales **verificadas**, sin asociaciones automáticas por nombre o ID legado: depende de conciliación privada y autorizaciones (issue #16).
 
-**Dependencia:** la conciliación de históricos requiere revisión privada y autorización caso por caso (issue #16). **Estado:** seleccionado, sin PR funcional creado.
+**Estado:** [PR #29 fusionado a `main`](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/29) el 12-11-2026 (merge `eb6ad497`); tres workflows aprobados. **Desarrollo 3/5; cierre operacional y legal aún pendiente.** [Detalle A03](44-A03-REPORTES-PERIODOS-SEGUNDOS-20261112.md).
 
 ## 4. Seguridad — pendiente de selección
 
@@ -62,7 +62,7 @@
 |---|---:|---|---|
 | PR-A01: Comprobantes | 4/4 | [#28](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/28) | Fusionado a `main`; 2 ítems implementados y 2 con brechas |
 | PR-A02: Rectificaciones | 4/4 | Sin crear | Planificado |
-| PR-A03: Reportes | 5/5 | Sin crear | Planificado |
+| PR-A03: Reportes | 5/5 | [#29](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/29) | Fusionado a `main`; 3 ítems de desarrollo con CI y 2 por completar (legal / datos reales) |
 | Seguridad | 0/5 | — | Pendiente |
 | Continuidad operativa | 0/5 | — | Pendiente |
 | Certificación | 0/5 | — | Pendiente |
