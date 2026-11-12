@@ -8,6 +8,9 @@ import {printAttendanceReceipt} from './printAttendanceReceipt.js';
 
 const deliveryLabels={
   ACCEPTED_BY_PROVIDER:'El servicio de correo aceptó el envío; recepción aún no confirmada.',
+  DELIVERED_TO_MAIL_SERVER:'El proveedor confirmó entrega al servidor de correo; lectura no acreditada.',
+  BOUNCED:'El correo fue rechazado o devuelto. Administración debe revisar el destinatario.',
+  DELIVERY_DELAYED:'El proveedor informa retraso de entrega. No se acredita recepción.',
   CONFIG_PENDING:'Envío pendiente: falta configurar el servicio de correo.',
   EMAIL_MISSING:'No se envió: falta un correo válido del trabajador.',
   EMAIL_DUPLICATED:'Envío retenido: correo duplicado entre trabajadores.',
