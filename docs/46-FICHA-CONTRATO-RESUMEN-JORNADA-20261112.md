@@ -40,4 +40,4 @@ Fuentes:
 - Aún requiere observación de UX en instalación local Windows y revisión jurídica de cada distribución efectiva antes de elaborar un contrato.
 - Sin cambios de base de datos, parámetros DT persistentes, contratos firmados ni registros de asistencia.
 
-**Política:** integrar a `main` del producto de **pruebas** tras aprobar CI; actualizar el PC únicamente mediante el flujo manual autorizado.
+**Estado verificado el 12-11-2026:** [PR #31](https://github.com/ManuelAcostaGuerrero/sagva-gestion-laboral/pull/31) **fusionado a `main` de pruebas** (commit `1442fd9f`). Tres workflows del commit `eed5f19a` aprobados: Verificar proyecto, Validar mejoras QR móvil y Validar beta estructura laboral 1A-1E. No sustituye una prueba funcional en Windows ni revisión legal de cada jornada. La instalación local se actualiza solo mediante el flujo manual autorizado.
