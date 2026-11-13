@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { api } from './services/api.js';
 import './employeeDocuments.css';
 import MonthField from './MonthField.jsx';
+import {printEquipmentReceipt} from './printEquipmentReceipt.js';
 import {calculateApprovedSalary} from '../../shared/salaryAnnex.js';
 import {documentEvidenceLabels} from './documentEvidenceStatus.js';
 
@@ -11,7 +12,7 @@ const localDate = () => {
   const now = new Date();
   return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 };
-const newEntry = () => {const today=localDate();return {deliveredOn:today,startOn:today,expiresOn:'',expiryMode:'DEFAULT',agreedAmount:'',amountMeaning:'',retroactive:false,retroactiveAmount:'',retroactiveMonths:[],retroactiveMonth:'',versionLabel:'',notes:''};};
+const newEntry = () => {const today=localDate();return {deliveredOn:today,startOn:today,expiresOn:'',expiryMode:'DEFAULT',agreedAmount:'',amountMeaning:'',retroactive:false,retroactiveAmount:'',retroactiveMonths:[],retroactiveMonth:'',equipmentItems:[],versionLabel:'',notes:''};};
 const periodNames = { DAYS: 'días', WEEKS: 'semanas', MONTHS: 'meses', YEARS: 'años' };
 const modes = {
   NONE: 'Sin vencimiento',
@@ -41,7 +42,7 @@ function entryStatus(entry) {
   return { text: 'Respaldo firmado registrado', kind: 'success' };
 }
 
-export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = false, role, onMessage, onDirtyChange, onSalaryApplied }) {
+export default function EmployeeDocuments({ employeeId, workerName='', hasUnsavedChanges = false, role, onMessage, onDirtyChange, onSalaryApplied }) {
   const [types, setTypes] = useState([]);
   const [entries, setEntries] = useState([]);
   const [physicalStatuses,setPhysicalStatuses]=useState({});
@@ -261,7 +262,7 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
             {!type.canRegister && <p className="ed-footnote">No se admiten nuevas entregas para este documento; su historial permanece disponible.</p>}
             <div className="ed-bar">
               <span>{history.length ? history.length + ' entrega(s) y renovación(es)' : 'No hay entrega registrada en el sistema'}</span>
-              <button type="button" disabled={busy || hasUnsavedChanges || (!type.canRegister || !canRecordAmount)} onClick={() => {
+              <button type="button" disabled={busy || hasUnsavedChanges || (!type.canRegister || !canRecordAmount || (type.isEquipment&&!type.items?.length))} onClick={() => {
                 setEditing(isEditing ? null : type.id);
                 setStartEdited(false);
                 setEntryDraft(newEntry());
@@ -269,6 +270,17 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
             </div>
             {isEditing && (
               <div className="ed-panel ed-grid">
+                {type.isEquipment&&<fieldset className="ed-full ed-equipment-picker">
+                  <legend>Selecciona los implementos entregados</legend>
+                  {(type.items||[]).map(item=>{
+                   const picked=entryDraft.equipmentItems.find(x=>x.itemId===item.id);
+                   return <div className="ed-equipment-item" key={item.id}>
+                     <label><input type="checkbox" checked={!!picked} onChange={e=>changeEntry('equipmentItems',e.target.checked?[...entryDraft.equipmentItems,{itemId:item.id,quantity:1}]:entryDraft.equipmentItems.filter(x=>x.itemId!==item.id))}/>{item.name}</label>
+                     {picked&&<label>Cantidad<input type="number" min="1" max="1000" value={picked.quantity} onChange={e=>changeEntry('equipmentItems',entryDraft.equipmentItems.map(x=>x.itemId===item.id?{...x,quantity:Number(e.target.value)}:x))}/></label>}
+                   </div>;
+                  })}
+                  {!type.items?.length&&<p>Agrega implementos en Administración → Documentos.</p>}
+                </fieldset>}
                 <label>Vigencia de esta entrega / renovación
                   <select value={entryDraft.expiryMode} onChange={e => setEntryDraft(old => ({...old, expiryMode:e.target.value, expiresOn:''}))}>
                     <option value="DEFAULT">Usar configuración del documento</option>
@@ -308,7 +320,7 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
                   </>}
                 </>}
                 <label className="ed-full">Observaciones (opcional)<input value={entryDraft.notes} onChange={e => changeEntry('notes', e.target.value.toLocaleUpperCase('es-CL'))} /></label>
-                <div className="ed-full"><button type="button" className="primary" disabled={busy || hasUnsavedChanges || !entryDraft.deliveredOn || (['PERIOD', 'MANUAL'].includes(expiryMode) && !entryDraft.startOn) || (expiryMode === 'MANUAL' && !entryDraft.expiresOn) || (type.financialKind && (!entryDraft.startOn || !Number.isSafeInteger(Number(entryDraft.agreedAmount)) || Number(entryDraft.agreedAmount)<=0 || Number(entryDraft.agreedAmount)>1000000000000 || !canRecordAmount)) || (type.financialKind==='SALARY_INCREASE' && (!entryDraft.amountMeaning || (entryDraft.retroactive && (!Number.isSafeInteger(Number(entryDraft.retroactiveAmount)) || Number(entryDraft.retroactiveAmount)<=0 || Number(entryDraft.retroactiveAmount)>1000000000000 || !entryDraft.retroactiveMonths.length))))} onClick={() => addEntry(type)}>Guardar entrega / renovación</button></div>
+                <div className="ed-full"><button type="button" className="primary" disabled={busy || hasUnsavedChanges || (type.isEquipment&&!entryDraft.equipmentItems.length) || !entryDraft.deliveredOn || (['PERIOD', 'MANUAL'].includes(expiryMode) && !entryDraft.startOn) || (expiryMode === 'MANUAL' && !entryDraft.expiresOn) || (type.financialKind && (!entryDraft.startOn || !Number.isSafeInteger(Number(entryDraft.agreedAmount)) || Number(entryDraft.agreedAmount)<=0 || Number(entryDraft.agreedAmount)>1000000000000 || !canRecordAmount)) || (type.financialKind==='SALARY_INCREASE' && (!entryDraft.amountMeaning || (entryDraft.retroactive && (!Number.isSafeInteger(Number(entryDraft.retroactiveAmount)) || Number(entryDraft.retroactiveAmount)<=0 || Number(entryDraft.retroactiveAmount)>1000000000000 || !entryDraft.retroactiveMonths.length))))} onClick={() => addEntry(type)}>Guardar entrega / renovación</button></div>
               </div>
             )}
             {history.map((entry, index) => {
@@ -330,6 +342,11 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
                     {!!entry.retroactiveMonths?.length && <span>Meses: {entry.retroactiveMonths.map(month=>month.slice(5)+'/'+month.slice(0,4)).join(', ')}</span>}
                     {entry.versionLabel && entry.financialKind!=='SALARY_INCREASE' && type.financialKind!=='SALARY_INCREASE' && <span>Versión: {entry.versionLabel}</span>}
                   </div>
+                  {!!entry.equipmentItems?.length&&<div className="ed-equipment-delivered">
+                    <strong>Implementos registrados</strong>
+                    <ul>{entry.equipmentItems.map(item=><li key={item.itemId}>{item.name} · {item.quantity} unidad(es)</li>)}</ul>
+                    <button type="button" onClick={()=>printEquipmentReceipt({workerName,entry,typeName:type.name})}>Imprimir acta de entrega</button>
+                  </div>}
                   {!entry.attachments.length && <p className="ed-status ed-warning" role="status">PDF pendiente de ingresar en SAGVA para esta entrega. Esto no determina si existe el documento físico.</p>}
                   {entry.documentName !== type.name && <p>Nombre original de esta entrega: <strong>{entry.documentName}</strong></p>}
                   {entry.notes && <p>{entry.notes}</p>}

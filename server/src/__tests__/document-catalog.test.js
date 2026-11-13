@@ -30,7 +30,7 @@ test('Catálogo de documentos: roles, asignación, corrección de reglas, bloque
   }
   try {
     let catalog=(await req('/document-catalog')).types;
-    assert.equal(catalog.length,3);
+    assert.equal(catalog.length,4);
     const pactId=catalog.find(type=>type.name==='PACTO DE HORAS').id;
     await req('/document-catalog',operatorToken,'POST',{name:'Prohibido',expiryMode:'NONE'},403);
     const created=await req('/document-catalog',adminToken,'POST',{
