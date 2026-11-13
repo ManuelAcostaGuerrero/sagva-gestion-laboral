@@ -7,3 +7,30 @@ export async function migrateBankAuthorizations(db){
  ].join('\n'));
  await db.execute('INSERT INTO schema_migrations(id) VALUES(?)',[BANK_AUTH_MIGRATION]);
 }
+
+ 
+// Migración destructiva solicitada: retirar requestedOn incluso del historial
+// cifrado, sin alterar revisiones, sellos de auditoría o datos bancarios restantes.
+import {bankReady,encryptBank,decryptBank} from './benefitSecurity.js';
+export const BANK_PURGE_REQUESTED_ON='20261113_041_purge_bank_requested_on';
+export async function migrateBankRequestedOn(db){
+ const [done]=await db.execute('SELECT id FROM schema_migrations WHERE id=?',[BANK_PURGE_REQUESTED_ON]);
+ if(done.length)return;
+ // Sin la clave no podemos descifrar. No declarar migración aplicada;
+ // la operación se ejecutará al iniciar con la clave configurada.
+ if(!bankReady())return;
+ let removed=0;
+ for(const table of ['employee_bank_accounts','employee_bank_account_history']){
+  const key=table==='employee_bank_accounts'?'employee_id':'id';
+  const [rows]=await db.execute('SELECT '+key+' AS recordId,payload_ciphertext AS payload FROM '+table);
+  for(const row of rows){
+   const data=decryptBank(row.payload);
+   if(!Object.hasOwn(data,'requestedOn'))continue;
+   delete data.requestedOn;
+   await db.execute('UPDATE '+table+' SET payload_ciphertext=? WHERE '+key+'=?',[encryptBank(data),row.recordId]);
+   removed++;
+  }
+ }
+ await db.execute('INSERT INTO schema_migrations(id) VALUES(?)',[BANK_PURGE_REQUESTED_ON]);
+ return removed;
+}

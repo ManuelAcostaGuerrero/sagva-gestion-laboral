@@ -686,7 +686,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
             </div>
             <div hidden={subTab!=='bank'}>
               <EmployeeBankDetails ref={bankRef} key={draft.id||'new'} employeeId={draft.id}
-                workerName={draft.legalFullName||draft.fullName} workerRut={draft.documentId}
+                workerName={draft.legalFullName||draft.fullName} workerRut={draft.documentId} workerCompany={draft.company||''}
                 onDirtyChange={setBankDirty}/>
             </div>
             </div>

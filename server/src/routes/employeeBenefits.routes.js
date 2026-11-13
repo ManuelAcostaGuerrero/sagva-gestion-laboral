@@ -26,7 +26,7 @@ const entry=z.object({
   referenceCode:z.string().trim().max(120).nullable().optional()
 }).strict();
 const familySchema=z.object({revision:z.number().int().nonnegative(),status:z.enum(['NONE','PENDING','RECOGNIZED']),dependents:z.array(entry).max(30),averageIncomeClp:z.number().int().nonnegative().nullable().optional(),incomePeriod:z.string().trim().max(120).optional(),incomeVerified:z.boolean().optional()}).strict();
-const bankSchema=z.object({revision:z.number().int().nonnegative(),bankId:z.number().int().positive(),accountType:z.enum(['CORRIENTE','VISTA','CUENTARUT','AHORRO','OTRA']),accountNumber:z.string().trim().min(3).max(55).regex(/^[0-9A-Za-z.-]+$/),holderName:z.string().trim().min(2).max(160),holderRut:z.string().trim().min(7).max(15),requestedOn:z.string().regex(/^\d{4}-\d{2}-\d{2}$/),authorizationRef:z.string().trim().max(160).default('')}).strict();
+const bankSchema=z.object({revision:z.number().int().nonnegative(),bankId:z.number().int().positive(),accountType:z.enum(['CORRIENTE','VISTA','CUENTARUT','AHORRO','OTRA']),accountNumber:z.string().trim().min(3).max(55).regex(/^[0-9A-Za-z.-]+$/),holderName:z.string().trim().min(2).max(160),holderRut:z.string().trim().min(7).max(15),authorizationRef:z.string().trim().max(160).default('')}).strict();
 async function employee(db,id){
  const [rows]=await db.execute('SELECT id,document_id AS documentId FROM employees WHERE id=?',[id]);
  if(!rows.length)throw fail('Trabajador no encontrado.',404);
@@ -106,6 +106,7 @@ employeeBenefitsRouter.get('/:id/bank',restricted(mayReadBank),asyncHandler(asyn
  // Validar disponibilidad de clave sin revelar configuración; una cuenta no existe aún.
  if(!bankReady())throw fail('Acceso bancario no configurado.',503);
  const account=rows[0]?decryptBank(rows[0].payload):null;
+  if(account)delete account.requestedOn;
  // Lecturas de datos financieros personales son auditables, sin registrar su contenido.
  await recordAudit(req.admin,'read','employee_bank_account',id,{field:'bank_account'});
  res.json({account,revision:rows[0]?.revision||0});
