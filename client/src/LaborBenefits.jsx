@@ -1,4 +1,5 @@
 
+import PesoField from './PesoField.jsx';
 import React,{useEffect,useState} from 'react';
 import {api} from './services/api.js';
 const today=()=>new Date().toISOString().slice(0,10);
@@ -32,7 +33,7 @@ export default function LaborBenefits({mode='banks'}){
     <fieldset disabled={busy}><legend>{edit.id?'Modificar banco':'Nuevo banco'}</legend>
     <div className="ef-grid">
      {!edit.id&&<label>Código<input required value={edit.code} onChange={e=>setEdit(x=>({...x,code:e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g,'')}))}/></label>}
-     <label>Nombre<input required minLength={2} value={edit.name} onChange={e=>setEdit(x=>({...x,name:e.target.value}))}/></label>
+     <label>Nombre<input required minLength={2} value={edit.name} onChange={e=>setEdit(x=>({...x,name:e.target.value.toLocaleUpperCase('es-CL')}))}/></label>
      {edit.id?<label>Estado<select value={edit.active?'active':'inactive'} onChange={e=>setEdit(x=>({...x,active:e.target.value==='active'}))}><option value="active">Activo</option><option value="inactive">Inactivo</option></select></label>:
       <label>Fuente normativa<input type="url" value={edit.sourceUrl||''} onChange={e=>setEdit(x=>({...x,sourceUrl:e.target.value}))}/></label>}
      <label className="ef-field-wide">Motivo<textarea required minLength={10} value={reason} onChange={e=>setReason(e.target.value)}/></label>
@@ -63,8 +64,8 @@ export default function LaborBenefits({mode='banks'}){
      <label>Semestre de ingresos de referencia<input required value={reference} onChange={e=>setReference(e.target.value)}/></label>
      <label className="ef-field-wide">Fuente oficial<input type="url" required value={source} onChange={e=>setSource(e.target.value)}/></label>
      {edit.tiers.map((t,i)=><React.Fragment key={i}>
-      {i<3&&<label>Tramo {i+1}: ingreso máximo<input type="number" min={t.incomeFrom} required value={t.incomeTo} onChange={e=>updateTier(i,'incomeTo',Number(e.target.value))}/></label>}
-      <label>Tramo {i+1}: monto CLP<input type="number" min="0" required value={t.amountClp} onChange={e=>updateTier(i,'amountClp',Number(e.target.value))}/></label>
+      {i<3&&<label>Tramo {i+1}: ingreso máximo<PesoField min={t.incomeFrom} required value={t.incomeTo} onChange={digits=>updateTier(i,'incomeTo',Number(digits||0))}/></label>}
+      <label>Tramo {i+1}: monto CLP<PesoField min={0} required value={t.amountClp} onChange={digits=>updateTier(i,'amountClp',Number(digits||0))}/></label>
      </React.Fragment>)}
      <label className="ef-field-wide">Motivo<textarea required minLength={10} value={reason} onChange={e=>setReason(e.target.value)}/></label>
     </div><button type="submit">Guardar nueva versión</button><button type="button" onClick={()=>setEdit(null)}>Cancelar</button></fieldset>

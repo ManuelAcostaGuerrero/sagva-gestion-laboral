@@ -1,3 +1,4 @@
+import PesoField from './PesoField.jsx';
 import React,{forwardRef,useEffect,useImperativeHandle,useRef,useState} from 'react';
 import {api} from './services/api.js';
 import {blankContractTerms} from '../../server/src/contractTerms.js';
@@ -69,8 +70,7 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
   {error&&<p className="ef-note" role="alert">{error}</p>}
   {loading?<p>Cargando condiciones…</p>:<div className="ef-grid">
    <label>Sueldo base mensual (CLP)
-    <input type="text" inputMode="numeric" pattern="[0-9.]*" value={draft.monthlyBaseSalary===''?'':Number(draft.monthlyBaseSalary||0).toLocaleString('es-CL')}
-     onChange={e=>{const digits=e.target.value.replace(/[^0-9]/g,'');change('monthlyBaseSalary',digits===''?'':Number(digits));}}/></label>
+    <PesoField value={draft.monthlyBaseSalary} onChange={digits=>change('monthlyBaseSalary',digits===''?'':Number(digits))}/></label>
    <label>Gratificación<select value={draft.gratification} onChange={e=>change('gratification',e.target.value)}>
     <option value="">Por definir</option><option value="ART_50">Artículo 50</option><option value="ART_47">Artículo 47</option><option value="OTHER">Otra modalidad (revisión)</option></select></label>
    <label>Horas semanales pactadas
@@ -106,7 +106,7 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
      onChange={e=>change('shiftDistribution',e.target.value)}/></label>
    <label className="ef-field-wide">Funciones del cargo
     <textarea rows={4} maxLength={5000} value={draft.jobDuties}
-     onChange={e=>change('jobDuties',e.target.value)}/></label>
+     onChange={e=>change('jobDuties',e.target.value.toLocaleUpperCase('es-CL'))}/></label>
    {template?.duties&&<div className="ef-field-wide"><button type="button" className="la-small" onClick={()=>change('jobDuties',template.duties)}>Usar funciones aprobadas: {template.areaName} · {positionName}</button>
      <p className="ef-note">Puedes personalizar el texto de esta ficha sin modificar el catálogo ni contratos históricos.</p></div>}
    {!template?.duties&&position?.description&&<div className="ef-field-wide">
@@ -114,7 +114,7 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
    </div>}
    <label className="ef-field-wide">Condiciones adicionales para revisión jurídica
     <textarea rows={3} maxLength={2000} value={draft.additionalTerms}
-     onChange={e=>change('additionalTerms',e.target.value)}/></label>
+     onChange={e=>change('additionalTerms',e.target.value.toLocaleUpperCase('es-CL'))}/></label>
    <p className="ef-note ef-field-wide" aria-live="polite">{dirty ? 'Cambios pendientes: usa Guardar ficha (botón general).' : saved?.revision ? 'Condiciones guardadas con historial.' : 'Sin condiciones registradas.'}</p>
   </div>}
  </fieldset>;

@@ -122,7 +122,7 @@ export default function ShiftManager({ data, onReload, onMessage }) {
         {showGroupForm && (
           <form className="shift-manager-form" onSubmit={createGroup}>
             <h3>Crear turno</h3>
-            <label>Nombre del turno<input value={groupName} onChange={event => setGroupName(event.target.value)} placeholder="Ej.: Fin de semana" minLength={2} maxLength={100} required autoFocus /></label>
+            <label>Nombre del turno<input value={groupName} onChange={event => setGroupName(event.target.value.toLocaleUpperCase('es-CL'))} placeholder="Ej.: Fin de semana" minLength={2} maxLength={100} required autoFocus /></label>
             <div className="shift-manager-actions"><button className="primary" disabled={busy} type="submit">Guardar turno</button><button disabled={busy} type="button" onClick={() => setShowGroupForm(false)}>Cancelar</button></div>
           </form>
         )}

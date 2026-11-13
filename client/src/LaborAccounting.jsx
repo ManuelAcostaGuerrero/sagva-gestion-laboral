@@ -105,7 +105,7 @@ export default function LaborAccounting({role='admin',onMessage}){
      {!entity&&<label>Código interno<input required minLength={2} maxLength={40} value={newEntity.code}
       onChange={e=>setNewEntity(x=>({...x,code:e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g,'')}))}/></label>}
      <label>Nombre<input required maxLength={120} value={entity?entity.name:newEntity.name}
-      onChange={e=>entity?setEntity(x=>({...x,name:e.target.value})):setNewEntity(x=>({...x,name:e.target.value}))}/></label>
+      onChange={e=>entity?setEntity(x=>({...x,name:e.target.value.toLocaleUpperCase('es-CL')})):setNewEntity(x=>({...x,name:e.target.value.toLocaleUpperCase('es-CL')}))}/></label>
      {entity&&<label>Estado<select disabled={entity.kind==='FONASA'} value={entity.active?'SI':'NO'}
       onChange={e=>setEntity(x=>({...x,active:e.target.value==='SI'}))}>
       <option value="SI">Activa</option><option value="NO">Inactiva</option></select></label>}
