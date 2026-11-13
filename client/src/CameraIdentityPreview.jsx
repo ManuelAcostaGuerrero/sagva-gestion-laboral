@@ -1,10 +1,10 @@
 import React,{useEffect,useRef,useState} from 'react';
 
 // Una lectura por apertura: se libera la cámara antes de mostrar el resultado.
-export default function CameraIdentityPreview({terminalToken,actionLabel,onRead,busy=false}){
+export default function CameraIdentityPreview({terminalToken,actionLabel,onRead,busy=false,autoStart=false,facingMode='environment'}){
   const videoRef=useRef(null),readRef=useRef(onRead),runRef=useRef(0);
   readRef.current=onRead;
-  const [enabled,setEnabled]=useState(false),[result,setResult]=useState(null);
+  const [enabled,setEnabled]=useState(autoStart),[result,setResult]=useState(null);
   const [status,setStatus]=useState({kind:'info',text:'Pulsa «Escanear QR» para utilizar la cámara.'});
 
   useEffect(()=>{
@@ -55,7 +55,7 @@ export default function CameraIdentityPreview({terminalToken,actionLabel,onRead,
         if(!formats.includes('qr_code'))throw new Error('El navegador no admite códigos QR.');
         const detector=new window.BarcodeDetector({formats:['qr_code']});
         const acquired=await navigator.mediaDevices.getUserMedia({
-          video:{facingMode:{ideal:'environment'}},audio:false
+          video:{facingMode:{ideal:facingMode}},audio:false
         });
         if(!valid()){acquired.getTracks().forEach(track=>track.stop());return;}
         stream=acquired;
@@ -83,7 +83,7 @@ export default function CameraIdentityPreview({terminalToken,actionLabel,onRead,
       if(stream)stream.getTracks().forEach(track=>track.stop());
       if(videoRef.current){videoRef.current.pause();videoRef.current.srcObject=null;}
     };
-  },[enabled,terminalToken]);
+  },[enabled,terminalToken,facingMode]);
 
   const next=()=>{setResult(null);setStatus({kind:'info',text:'Abriendo cámara…'});setEnabled(true);};
   return <section className="tk-camera-preview" aria-label="Lector QR con cámara">

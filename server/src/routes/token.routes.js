@@ -9,6 +9,7 @@ import {asyncHandler} from '../asyncHandler.js';
 import {requireRoles} from '../auth.js';
 import {recordAudit} from '../auditLog.js';
 import {getConfiguredDateTime,getSystemSettings} from '../systemSettings.js';
+import {operatingDay,recommendType} from '../attendanceOperatingDay.js';
 import {sendAttendanceNotification} from '../pushNotifications.js';
 import {workerName} from '../workerNames.js';
 import {ATTENDANCE_TYPES} from '../attendanceSchema.js';
@@ -150,6 +151,11 @@ tokenRouter.get('/terminal-workers',requireTerminal,asyncHandler(async(req,res)=
   res.set('Cache-Control','no-store');
   res.json({terminal,workers:people.map(p=>({id:p.id,displayName:workerName(p)}))});
 }));
+tokenRouter.get('/terminal-clock',requireTerminal,asyncHandler(async(req,res)=>{
+ const settings=await getSystemSettings();
+ res.set('Cache-Control','no-store');
+ res.json({serverEpochMs:Date.now(),timeZone:settings.timeZone||'America/Santiago'});
+}));
 tokenRouter.post('/identify',requireTerminal,asyncHandler(async(req,res)=>{
  const value=String(req.body.token||'').trim().replace(/^asistencia:/i,'');
  if(!/^at_[A-Za-z0-9_-]{43}$/.test(value))throw error('QR no válido o no autorizado para esta empresa.',401);
@@ -159,7 +165,13 @@ tokenRouter.post('/identify',requireTerminal,asyncHandler(async(req,res)=>{
  WHERE w.token_hash=? AND w.revoked_at IS NULL AND e.is_active=1 AND c.is_active=1
  AND t.is_active=1 AND t.token_hash=? AND f.company_id=t.company_id`,[req.terminal.id,hash(value),hash(String(req.get('X-Terminal-Token')||''))]);
  if(!rows.length)throw error('QR no válido o no autorizado para esta empresa.',401);
- res.set('Cache-Control','no-store');res.json({readOnly:true,employee:{id:rows[0].id,displayName:workerName(rows[0])},cameraMarkEnabled:!!req.terminal.cameraMarkEnabled});
+ const scannedAt=getConfiguredDateTime(await getSystemSettings());
+ const day=operatingDay(scannedAt);
+ const [marks]=await pool.execute('SELECT record_type AS type FROM attendance_records WHERE employee_id=? AND is_void=0 AND registered_at>=? AND registered_at<? ORDER BY registered_at,id',[rows[0].id,day.start,day.end]);
+ res.set('Cache-Control','no-store');
+ res.json({readOnly:true,employee:{id:rows[0].id,displayName:workerName(rows[0])},
+  cameraMarkEnabled:!!req.terminal.cameraMarkEnabled,scannedAt,operatingDay:day.date,...recommendType(marks)});
+
 }));
 const markSchema=z.object({source:z.enum(['CAMERA','MANUAL']).optional(),type:z.enum(ATTENDANCE_TYPES),requestId:z.string().uuid(),token:z.string().min(30).max(120).optional(),employeeId:z.number().int().positive().optional(),pin:z.string().min(4).max(20).optional()});
 tokenRouter.post('/mark',requireTerminal,asyncHandler(async(req,res)=>{

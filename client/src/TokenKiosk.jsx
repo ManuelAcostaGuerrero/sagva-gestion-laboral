@@ -2,6 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {api} from './services/api.js';
 import './tokens.css';
 import CameraIdentityPreview from './CameraIdentityPreview.jsx';
+import TabletAttendanceKiosk from './TabletAttendanceKiosk.jsx';
 import TerminalActivationScanner from './TerminalActivationScanner.jsx';
 import {requestId} from './requestId.js';
 import {printAttendanceReceipt} from './printAttendanceReceipt.js';
@@ -32,6 +33,7 @@ export default function TokenKiosk({setMessage}){
     catch{return null;}
   });
   const [alternativesOpen,setAlternativesOpen]=useState(false);
+  const [tabletMode,setTabletMode]=useState(()=>localStorage.getItem('attendanceTabletMode')==='1');
   const [recordCamera,setRecordCamera]=useState(false);
   const [activation,setActivation]=useState(''),[mode,setMode]=useState('QR'),[action,setAction]=useState('entrada');
   const [credential,setCredential]=useState(''),[employeeId,setEmployeeId]=useState(''),
@@ -159,6 +161,9 @@ export default function TokenKiosk({setMessage}){
     </button>
   </form>;
 
+  if(tabletMode)return <TabletAttendanceKiosk terminal={terminal}
+   onExit={()=>{localStorage.removeItem('attendanceTabletMode');setTabletMode(false);}}
+   onRevoked={()=>{localStorage.removeItem('attendanceTerminal');setTerminal(null);}}/>;
   return <section className="tk-kiosk tk-kiosk-minimal">
     <header className="tk-terminal-head">
       <span className="tk-badge"><strong>{terminal.name}</strong>
@@ -166,6 +171,7 @@ export default function TokenKiosk({setMessage}){
       </span>
     </header>
 
+    <button type="button" onClick={()=>{localStorage.setItem('attendanceTabletMode','1');setTabletMode(true);}}>Activar pantalla tablet</button>
     <h2>Registrar asistencia</h2>
     <div className="tk-actions" role="group" aria-label="Tipo de marcación">
       {actions.map(([value,label])=><button type="button" key={value}
