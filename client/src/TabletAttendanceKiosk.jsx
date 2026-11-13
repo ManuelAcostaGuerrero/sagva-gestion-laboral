@@ -2,6 +2,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import CameraIdentityPreview from './CameraIdentityPreview.jsx';
 import {api} from './services/api.js';
 import {requestId} from './requestId.js';
+import {remainingKioskSeconds} from './kioskCountdown.js';
 import './tabletKiosk.css';
 const types=[['entrada','ENTRADA DE TURNO'],['salida_colacion','INICIAR COLACIÓN'],['entrada_colacion','TERMINAR COLACIÓN'],['salida','SALIDA DE TURNO']];
 const label=t=>types.find(x=>x[0]===t)?.[1]||t;
@@ -12,8 +13,12 @@ export default function TabletAttendanceKiosk({terminal,onExit,onRevoked}){
  const [info,setInfo]=useState(null),[result,setResult]=useState(null),[error,setError]=useState('');
  const [front,setFront]=useState(true),[busy,setBusy]=useState(false);
  const [clock,setClock]=useState({offset:0,ok:false}),[now,setNow]=useState(Date.now());
- const pending=useRef(null);
- function reset(){pending.current=null;setStage('idle');setWorker(null);setToken('');setInfo(null);setResult(null);setError('');setBusy(false);}
+ const [secondsRemaining,setSecondsRemaining]=useState(10);
+ const pending=useRef(null),successUntil=useRef(null);
+ function reset(){
+  pending.current=null;successUntil.current=null;setSecondsRemaining(10);
+  setStage('idle');setWorker(null);setToken('');setInfo(null);setResult(null);setError('');setBusy(false);
+ }
  useEffect(()=>{const h=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(h);},[]);
  useEffect(()=>{
   let live=true;
@@ -29,7 +34,12 @@ export default function TabletAttendanceKiosk({terminal,onExit,onRevoked}){
  },[terminal.token]);
  useEffect(()=>{
   if(stage!=='success')return undefined;
-  const h=setTimeout(reset,10000);return()=>clearTimeout(h);
+  const deadline=successUntil.current??Date.now()+10000;
+  const refresh=()=>setSecondsRemaining(remainingKioskSeconds(deadline,Date.now()));
+  refresh();
+  const interval=setInterval(refresh,200);
+  const timeout=setTimeout(reset,Math.max(0,deadline-Date.now()));
+  return()=>{clearInterval(interval);clearTimeout(timeout);};
  },[stage]);
  async function onRead(qr){
   const data=await api('/tokens/identify',{method:'POST',headers:{'X-Terminal-Token':terminal.token},body:JSON.stringify({token:qr})});
@@ -44,7 +54,10 @@ export default function TabletAttendanceKiosk({terminal,onExit,onRevoked}){
   try{
    const data=await api('/tokens/mark',{method:'POST',headers:{'X-Terminal-Token':terminal.token},
     body:JSON.stringify({token,type,source:'CAMERA',requestId:pending.current.id})});
-   pending.current=null;setResult(data);setStage('success');
+   pending.current=null;
+   successUntil.current=Date.now()+10000;
+   setSecondsRemaining(10);
+   setResult(data);setStage('success');
   }catch(e){
    if(e.status===401&&/terminal.*(revocada|autorizada)|activa esta terminal/i.test(e.message)){onRevoked();return;}
    setError(e.message);
@@ -84,7 +97,7 @@ export default function TabletAttendanceKiosk({terminal,onExit,onRevoked}){
      <strong className="sagva-result-hour">{result?.record?.registeredAt?.slice(11)}</strong>
      <p>{label(result?.record?.type)} · {result?.record?.registeredAt?.slice(0,10)}</p>
      <p>Comprobante Nº {result?.record?.id} · {terminal.companyName||terminal.name}</p>
-     <p>Regreso automático al reloj: 10 segundos</p>
+     <p aria-live="off">Regreso automático al reloj en <strong>{secondsRemaining}</strong> {secondsRemaining===1?'segundo':'segundos'}</p>
      <button type="button" className="sagva-big" onClick={reset}>SIGUIENTE TRABAJADOR</button>
    </div>}
    </div>
