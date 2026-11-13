@@ -2,8 +2,9 @@
 import React,{forwardRef,useEffect,useImperativeHandle,useRef,useState} from 'react';
 import {normalizeRut,formatRut} from '../../server/src/rut.js';
 import {api} from './services/api.js';
-const initial=()=>({revision:0,bankId:0,accountType:'VISTA',accountNumber:'',holderName:'',holderRut:'',requestedOn:'',authorizationRef:''});
-const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,workerName,workerRut,onDirtyChange},ref){
+import {printBankAuthorization} from './printBankAuthorization.js';
+const initial=()=>({revision:0,bankId:0,accountType:'VISTA',accountNumber:'',holderName:'',holderRut:'',authorizationRef:''});
+const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,workerName,workerRut,workerCompany='',onDirtyChange},ref){
  const [cap,setCap]=useState(false),[canWrite,setCanWrite]=useState(false),[reason,setReason]=useState(''),[banks,setBanks]=useState([]);
  const [data,setData]=useState(initial),[saved,setSaved]=useState(JSON.stringify(initial()));
  const [error,setError]=useState(''),[busy,setBusy]=useState(false),[showNumber,setShowNumber]=useState(false);
@@ -50,7 +51,7 @@ const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,wo
    : 'No se pudo comprobar el acceso bancario. Contacta al responsable técnico.'}</p>
   <p>La cuenta no se puede registrar desde aquí hasta resolver el requisito de seguridad. No publiques claves ni números de cuenta en GitHub.</p>
  </div>;
- const set=(key,value)=>{if(canWrite)setData(p=>({...p,[key]:value}));};
+ const set=(key,value)=>{if(canWrite)setData(p=>({...p,[key]:value,...(thirdParty&&['bankId','accountType','accountNumber','holderName','holderRut'].includes(key)?{authorizationRef:''}:{})}));};
  const changeHolder=checked=>{
   if(!canWrite)return;
   setThirdParty(checked);
@@ -87,13 +88,19 @@ const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,wo
    <label>Número de cuenta<input disabled={!canWrite} type={showNumber?'text':'password'} value={data.accountNumber} autoComplete="off" onChange={e=>set('accountNumber',e.target.value)}/></label>
    <label>Mostrar número de cuenta<button type="button" onPointerDown={()=>setShowNumber(true)} onPointerUp={()=>setShowNumber(false)} onPointerLeave={()=>setShowNumber(false)} onBlur={()=>setShowNumber(false)} onKeyDown={e=>{if(e.key===' '||e.key==='Enter')setShowNumber(true);}} onKeyUp={()=>setShowNumber(false)}>Mantener pulsado para ver</button></label>
    <label className="la-check"><input type="checkbox" disabled={!canWrite} checked={thirdParty} onChange={e=>changeHolder(e.target.checked)}/> Titular distinto del trabajador</label>
-   <label>Titular de la cuenta<input disabled={!canWrite||!thirdParty} value={thirdParty?data.holderName:(workerName||data.holderName)} placeholder={workerName||''} onChange={e=>set('holderName',e.target.value)}/></label>
+   <label>Titular de la cuenta<input disabled={!canWrite||!thirdParty} value={thirdParty?data.holderName:(workerName||data.holderName)} placeholder={workerName||''} onChange={e=>set('holderName',e.target.value.toLocaleUpperCase('es-CL'))}/></label>
    <label>RUT del titular<input disabled={!canWrite||!thirdParty} value={holderRutFocused?(thirdParty?data.holderRut:(workerRut||data.holderRut)):formatRut(thirdParty?data.holderRut:(workerRut||data.holderRut))} onFocus={()=>setHolderRutFocused(true)} onBlur={()=>setHolderRutFocused(false)} placeholder={workerRut||''} onChange={e=>set('holderRut',e.target.value)}/></label>
-   <label>Fecha de solicitud<input disabled={!canWrite} type="date" value={data.requestedOn} onChange={e=>set('requestedOn',e.target.value)}/></label>
+   
    {thirdParty&&<div className="ef-field-wide la-inline-actions">
+    <button type="button" className="la-small" disabled={!canWrite||uploading} onClick={()=>{
+     try{const selected=banks.find(b=>b.id===Number(data.bankId));if(!selected||!data.accountNumber||!data.holderName||!data.holderRut)throw new Error('Completa banco, cuenta y datos del titular antes de generar la autorización.');
+      printBankAuthorization({employerName:workerCompany,workerName,workerRut,holderName:data.holderName,holderRut:data.holderRut,bankName:selected.name,accountType:data.accountType,accountNumber:data.accountNumber});
+     }catch(e){setError(e.message);}
+    }}>Generar e imprimir autorización</button>
     <input ref={uploadInput} aria-label="Seleccionar PDF de autorización de cuenta de tercero" type="file" accept=".pdf,application/pdf" hidden disabled={!canWrite||uploading} onChange={e=>uploadAuthorization(e.target.files?.[0])}/>
     <button type="button" className="la-small" disabled={!canWrite||uploading} onClick={()=>uploadInput.current?.click()}>{uploading?'Cargando…':'Cargar autorización (PDF)'}</button>
-    <span role="status">{data.authorizationRef?'Respaldo asociado: '+data.authorizationRef:'Sin autorización cargada'}</span>
+    <span role="status">{data.authorizationRef?'Respaldo firmado asociado: '+data.authorizationRef:'Pendiente: cargar PDF firmado o escaneado'}</span>
+    <p className="ef-note">La impresión genera una solicitud para firmar, no habilita por sí sola depósitos en cuentas de terceros. Revalidar ante las exigencias laborales aplicables.</p>
    </div>}
   </div>
   <p className="ef-note">La cuenta será cifrada. El sistema no transfiere dinero. Al editar esta información se registra el cambio, sin exponer el número en la bitácora.</p>

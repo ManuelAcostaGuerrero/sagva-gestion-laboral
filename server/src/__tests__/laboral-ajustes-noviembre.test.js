@@ -59,7 +59,7 @@ test('pruebas integradas: funciones, jornada, pago mixto, renta y autorización 
  const current=(await call('/labor-benefits/family-brackets?on=2026-11-10')).data.current;
  assert.equal(familyAllowancePreview({...familyRead,brackets:current,on:'2026-11-10'}).totalClp,22601);
  const [banks]=await pool.execute("SELECT id FROM labor_banks WHERE code='012'");
- const bank={revision:0,bankId:banks[0].id,accountType:'VISTA',accountNumber:'000123456789',holderName:'Tercero Ficticio',holderRut:'11.111.111-1',requestedOn:'2026-11-10',authorizationRef:'BANCARIA-999'};
+ const bank={revision:0,bankId:banks[0].id,accountType:'VISTA',accountNumber:'000123456789',holderName:'Tercero Ficticio',holderRut:'11.111.111-1',authorizationRef:'BANCARIA-999'};
  assert.equal((await call('/employee-benefits/'+workerId+'/bank','PUT',bank)).status,400);
  const pdf=Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF');
  const upload=await fetch(url+'/employee-benefits/'+workerId+'/bank-authorization',{method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/pdf'},body:pdf});

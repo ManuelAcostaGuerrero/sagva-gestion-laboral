@@ -86,7 +86,7 @@ test('BL-003/004/005: bancos CMF, bandas SUSESO, cargas auditables y cuenta cifr
     assert.equal((await call('/employee-benefits/bank-capability')).data.canAccess,true);
     const account={revision:0,bankId:banks.find(x=>x.code==='012').id,accountType:'VISTA',
       accountNumber:'000123456789',holderName:'Persona Ejemplo',holderRut:'12.345.678-5',
-      requestedOn:'2026-11-09',authorizationRef:'Solicitud privada sintética'};
+      authorizationRef:'Solicitud privada sintética'};
     assert.equal((await call('/employee-benefits/'+w+'/bank','PUT',{...account,holderRut:'11.111.111-1'})).status,400);
     const saved=await call('/employee-benefits/'+w+'/bank','PUT',account);
     assert.equal(saved.status,200);
