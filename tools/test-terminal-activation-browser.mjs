@@ -89,6 +89,7 @@ try{
  const second=await newTerminal('CELULAR MANUAL SINTÉTICO');
  await page.evaluate(()=>localStorage.removeItem('attendanceTerminal'));
  await page.reload();
+ await page.getByRole('button',{name:'ASISTENCIA'}).click();
  await page.getByRole('textbox',{name:'Código de activación'}).fill(second.activationCode);
  await page.getByRole('button',{name:'Activar este equipo'}).click();
  await page.getByText('CELULAR MANUAL SINTÉTICO',{exact:true}).waitFor();
