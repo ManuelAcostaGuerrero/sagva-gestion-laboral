@@ -249,7 +249,7 @@ function App() {
     setToken(savedToken);
     return savedToken;
   });
-  const [view, setView] = useState(tokenState ? 'admin' : localStorage.getItem('attendanceTabletMode')==='1' ? 'attendance' : 'home');
+  const [view, setView] = useState(localStorage.getItem('attendanceTabletMode')==='1' ? 'attendance' : tokenState ? 'admin' : 'home');
   const [message, setMessage] = useState('');
   const [sessionPromptOpen, setSessionPromptOpen] = useState(false);
   const [sessionExpiry, setSessionExpiry] = useState(() => getTokenExpiry(tokenState));
