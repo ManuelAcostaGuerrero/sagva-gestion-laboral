@@ -48,6 +48,7 @@ try{
  const first=await newTerminal('CELULAR QR SINTÉTICO');
  assert.ok(first.activationQrDataUrl.startsWith('data:image/png;base64,'));
  await page.goto(base);
+ await page.getByRole('button',{name:'ASISTENCIA'}).click();
  await page.getByRole('heading',{name:'Activar terminal de asistencia'}).waitFor();
  await page.waitForFunction(()=>{
   const img=document.querySelector('.public-sidebar img.sidebar-brand');
