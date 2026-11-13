@@ -28,7 +28,8 @@ test('Terminal-empresa-trabajador: QR/PIN aislados, vista previa sin escrituras,
   const listed=await req('/terminal-workers');assert.deepEqual(listed.workers.map(w=>w.id),[workers[0]]);
   const counts=async()=>({attendance:(await pool.execute('SELECT COUNT(*) n FROM attendance_records'))[0][0].n,audit:(await pool.execute('SELECT COUNT(*) n FROM audit_logs'))[0][0].n});
   const before=await counts();
-  const identified=await req('/identify',{token:'asistencia:'+qrA.token});assert.equal(identified.employee.id,workers[0]);assert.equal(identified.cameraMarkEnabled,false);
+  const clock=await req('/terminal-clock');assert.ok(Number.isSafeInteger(clock.serverEpochMs));assert.equal(clock.timeZone,'America/Santiago');
+  const identified=await req('/identify',{token:'asistencia:'+qrA.token});assert.equal(identified.employee.id,workers[0]);assert.equal(identified.cameraMarkEnabled,false);assert.equal(identified.recommendedType,'entrada');
   await req('/identify',{token:qrB.token},401);
   await req('/mark',{token:qrB.token,type:'entrada',requestId:crypto.randomUUID()},401);
   await req('/mark',{employeeId:workers[1],pin:'4321',type:'entrada',requestId:crypto.randomUUID()},401);
@@ -36,6 +37,7 @@ test('Terminal-empresa-trabajador: QR/PIN aislados, vista previa sin escrituras,
   assert.deepEqual(await counts(),before);
   const unchanged=await req('/terminals/'+device.id+'/config',{companyId:a.insertId,cameraMarkEnabled:true});assert.equal(unchanged.activationCode,null);assert.equal(unchanged.activationQrDataUrl,null);
   const mark={source:'CAMERA',token:qrA.token,type:'entrada',requestId:crypto.randomUUID()};const registered=await req('/mark',mark,201);assert.equal(registered.employee.id,workers[0]);
+  const afterEntry=await req('/identify',{token:qrA.token});assert.equal(afterEntry.recommendedType,'salida_colacion');assert.equal(afterEntry.lastType,'entrada');
   const repeated=await req('/mark',mark);assert.equal(repeated.record.id,registered.record.id);assert.equal((await counts()).attendance,before.attendance+1);
   const changed=await req('/terminals/'+device.id+'/config',{companyId:b.insertId,cameraMarkEnabled:false});assert.ok(changed.activationCode);assert.ok(changed.activationQrDataUrl.startsWith('data:image/png;base64,'));assert.notEqual(changed.activationCode,device.activationCode);
   await req('/identify',{token:qrA.token},401);
