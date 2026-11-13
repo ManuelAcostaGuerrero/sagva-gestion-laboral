@@ -1,3 +1,4 @@
+import PesoField from './PesoField.jsx';
 import React,{useEffect,useState} from 'react';
 import {api} from './services/api.js';
 
@@ -64,7 +65,7 @@ export default function EmployeeBonuses({employeeId}){
     <p className="ef-note">Monto, vigencia y suspensión quedan bloqueados hasta implementar cambios respaldados por anexo contractual. Esta nota no cambia las condiciones del bono.</p>
     <label>Observación administrativa
      <textarea rows={2} maxLength={1000} value={editingAssignment.notes}
-      onChange={e=>setEditingAssignment(v=>({...v,notes:e.target.value}))}/></label>
+      onChange={e=>setEditingAssignment(v=>({...v,notes:e.target.value.toLocaleUpperCase('es-CL')}))}/></label>
     <div className="la-inline-actions">
      <button type="button" className="primary la-small" disabled={busy}
       onClick={async()=>{const d=editingAssignment;
@@ -86,13 +87,12 @@ export default function EmployeeBonuses({employeeId}){
        {unassigned.map(b=><option key={b.id} value={b.id}>{b.name}</option>)}
       </select></label>
      <label>Monto individual CLP (vacío = catálogo)
-      <input type="number" min="0" max="100000000" step="1" value={amountInput}
-       onChange={e=>setAmountInput(e.target.value)}/></label>
+      <PesoField min={0} max={100000000} value={amountInput} onChange={setAmountInput}/></label>
      <label>Vigencia desde
       <input type="date" value={from} onChange={e=>setFrom(e.target.value)}/></label>
      <label className="ef-field-wide">Observación administrativa (opcional)
       <textarea rows={2} maxLength={1000} value={notesInput}
-       onChange={e=>setNotesInput(e.target.value)}/></label>
+       onChange={e=>setNotesInput(e.target.value.toLocaleUpperCase('es-CL'))}/></label>
     </div>
     {selectedBonus&&<div className="ef-bonus-preview" aria-live="polite">
      <span><strong>Monto del catálogo:</strong> {money(selectedBonus.amountClp)} CLP</span>

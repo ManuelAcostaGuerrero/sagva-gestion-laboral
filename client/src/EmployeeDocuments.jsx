@@ -1,4 +1,5 @@
 import DateField from './DateField.jsx';
+import PesoField from './PesoField.jsx';
 import React, { useEffect, useState } from 'react';
 import { api } from './services/api.js';
 import './employeeDocuments.css';
@@ -294,11 +295,11 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
                      return <p className="ed-full ef-note" role="status">Sueldo resultante al aprobar: {new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP'}).format(proposed)}.</p>;
                    }catch(err){return <p className="ed-full ef-note" role="status">{err.message}</p>;}
                  })()}
-                 {!!type.financialKind && <label>{type.financialKind==='BONUS'?'Monto del bono acordado':'Monto acordado'} (CLP)<input type="number" min="1" max="1000000000000" step="1" value={entryDraft.agreedAmount} onChange={e=>changeEntry('agreedAmount',e.target.value)} placeholder="Monto en pesos, sin puntos" /></label>}
+                 {!!type.financialKind && <label>{type.financialKind==='BONUS'?'Monto del bono acordado':'Monto acordado'} (CLP)<PesoField min={1} max={1000000000000} value={entryDraft.agreedAmount} onChange={digits=>changeEntry('agreedAmount',digits)}/></label>}
                 {type.financialKind==='SALARY_INCREASE' && <>
                   <label>¿Tiene retroactivo?<select value={entryDraft.retroactive?'SI':'NO'} onChange={e=>setEntryDraft(old=>({...old,retroactive:e.target.value==='SI',retroactiveAmount:'',retroactiveMonths:[],retroactiveMonth:''}))}><option value="NO">No</option><option value="SI">Sí</option></select></label>
                   {entryDraft.retroactive && <>
-                    <label>Monto total del retroactivo (CLP)<input type="number" min="1" max="1000000000000" step="1" value={entryDraft.retroactiveAmount} onChange={e=>changeEntry('retroactiveAmount',e.target.value)} /></label>
+                    <label>Monto total del retroactivo (CLP)<PesoField min={1} max={1000000000000} value={entryDraft.retroactiveAmount} onChange={digits=>changeEntry('retroactiveAmount',digits)}/></label>
                     <div className="ed-full"><label>Mes del retroactivo<MonthField value={entryDraft.retroactiveMonth} onChange={e=>changeEntry('retroactiveMonth',e.target.value)} /></label>
                       <button type="button" disabled={!entryDraft.retroactiveMonth || entryDraft.retroactiveMonths.includes(entryDraft.retroactiveMonth) || entryDraft.retroactiveMonths.length>=120} onClick={()=>setEntryDraft(old=>({...old,retroactiveMonths:[...old.retroactiveMonths,old.retroactiveMonth].sort(),retroactiveMonth:''}))}>Agregar mes</button>
                       <p>Agrega cada mes al que corresponde el monto total, aunque no sean consecutivos.</p>
@@ -306,7 +307,7 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
                     </div>
                   </>}
                 </>}
-                <label className="ed-full">Observaciones (opcional)<input value={entryDraft.notes} onChange={e => changeEntry('notes', e.target.value)} /></label>
+                <label className="ed-full">Observaciones (opcional)<input value={entryDraft.notes} onChange={e => changeEntry('notes', e.target.value.toLocaleUpperCase('es-CL'))} /></label>
                 <div className="ed-full"><button type="button" className="primary" disabled={busy || hasUnsavedChanges || !entryDraft.deliveredOn || (['PERIOD', 'MANUAL'].includes(expiryMode) && !entryDraft.startOn) || (expiryMode === 'MANUAL' && !entryDraft.expiresOn) || (type.financialKind && (!entryDraft.startOn || !Number.isSafeInteger(Number(entryDraft.agreedAmount)) || Number(entryDraft.agreedAmount)<=0 || Number(entryDraft.agreedAmount)>1000000000000 || !canRecordAmount)) || (type.financialKind==='SALARY_INCREASE' && (!entryDraft.amountMeaning || (entryDraft.retroactive && (!Number.isSafeInteger(Number(entryDraft.retroactiveAmount)) || Number(entryDraft.retroactiveAmount)<=0 || Number(entryDraft.retroactiveAmount)>1000000000000 || !entryDraft.retroactiveMonths.length))))} onClick={() => addEntry(type)}>Guardar entrega / renovación</button></div>
               </div>
             )}

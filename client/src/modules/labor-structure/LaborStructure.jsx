@@ -1,3 +1,4 @@
+import PesoField from '../../PesoField.jsx';
 import React,{useEffect,useState} from 'react';
 import {api} from '../../services/api.js';
 
@@ -88,9 +89,9 @@ export default function LaborStructure({onGoEmployeeFile,onGoCompanies}){
      <label>Código de local<input required minLength={2} maxLength={40} value={branch.code}
       onChange={e=>setBranch({...branch,code:e.target.value})}/></label>
      <label>Nombre del local<input required maxLength={150} value={branch.name}
-      onChange={e=>setBranch({...branch,name:e.target.value})}/></label>
+      onChange={e=>setBranch({...branch,name:e.target.value.toLocaleUpperCase('es-CL')})}/></label>
      <label>Dirección<input maxLength={300} value={branch.address}
-      onChange={e=>setBranch({...branch,address:e.target.value})}/></label>
+      onChange={e=>setBranch({...branch,address:e.target.value.toLocaleUpperCase('es-CL')})}/></label>
     </div>
     <button type="submit" disabled={loading||!branch.companyId}>Registrar local</button>
    </form>
@@ -103,8 +104,8 @@ export default function LaborStructure({onGoEmployeeFile,onGoCompanies}){
     name:editedBranch.name,address:editedBranch.address||'',active:Boolean(editedBranch.active),
     revision:editedBranch.revision},{method:'PUT',refreshCatalog:true,clear:()=>setEditedBranch(null)});}}>
     <div className="ef-grid">
-     <label>Nombre<input value={editedBranch.name} onChange={e=>setEditedBranch({...editedBranch,name:e.target.value})} required/></label>
-     <label>Dirección<input value={editedBranch.address||''} onChange={e=>setEditedBranch({...editedBranch,address:e.target.value})}/></label>
+     <label>Nombre<input value={editedBranch.name} onChange={e=>setEditedBranch({...editedBranch,name:e.target.value.toLocaleUpperCase('es-CL')})} required/></label>
+     <label>Dirección<input value={editedBranch.address||''} onChange={e=>setEditedBranch({...editedBranch,address:e.target.value.toLocaleUpperCase('es-CL')})}/></label>
      <label>Estado<select value={String(editedBranch.active?1:0)}
       onChange={e=>setEditedBranch({...editedBranch,active:Number(e.target.value)})}>
       <option value="1">Activo</option><option value="0">Desactivado</option></select></label>
@@ -237,8 +238,7 @@ export default function LaborStructure({onGoEmployeeFile,onGoCompanies}){
       <option value="SPECIAL">Especial: requiere revisión legal</option>
       <option value="EXEMPT">Exceptuado: requiere revisión legal</option>
      </select></label>
-     <label>Sueldo base (CLP)<input type="number" min="0" step="1" required value={conditions.monthlyBaseSalaryClp}
-      onChange={e=>setConditions({...conditions,monthlyBaseSalaryClp:e.target.value})}/></label>
+     <label>Sueldo base (CLP)<PesoField min={0} required value={conditions.monthlyBaseSalaryClp} onChange={digits=>setConditions({...conditions,monthlyBaseSalaryClp:digits})}/></label>
      <label>Horas semanales pactadas<input type="number" min="0" max="48" step=".5" required value={conditions.weeklyHours}
       onChange={e=>setConditions({...conditions,weeklyHours:e.target.value})}/></label>
      <label>Colación (minutos)<input type="number" min="0" max="240" step="1" required value={conditions.breakMinutes}

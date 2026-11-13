@@ -1,4 +1,5 @@
 
+import PesoField from './PesoField.jsx';
 import React,{forwardRef,useEffect,useImperativeHandle,useState} from 'react';
 import {api} from './services/api.js';
 import {familyAllowancePreview} from '../../shared/familyAllowance.js';
@@ -52,8 +53,8 @@ const EmployeeFamilyBenefits=forwardRef(function EmployeeFamilyBenefits({employe
   {data.status!=='NONE'&&<>
    <div className="ef-grid">
     <label>Renta promedio acreditada para el semestre (CLP)
-     <input type="number" min="0" step="1" disabled={!editable} value={data.averageIncomeClp??''} onChange={e=>setData(p=>({...p,averageIncomeClp:e.target.value===''?null:Number(e.target.value),incomeVerified:false}))}/></label>
-    <label>Semestre de ingresos de referencia<input disabled={!editable} maxLength={120} placeholder="Ej.: enero a junio de 2026" value={data.incomePeriod||''} onChange={e=>setData(p=>({...p,incomePeriod:e.target.value,incomeVerified:false}))}/></label>
+     <PesoField disabled={!editable} value={data.averageIncomeClp??''} onChange={digits=>setData(p=>({...p,averageIncomeClp:digits===''?null:Number(digits),incomeVerified:false}))}/></label>
+    <label>Semestre de ingresos de referencia<input disabled={!editable} maxLength={120} placeholder="Ej.: enero a junio de 2026" value={data.incomePeriod||''} onChange={e=>setData(p=>({...p,incomePeriod:e.target.value.toLocaleUpperCase('es-CL'),incomeVerified:false}))}/></label>
     <label className="la-check"><input type="checkbox" disabled={!editable||data.averageIncomeClp===null||!data.incomePeriod?.trim()} checked={!!data.incomeVerified} onChange={e=>setData(p=>({...p,incomeVerified:e.target.checked}))}/> Renta verificada con antecedente</label>
    </div>
    {salary!==null&&<div className="la-inline-actions"><span>Sueldo base de ficha: {money(salary)} CLP (no equivale necesariamente al ingreso promedio legal).</span>
@@ -61,7 +62,7 @@ const EmployeeFamilyBenefits=forwardRef(function EmployeeFamilyBenefits({employe
    {data.dependents.map((row,i)=><fieldset className="ef-section" key={row.id||'new-'+i}>
     <legend>Carga {i+1}{row.recognitionStatus==='ENDED'?' · histórica':''}</legend>
     <div className="ef-grid">
-     <label>Nombre del causante<input disabled={!editable} value={row.fullName||''} maxLength={160} onChange={e=>update(i,'fullName',e.target.value)}/></label>
+     <label>Nombre del causante<input disabled={!editable} value={row.fullName||''} maxLength={160} onChange={e=>update(i,'fullName',e.target.value.toLocaleUpperCase('es-CL'))}/></label>
      <label>Vínculo<select disabled={!editable} value={row.relationship} onChange={e=>update(i,'relationship',e.target.value)}>
       {['HIJO','HIJA','CONYUGE','CONVIVIENTE','ASCENDIENTE','OTRO'].map(s=><option key={s} value={s}>{s}</option>)}
      </select></label>

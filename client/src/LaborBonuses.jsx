@@ -1,3 +1,4 @@
+import PesoField from './PesoField.jsx';
 import React,{useEffect,useState} from 'react';
 import {api} from './services/api.js';
 
@@ -58,18 +59,17 @@ export default function LaborBonuses(){
     <legend>{draft.id?'Editar bono sin asignaciones':'Nuevo bono'}</legend>
     <div className="ef-grid">
      <label>Nombre del bono
-      <input required maxLength={120} value={draft.name} onChange={e=>change('name',e.target.value)}
+      <input required maxLength={120} value={draft.name} onChange={e=>change('name',e.target.value.toLocaleUpperCase('es-CL'))}
        placeholder="Bono de cierre de caja"/></label>
      <label>Monto de referencia (CLP)
-      <input required type="number" min="0" max="100000000" step="1"
-       value={draft.amountClp} onChange={e=>change('amountClp',Number(e.target.value))}/></label>
+      <PesoField required min={0} max={100000000} value={draft.amountClp} onChange={digits=>change('amountClp',Number(digits||0))}/></label>
      <label>¿Es imponible?
       <select value={draft.taxable?'SI':'NO'} onChange={e=>change('taxable',e.target.value==='SI')}>
        <option value="SI">Sí, imponible</option><option value="NO">No imponible</option>
       </select></label>
      <label className="ef-field-wide">Condiciones del bono y métricas de cumplimiento
       <textarea required rows={6} minLength={10} maxLength={5000} value={draft.conditions}
-       onChange={e=>change('conditions',e.target.value)}
+       onChange={e=>change('conditions',e.target.value.toLocaleUpperCase('es-CL'))}
        placeholder={'Ejemplo: se revisan los cierres de caja del mes. Si el 90 % o más son correctos, corresponde el 100 % del bono; con 80 % a 89 %, el 80 %. Estas condiciones requieren revisión y respaldo contractual.'}/></label>
     </div>
     <p className="ef-note">El código interno se genera automáticamente. Para modificar condiciones de un bono ya asignado se requerirá un anexo contractual; ese flujo se implementará posteriormente. Aquí no se calculan montos pagables ni descuentos.</p>
