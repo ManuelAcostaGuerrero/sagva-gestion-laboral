@@ -78,3 +78,11 @@ test('Ficha: elimina los dos controles efímeros, pero mantiene aviso DT no cont
  assert.match(source,/Resumen de jornada agrupado por días/);
  assert.match(source,/Texto de jornada para revisión jurídica \(editable\)/);
 });
+
+test('FESTIVO como día contractual independiente',()=>{
+ const festive={day:'FESTIVO',enabled:true,shifts:[shift(901,'10:00','18:00')]};
+ const plan=[{day:'VIERNES',enabled:true,shifts:[shift(901,'10:00','18:00')]},festive];
+ assert.match(summarizeShiftPlan(plan),/VIERNES Y FESTIVO: 10:00–18:00/);
+ assert.equal(groupContractShiftPlan(plan)[0].days.length,2);
+ assert.match(summarizeShiftPlan([festive]),/FESTIVO:/);
+});

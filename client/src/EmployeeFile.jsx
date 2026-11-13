@@ -316,13 +316,15 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     <span className="ef-clear-field"><input type="checkbox" checked={(draft.clearFields || []).includes(key)}
       onChange={e => change('clearFields',e.target.checked ? [...(draft.clearFields || []),key] : (draft.clearFields || []).filter(k => k !== key))} /> Confirmar vaciado de este campo</span>
   );
+  const [rutFocused,setRutFocused]=useState(false);
   const renderField = (key,label) => <label key={key} data-ef-field={key} className={(['fullName','legalFullName','address','terminationReason'].includes(key) ? 'ef-field-wide' : '')+pendingClass(key)}>
     {label}{key.endsWith('Date') ? (
       <DateField value={draft[key] || ''} onChange={e => change(key,e.target.value)} />
     ) : (
-      <input type="text" value={key==='fullName' ? (assembledWorkerName(draft)||draft.fullName||'') : key==='documentId' ? formatRut(draft[key]) : draft[key] || ''}
+      <input type="text" value={key==='fullName' ? (assembledWorkerName(draft)||draft.fullName||'') : key==='documentId' ? (rutFocused?draft[key]||'':formatRut(draft[key])) : draft[key] || ''}
         className={key==='fullName'?'ef-readonly':''}
         readOnly={key==='fullName'} tabIndex={key==='fullName'?-1:undefined}
+        onFocus={key==='documentId'?()=>setRutFocused(true):undefined} onBlur={key==='documentId'?()=>setRutFocused(false):undefined}
         onChange={key==='fullName'?undefined:e => change(key,e.target.value)} />
     )}
     {key==='documentId' && <span role="status">{checkRut(draft.documentId).valid ? 'RUT válido · dígito verificador correcto' : draft.documentId ? 'RUT inválido · revisa las cifras y el dígito verificador' : 'RUT pendiente'}</span>}

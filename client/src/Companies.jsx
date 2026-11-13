@@ -9,6 +9,7 @@ export default function Companies({areas=[],positions=[],onMessage}){
  const [companies,setCompanies]=useState([]);
  const [id,setId]=useState(null),[draft,setDraft]=useState(empty),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [branchTouched,setBranchTouched]=useState(false);
+ const [focusedRut,setFocusedRut]=useState(null);
  async function reload(){
    const result=await api('/companies');
    setCompanies(result.companies);
@@ -54,10 +55,12 @@ export default function Companies({areas=[],positions=[],onMessage}){
       <fieldset className="ef-section"><legend>Datos empresariales</legend><div className="ef-grid">
        {inputs.map(([key,label])=><label key={key}>{label}<input
          type={['email','supportEmail'].includes(key)?'email':'text'}
-         value={['taxId','representativeRut'].includes(key)?formatRut(draft[key]):draft[key]||''}
+         value={['taxId','representativeRut'].includes(key)?(focusedRut===key?draft[key]||'':formatRut(draft[key])):draft[key]||''}
          maxLength={250}
          required={key==='legalName'}
-         onChange={e=>change(key,['taxId','representativeRut'].includes(key)?formatRut(e.target.value):['email','supportEmail','phone'].includes(key)?e.target.value:e.target.value.toLocaleUpperCase('es-CL'))}/>
+         onFocus={['taxId','representativeRut'].includes(key)?()=>setFocusedRut(key):undefined}
+         onBlur={['taxId','representativeRut'].includes(key)?()=>setFocusedRut(null):undefined}
+         onChange={e=>change(key,['taxId','representativeRut'].includes(key)?e.target.value.toUpperCase():['email','supportEmail','phone'].includes(key)?e.target.value:e.target.value.toLocaleUpperCase('es-CL'))}/>
          {['taxId','representativeRut'].includes(key)&&draft[key]&&<small role="status">{checkRut(draft[key]).valid?'RUT válido':'Revisa RUT y dígito verificador'}</small>}
        </label>)}
        <p className="ef-note ef-field-wide">El correo institucional identifica a la empresa. El correo de soporte se reservará para notificaciones futuras del personal asociado a esa empresa. Esta configuración no envía mensajes ni habilita recuperación de claves automáticamente.</p>

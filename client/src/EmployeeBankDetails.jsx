@@ -1,6 +1,6 @@
 
 import React,{forwardRef,useEffect,useImperativeHandle,useRef,useState} from 'react';
-import {normalizeRut} from '../../server/src/rut.js';
+import {normalizeRut,formatRut} from '../../server/src/rut.js';
 import {api} from './services/api.js';
 const initial=()=>({revision:0,bankId:0,accountType:'VISTA',accountNumber:'',holderName:'',holderRut:'',requestedOn:'',authorizationRef:''});
 const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,workerName,workerRut,onDirtyChange},ref){
@@ -8,6 +8,7 @@ const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,wo
  const [data,setData]=useState(initial),[saved,setSaved]=useState(JSON.stringify(initial()));
  const [error,setError]=useState(''),[busy,setBusy]=useState(false),[showNumber,setShowNumber]=useState(false);
  const [thirdParty,setThirdParty]=useState(false),[uploading,setUploading]=useState(false);
+ const [holderRutFocused,setHolderRutFocused]=useState(false);
  const uploadInput=useRef(null);
  const dirty=JSON.stringify(data)!==saved;
  useEffect(()=>{onDirtyChange?.(cap&&canWrite&&dirty);},[cap,canWrite,dirty,onDirtyChange]);
@@ -87,7 +88,7 @@ const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,wo
    <label>Mostrar número de cuenta<button type="button" onPointerDown={()=>setShowNumber(true)} onPointerUp={()=>setShowNumber(false)} onPointerLeave={()=>setShowNumber(false)} onBlur={()=>setShowNumber(false)} onKeyDown={e=>{if(e.key===' '||e.key==='Enter')setShowNumber(true);}} onKeyUp={()=>setShowNumber(false)}>Mantener pulsado para ver</button></label>
    <label className="la-check"><input type="checkbox" disabled={!canWrite} checked={thirdParty} onChange={e=>changeHolder(e.target.checked)}/> Titular distinto del trabajador</label>
    <label>Titular de la cuenta<input disabled={!canWrite||!thirdParty} value={thirdParty?data.holderName:(workerName||data.holderName)} placeholder={workerName||''} onChange={e=>set('holderName',e.target.value)}/></label>
-   <label>RUT del titular<input disabled={!canWrite||!thirdParty} value={thirdParty?data.holderRut:(workerRut||data.holderRut)} placeholder={workerRut||''} onChange={e=>set('holderRut',e.target.value)}/></label>
+   <label>RUT del titular<input disabled={!canWrite||!thirdParty} value={holderRutFocused?(thirdParty?data.holderRut:(workerRut||data.holderRut)):formatRut(thirdParty?data.holderRut:(workerRut||data.holderRut))} onFocus={()=>setHolderRutFocused(true)} onBlur={()=>setHolderRutFocused(false)} placeholder={workerRut||''} onChange={e=>set('holderRut',e.target.value)}/></label>
    <label>Fecha de solicitud<input disabled={!canWrite} type="date" value={data.requestedOn} onChange={e=>set('requestedOn',e.target.value)}/></label>
    {thirdParty&&<div className="ef-field-wide la-inline-actions">
     <input ref={uploadInput} aria-label="Seleccionar PDF de autorización de cuenta de tercero" type="file" accept=".pdf,application/pdf" hidden disabled={!canWrite||uploading} onChange={e=>uploadAuthorization(e.target.files?.[0])}/>

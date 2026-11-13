@@ -1,7 +1,7 @@
 // Vista compacta para revisar la selección contractual. No reemplaza el detalle
 // estructurado ni constituye por sí sola una cláusula de contrato aprobada.
 export const CONTRACT_WEEK_DAYS = Object.freeze([
- 'LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES','SÁBADO','DOMINGO'
+ 'LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES','SÁBADO','DOMINGO','FESTIVO'
 ]);
 
 const time = value => /^\d{2}:\d{2}/.test(String(value||'')) ? String(value).slice(0,5) : '';
@@ -30,14 +30,16 @@ export function groupContractShiftPlan(plan){
  return [...groups.values()];
 }
 export function contractDaysLabel(days){
- const ordered=CONTRACT_WEEK_DAYS.filter(day=>days.includes(day));
- if(!ordered.length)return '';
+ const festive=days.includes('FESTIVO');
+ const ordered=CONTRACT_WEEK_DAYS.filter(day=>day!=='FESTIVO'&&days.includes(day));
+ if(!ordered.length)return festive?'FESTIVO':'';
+ const suffix=festive?' Y FESTIVO':'';
  const indices=ordered.map(day=>CONTRACT_WEEK_DAYS.indexOf(day));
  const consecutive=indices.every((index,i)=>i===0||index===indices[i-1]+1);
- if(consecutive&&ordered.length>=3)return ordered[0]+' A '+ordered.at(-1);
- if(ordered.length===1)return ordered[0];
- if(ordered.length===2)return ordered.join(' Y ');
- return ordered.slice(0,-1).join(', ')+' Y '+ordered.at(-1);
+ if(consecutive&&ordered.length>=3)return ordered[0]+' A '+ordered.at(-1)+suffix;
+ if(ordered.length===1)return ordered[0]+suffix;
+ if(ordered.length===2)return ordered.join(' Y ')+suffix;
+ return ordered.slice(0,-1).join(', ')+' Y '+ordered.at(-1)+suffix;
 }
 export function summarizeShiftPlan(plan){
  const groups=groupContractShiftPlan(plan);
