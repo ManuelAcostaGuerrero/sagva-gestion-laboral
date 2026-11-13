@@ -3,6 +3,7 @@ import MonthField from './MonthField.jsx';
 import DateTimeField from './DateTimeField.jsx';
 import DateField from './DateField.jsx';
 import TokenKiosk from './TokenKiosk.jsx';
+import './tabletKiosk.css';
 import AttendancePeriodReports from './AttendancePeriodReports.jsx';
 import TokenCredentials from './TokenCredentials.jsx';
 import PressToRevealPassword from './PressToRevealPassword.jsx';
@@ -248,7 +249,7 @@ function App() {
     setToken(savedToken);
     return savedToken;
   });
-  const [view, setView] = useState(tokenState ? 'admin' : 'attendance');
+  const [view, setView] = useState(localStorage.getItem('attendanceTabletMode')==='1' ? 'attendance' : tokenState ? 'admin' : 'home');
   const [message, setMessage] = useState('');
   const [sessionPromptOpen, setSessionPromptOpen] = useState(false);
   const [sessionExpiry, setSessionExpiry] = useState(() => getTokenExpiry(tokenState));
@@ -356,6 +357,16 @@ function App() {
         </section>
       )}
 
+      {view === 'home' && (
+        <section className="sagva-home">
+          <h1>RED TAURUS · SAGVA</h1>
+          <p>Selecciona el acceso al sistema</p>
+          <div className="sagva-home-buttons">
+            <button type="button" className="sagva-home-attendance" onClick={()=>setView('attendance')}>ASISTENCIA</button>
+            <button type="button" className="sagva-home-admin" onClick={()=>setView(tokenState?'admin':'login')}>ADMINISTRACIÓN</button>
+          </div>
+        </section>
+      )}
       {view === 'attendance' && (
         <PublicWorkspace
           activeView="attendance"

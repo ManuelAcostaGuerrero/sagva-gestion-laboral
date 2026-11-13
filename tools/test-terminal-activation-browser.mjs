@@ -48,6 +48,7 @@ try{
  const first=await newTerminal('CELULAR QR SINTÉTICO');
  assert.ok(first.activationQrDataUrl.startsWith('data:image/png;base64,'));
  await page.goto(base);
+ await page.getByRole('button',{name:'ASISTENCIA'}).click();
  await page.getByRole('heading',{name:'Activar terminal de asistencia'}).waitFor();
  await page.waitForFunction(()=>{
   const img=document.querySelector('.public-sidebar img.sidebar-brand');
@@ -88,9 +89,23 @@ try{
  const second=await newTerminal('CELULAR MANUAL SINTÉTICO');
  await page.evaluate(()=>localStorage.removeItem('attendanceTerminal'));
  await page.reload();
+ await page.getByRole('button',{name:'ASISTENCIA'}).click();
  await page.getByRole('textbox',{name:'Código de activación'}).fill(second.activationCode);
  await page.getByRole('button',{name:'Activar este equipo'}).click();
  await page.getByText('CELULAR MANUAL SINTÉTICO',{exact:true}).waitFor();
+ // Aceptación del modo tablet en Chrome: reloj, orientaciones y cámara bajo demanda.
+ await page.getByRole('button',{name:'Activar pantalla tablet'}).click();
+ await page.getByRole('button',{name:/ESCANEAR QR/}).waitFor();
+ for(const viewport of [{width:390,height:844},{width:768,height:450}]){
+  await page.setViewportSize(viewport);
+  const dimensions=await page.evaluate(()=>({width:window.innerWidth,scroll:document.documentElement.scrollWidth,clock:!!document.querySelector('.sagva-clock')}));
+  assert.ok(dimensions.clock,'reloj visible en ambos formatos');
+  assert.ok(dimensions.scroll<=dimensions.width+2,'sin desborde horizontal del kiosco: '+JSON.stringify(dimensions));
+ }
+ await page.getByRole('button',{name:/ESCANEAR QR/}).click();
+ await page.locator('.sagva-kiosk-card video').waitFor({timeout:10000});
+ await page.getByRole('button',{name:'Cancelar'}).click();
+ await page.getByRole('button',{name:/ESCANEAR QR/}).waitFor();
  assert.deepEqual(failures,[]);
  console.log('OK: QR terminal de un uso, entrada manual, cámara liberada y logo/nav sin recortes a 360/390/768 CSS px. Cámara y móvil físico no probados.');
 }finally{await browser.close();await new Promise(r=>server.close(r));await new Promise(r=>api.close(r));await pool.end();}

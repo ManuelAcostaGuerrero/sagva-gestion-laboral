@@ -1,0 +1,34 @@
+.sagva-tablet{position:fixed;z-index:9999;inset:0;width:100vw;height:100vh;height:100dvh;overflow:auto;background:#101722;color:#f8fafc;display:flex;flex-direction:column;box-sizing:border-box;padding:clamp(14px,2vw,28px);gap:12px;font-family:system-ui,sans-serif}
+.sagva-tablet *{box-sizing:border-box}
+.sagva-tablet button{cursor:pointer;min-height:48px}
+.sagva-tablet button:disabled{opacity:.6;cursor:wait}
+.sagva-tablet-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;font-size:clamp(13px,1.8vw,19px)}
+.sagva-tablet-header>div{display:flex;gap:8px;flex-direction:column}
+.sagva-tablet-header>div:last-child{align-items:flex-end}
+.sagva-tablet-header small{color:#94a3b8}
+.sagva-tablet-header button,.sagva-subtle{color:#e2e8f0;background:#27364b;border:1px solid #64748b;border-radius:10px;padding:9px}
+.sagva-warn{color:#fbbf24!important}.sagva-ok{color:#86efac}
+.sagva-tablet-body{flex:1;display:flex;align-items:center;justify-content:center}
+.sagva-idle{width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:clamp(14px,3vh,40px)}
+.sagva-date{font-size:clamp(22px,3vw,38px);text-align:center;color:#cbd5e1}
+.sagva-clock{font-size:clamp(65px,12vw,200px);font-weight:800;letter-spacing:-.055em;font-variant-numeric:tabular-nums;line-height:1;text-align:center}
+.sagva-big{width:min(100%,790px);border:none;border-radius:18px;background:#b91c1c;color:white;font-weight:800;font-size:clamp(26px,4vw,48px);min-height:110px;padding:clamp(18px,4vw,42px)}
+.sagva-idle p,.sagva-kiosk-card p{color:#cbd5e1;text-align:center;font-size:clamp(15px,2vw,21px);margin:0}
+.sagva-kiosk-card{display:flex;flex-direction:column;gap:clamp(12px,2vh,22px);width:min(100%,1050px);max-height:100%;overflow:auto;padding:clamp(16px,2.8vw,32px);background:#1c2939;border:2px solid #3d536d;border-radius:20px;text-align:center}
+.sagva-kiosk-card h2{font-size:clamp(22px,4vw,41px);margin:0}
+.sagva-kiosk-card .sagva-big{width:100%}
+.sagva-alts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.sagva-alts button{background:#334155;color:#fff;border:1px solid #64748b;border-radius:12px;padding:16px;font-size:clamp(14px,2vw,22px);min-height:67px}
+.sagva-kiosk-card .tk-camera-preview{border:none;background:transparent;color:#fff}
+.sagva-kiosk-card .tk-camera-hint,.sagva-kiosk-card .tk-camera-preview small{color:#cbd5e1}
+.sagva-kiosk-card .tk-camera-area video{width:100%;height:min(43vh,400px);object-fit:cover}
+.sagva-result-hour{font-size:clamp(50px,8vw,110px);font-variant-numeric:tabular-nums}
+.sagva-success{border-color:#10b981;background:#16452f}
+.sagva-tablet footer{font-size:12px;text-align:center;color:#94a3b8}
+.sagva-home{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:#141b26;color:white;padding:25px}
+.sagva-home h1{font-size:clamp(26px,4vw,48px)}.sagva-home p{font-size:clamp(16px,2vw,25px)}
+.sagva-home-buttons{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:min(100%,900px)}
+.sagva-home-buttons button{border:0;border-radius:18px;color:white;min-height:170px;font-size:clamp(25px,4vw,45px);font-weight:800;cursor:pointer}
+.sagva-home-attendance{background:#b91c1c}.sagva-home-admin{background:#374151}
+@media(orientation:portrait){.sagva-alts,.sagva-home-buttons{grid-template-columns:1fr}.sagva-clock{font-size:clamp(58px,13vw,145px)}}
+@media(max-height:500px){.sagva-clock{font-size:clamp(64px,14vh,115px)}.sagva-idle{gap:10px}.sagva-big{padding:12px;min-height:85px}}
