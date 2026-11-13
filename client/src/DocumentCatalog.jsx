@@ -1,7 +1,7 @@
 import React,{useEffect,useState} from 'react';
 import {api} from './services/api.js';
 import './documentCatalog.css';
-const fresh=()=>({name:'',expiryMode:'NONE',periodValue:3,periodUnit:'MONTHS',applicability:'ALL',employeeIds:[]});
+const fresh=()=>({items:[],name:'',expiryMode:'NONE',periodValue:3,periodUnit:'MONTHS',applicability:'ALL',employeeIds:[]});
 const modes=[['NONE','Sin vencimiento'],['PERIOD','Vencimiento automático'],['MANUAL','Fecha manual'],['EVENT','Por cambio de versión']];
 const units=[['DAYS','Días'],['WEEKS','Semanas'],['MONTHS','Meses'],['YEARS','Años']];
 const description=t=>(modes.find(v=>v[0]===t.expiryMode)?.[1]||t.expiryMode)+
@@ -10,12 +10,13 @@ export default function DocumentCatalog({employees=[],onMessage,onOpenWorker}){
   const [types,setTypes]=useState([]),[draft,setDraft]=useState(fresh);
   const [editing,setEditing]=useState(null),[busy,setBusy]=useState(false);
   const [error,setError]=useState(''),[linked,setLinked]=useState(null);
+  const [newEquipmentItem,setNewEquipmentItem]=useState('');
   async function load(){const result=await api('/document-catalog');setTypes(result.types);}
   useEffect(()=>{load().catch(e=>setError(e.message));},[]);
   const change=(name,value)=>setDraft(d=>({...d,[name]:value}));
   function reset(){setDraft(fresh());setEditing(null);setError('');}
   function begin(type){
-    setDraft({name:type.name,expiryMode:type.expiryMode,periodValue:type.periodValue||3,
+    setDraft({items:[...(type.items||[])],name:type.name,expiryMode:type.expiryMode,periodValue:type.periodValue||3,
       periodUnit:type.periodUnit||'MONTHS',applicability:type.applicability||'ALL',
       employeeIds:[...(type.employeeIds||[])]});
     setEditing(type.id);setError('');setLinked(null);
@@ -60,7 +61,7 @@ export default function DocumentCatalog({employees=[],onMessage,onOpenWorker}){
       <p>Catálogo general. Cada documento activo aparece en las fichas a las que corresponda.</p>
       {error&&<p className="soft-alert" role="alert">{error}</p>}
       <div className="dc-grid">
-        <label>Nombre<input required minLength={2} maxLength={120} value={draft.name}
+        <label>Nombre<input required minLength={2} maxLength={120} disabled={!!editing&&draft.name==='ENTREGA DE IMPLEMENTOS DE TRABAJO'} value={draft.name}
           onChange={e=>change('name',e.target.value.toLocaleUpperCase('es-CL'))}/></label>
         <label>Vencimiento<select value={draft.expiryMode} onChange={e=>change('expiryMode',e.target.value)}>
           {modes.map(([id,label])=><option key={id} value={id}>{label}</option>)}
@@ -77,6 +78,17 @@ export default function DocumentCatalog({employees=[],onMessage,onOpenWorker}){
           <option value="SELECTED">Solo trabajadores seleccionados</option>
         </select></label>
       </div>
+      {draft.name==='ENTREGA DE IMPLEMENTOS DE TRABAJO'&&<fieldset className="dc-select-people">
+        <legend>Ítems de implementos para entregar</legend>
+        <p>Marca y registra cada entrega desde la ficha del trabajador. Aquí solo se configura el catálogo.</p>
+        {draft.items.map((item,index)=><div className="row-actions" key={item}>
+          <strong>{item}</strong><button type="button" onClick={()=>change('items',draft.items.filter((_,i)=>i!==index))}>Quitar</button>
+        </div>)}
+        <div className="row-actions">
+          <input aria-label="Nuevo implemento" value={newEquipmentItem} maxLength={100} onChange={e=>setNewEquipmentItem(e.target.value.toLocaleUpperCase('es-CL'))} placeholder="Ej.: UNIFORME"/>
+          <button type="button" disabled={!newEquipmentItem.trim()||draft.items.includes(newEquipmentItem.trim())} onClick={()=>{change('items',[...draft.items,newEquipmentItem.trim()]);setNewEquipmentItem('');}}>Agregar implemento</button>
+        </div>
+      </fieldset>}
       {draft.applicability==='SELECTED'&&<div className="dc-select-people">
         <strong>Trabajadores a los que corresponde</strong>
         <p>La selección no registra la entrega ni la firma del documento.</p>
@@ -100,7 +112,7 @@ export default function DocumentCatalog({employees=[],onMessage,onOpenWorker}){
       <div className="dc-cards">
         {types.map(type=><article className={'dc-card'+(type.isActive?'':' dc-inactive')} key={type.id}>
           <div className="dc-card-heading"><strong>{type.name}</strong><span className={'status-pill '+(type.isActive?'active':'inactive')}>{type.isActive?'Activo':'Desactivado'}</span></div>
-          <p>{description(type)}</p>
+          <p>{description(type)}{type.isEquipment?' · Lista de implementos':''}</p>
           <p>{type.applicability==='ALL'?'Para todos':'Asignado a '+type.selectedCount+' trabajador(es)'} · {type.historyCount} entrega(s) históricas</p>
           {type.deactivationReason&&<p>Motivo: {type.deactivationReason}</p>}
           <div className="row-actions dc-actions">

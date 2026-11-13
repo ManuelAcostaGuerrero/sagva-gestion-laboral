@@ -691,7 +691,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
             </div>
             </div>
             <div className="ef-tab-content" hidden={tab!=='documents'}>
-              <EmployeeDocuments role={role} key={draft.id || 'new'} employeeId={draft.id}
+              <EmployeeDocuments role={role} key={draft.id || 'new'} employeeId={draft.id} workerName={draft.legalFullName||draft.fullName||''}
                  hasUnsavedChanges={Boolean(dirty||medicalDirty||contractDirty)}
                  onDirtyChange={setDocumentsDirty}
                  onSalaryApplied={()=>setContractReload(n=>n+1)} onMessage={onMessage} />

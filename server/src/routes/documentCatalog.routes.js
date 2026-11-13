@@ -6,6 +6,7 @@ import { asyncHandler } from '../asyncHandler.js';
 import { runMigrations } from '../migrations.js';
 import { recordAudit } from '../auditLog.js';
 import { normalizeDocumentName } from '../employeeDocuments.js';
+import {EQUIPMENT_DOCUMENT_NAME,updateEquipmentCatalog} from '../equipmentDocuments.js';
 
 export const documentCatalogRouter = Router();
 documentCatalogRouter.use(requireRoles('admin'));
@@ -18,7 +19,8 @@ const schema = z.object({
   periodValue:z.coerce.number().int().min(1).max(1200).nullable().optional(),
   periodUnit:z.enum(['DAYS','WEEKS','MONTHS','YEARS']).nullable().optional(),
   applicability:z.enum(['ALL','SELECTED']).default('ALL'),
-  employeeIds:z.array(z.number().int().positive()).max(3000).default([])
+  employeeIds:z.array(z.number().int().positive()).max(3000).default([]),
+  items:z.array(z.string().trim().min(2).max(100)).max(80).optional()
 });
 function normalize(data) {
   if(data.expiryMode==='PERIOD' && (!data.periodValue||!data.periodUnit))
@@ -51,8 +53,9 @@ documentCatalogRouter.get('/',asyncHandler(async(_req,res)=>{
   await runMigrations();
   const [rows]=await pool.execute(listSql);
   const [assignments]=await pool.execute('SELECT type_id AS typeId,employee_id AS employeeId FROM employee_document_applicability');
+  const [items]=await pool.execute('SELECT type_id AS typeId,name FROM equipment_document_items WHERE active=1 ORDER BY name');
   res.json({types:rows.map(t=>({...t,isActive:!!t.isActive,historyCount:Number(t.historyCount),
-    selectedCount:Number(t.selectedCount),employeeIds:assignments.filter(a=>a.typeId===t.id).map(a=>a.employeeId)}))});
+    selectedCount:Number(t.selectedCount),isEquipment:t.name===EQUIPMENT_DOCUMENT_NAME,items:items.filter(x=>x.typeId===t.id).map(x=>x.name),employeeIds:assignments.filter(a=>a.typeId===t.id).map(a=>a.employeeId)}))});
 }));
 
 documentCatalogRouter.post('/',asyncHandler(async(req,res)=>{
@@ -68,6 +71,7 @@ documentCatalogRouter.post('/',asyncHandler(async(req,res)=>{
     const [result]=await db.execute('INSERT INTO employee_document_types(name,expiry_mode,period_value,period_unit,applicability,created_by) VALUES(?,?,?,?,?,?)',
       [data.name,data.expiryMode,data.periodValue,data.periodUnit,data.applicability,req.admin.id]);
     await setAssignments(db,result.insertId,data.employeeIds,req.admin.id);
+    if(data.name===EQUIPMENT_DOCUMENT_NAME)await updateEquipmentCatalog(db,result.insertId,parsed.data.items||[],req.admin.id);
     await recordAudit(req.admin,'create','employee_document_type',result.insertId,{after:data},db);
     await db.commit();
     res.status(201).json({id:result.insertId,message:'Documento creado. Ya aparece en las fichas aplicables.'});
@@ -85,9 +89,11 @@ documentCatalogRouter.put('/:id',asyncHandler(async(req,res)=>{
     if(!found.length)throw fail('Documento no encontrado.',404);
     if((await db.execute('SELECT id FROM employee_document_types WHERE name=? AND id<>?',[data.name,id]))[0].length)
       throw fail('Ya existe otro documento con ese nombre.',409);
+    if(found[0].name===EQUIPMENT_DOCUMENT_NAME&&data.name!==EQUIPMENT_DOCUMENT_NAME)throw fail('El documento especial de implementos no debe renombrarse.',409);
     await db.execute('UPDATE employee_document_types SET name=?,expiry_mode=?,period_value=?,period_unit=?,applicability=?,updated_by=?,updated_at=datetime(\'now\',\'localtime\') WHERE id=?',
       [data.name,data.expiryMode,data.periodValue,data.periodUnit,data.applicability,req.admin.id,id]);
     await setAssignments(db,id,data.employeeIds,req.admin.id);
+    if(data.name===EQUIPMENT_DOCUMENT_NAME)await updateEquipmentCatalog(db,id,parsed.data.items||[],req.admin.id);
     await recordAudit(req.admin,'update','employee_document_type',id,{before:found[0],after:data,historicalRecordsPreserved:true},db);
     await db.commit();
     res.json({message:'Documento actualizado. Las fechas y archivos históricos se conservaron.'});

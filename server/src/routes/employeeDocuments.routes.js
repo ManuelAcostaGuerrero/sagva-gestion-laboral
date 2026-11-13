@@ -8,6 +8,7 @@ import { runMigrations } from '../migrations.js';
 import { recordAudit } from '../auditLog.js';
 import { validContractDate } from '../employeeContracts.js';
 import { calculateDocumentExpiry, normalizeDocumentName } from '../employeeDocuments.js';
+import {EQUIPMENT_DOCUMENT_NAME} from '../equipmentDocuments.js';
 
 import {financialDocumentKind} from '../financialDocuments.js';
 import {approveSalaryAnnex} from '../employeeSalaryApprovals.js';
@@ -24,6 +25,7 @@ const catalogSchema = z.object({
   periodUnit: z.enum(['DAYS', 'WEEKS', 'MONTHS', 'YEARS']).nullable().optional()
 });
 const entrySchema = z.object({
+  equipmentItems:z.array(z.object({itemId:z.number().int().positive(),quantity:z.number().int().min(1).max(1000)}).strict()).max(80).optional(),
   retroactive: z.boolean().optional(),
   retroactiveAmount: z.number().int().positive().max(1000000000000).nullable().optional(),
   retroactiveMonths: z.array(z.string().regex(/^(?!0000)\d{4}-(0[1-9]|1[0-2])$/)).max(120).optional(),
@@ -59,7 +61,8 @@ employeeDocumentsRouter.get('/types', asyncHandler(async (req, res) => {
   const selected = employeeId === null ? [] : (await pool.execute(
     'SELECT type_id AS typeId FROM employee_document_applicability WHERE employee_id=?',[employeeId]
   ))[0].map(a=>a.typeId);
-  res.json({types:types.map(row=>({...row,financialKind:financialDocumentKind(row.name),isActive:!!row.isActive,historyCount:Number(row.historyCount),
+  const [equipmentCatalog]=await pool.execute('SELECT id,type_id AS typeId,name FROM equipment_document_items WHERE active=1 ORDER BY name');
+  res.json({types:types.map(row=>({...row,isEquipment:row.name===EQUIPMENT_DOCUMENT_NAME,items:equipmentCatalog.filter(x=>x.typeId===row.id),financialKind:financialDocumentKind(row.name),isActive:!!row.isActive,historyCount:Number(row.historyCount),
     selectedCount:Number(row.selectedCount),
     canRegister:!!row.isActive && (employeeId===null || row.applicability==='ALL' || selected.includes(row.id))
   }))});
@@ -97,6 +100,7 @@ employeeDocumentsRouter.get('/workers/:workerId', asyncHandler(async (req, res) 
     [workerId]
   );
   let attachments = [];
+  let equipmentLines = [];
   if (entries.length) {
     const [rows] = await pool.execute(
       'SELECT id,entry_id AS entryId,filename,sha256,signed_physical AS signedPhysical,signed_on AS signedOn,uploaded_at AS uploadedAt,uploaded_by AS uploadedBy FROM employee_document_attachments WHERE entry_id IN (' +
@@ -104,6 +108,7 @@ employeeDocumentsRouter.get('/workers/:workerId', asyncHandler(async (req, res) 
       entries.map(row => row.id)
     );
     attachments = rows;
+    [equipmentLines]=await pool.execute('SELECT entry_id AS entryId,item_id AS itemId,item_name AS name,quantity FROM equipment_delivery_lines WHERE entry_id IN ('+entries.map(()=>'?').join(',')+') ORDER BY item_name',entries.map(row=>row.id));
   }
   const [physicalStatuses] = await pool.execute(
     'SELECT document_type_id AS typeId,status,revision,updated_at AS updatedAt FROM employee_document_physical_status WHERE employee_id=?',
@@ -116,6 +121,7 @@ employeeDocumentsRouter.get('/workers/:workerId', asyncHandler(async (req, res) 
     retroactiveAmount:['admin','supervisor'].includes(req.admin.role)?entry.retroactiveAmount:null,
     agreedAmount:['admin','supervisor'].includes(req.admin.role) ? entry.agreedAmount : null,
     approvedSalary:['admin','supervisor'].includes(req.admin.role) ? entry.approvedSalary : null,
+    equipmentItems:equipmentLines.filter(line=>line.entryId===entry.id),
     attachments: attachments.filter(file => file.entryId === entry.id).map(file => ({
       ...file, signedPhysical: Boolean(file.signedPhysical)
     }))
@@ -182,6 +188,14 @@ employeeDocumentsRouter.post('/workers/:workerId/entries', asyncHandler(async (r
       !(await db.execute('SELECT 1 FROM employee_document_applicability WHERE type_id=? AND employee_id=?',
         [data.typeId,workerId]))[0].length)throw fail('Este documento no está asignado a este trabajador.',403);
     const type = types[0];
+    const equipment=data.equipmentItems||[];
+    if(type.name===EQUIPMENT_DOCUMENT_NAME){
+      if(!equipment.length||new Set(equipment.map(item=>item.itemId)).size!==equipment.length)throw fail('Selecciona al menos un implemento válido, sin duplicados.');
+      const ids=equipment.map(item=>item.itemId);
+      const [allowed]=await db.execute('SELECT id,name FROM equipment_document_items WHERE type_id=? AND active=1 AND id IN ('+ids.map(()=>'?').join(',')+')',[type.id,...ids]);
+      if(allowed.length!==ids.length)throw fail('Un implemento no pertenece a este documento o está desactivado.');
+      type.equipmentCatalog=allowed;
+    }else if(equipment.length)throw fail('Este tipo no admite implementos.');
     const financialKind=financialDocumentKind(type.name);
     if(financialKind && !['admin','supervisor'].includes(req.admin.role))throw fail('Solo administración o supervisión puede registrar montos de anexos.',403);
     if(financialKind && !data.agreedAmount)throw fail('Indica el monto acordado en pesos chilenos.');
@@ -210,8 +224,14 @@ employeeDocumentsRouter.post('/workers/:workerId/entries', asyncHandler(async (r
       'INSERT INTO employee_document_entries(employee_id,document_type_id,document_name,expiry_mode,delivered_on,start_on,expires_on,version_label,notes,created_by,financial_kind,agreed_amount,amount_meaning,is_retroactive,retroactive_amount,retroactive_months_json) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
       [workerId, type.id, type.name, expiryMode, data.deliveredOn, startOn, expiresOn, versionLabel, clean(data.notes), req.admin.id,financialKind,financialKind?data.agreedAmount:null,amountMeaning,retroactive==null?null:retroactive?1:0,retroactive?data.retroactiveAmount:null,retroactive?JSON.stringify(retroactiveMonths):null]
     );
+    if(type.name===EQUIPMENT_DOCUMENT_NAME){
+      for(const line of equipment){
+       const item=type.equipmentCatalog.find(x=>x.id===line.itemId);
+       await db.execute('INSERT INTO equipment_delivery_lines(entry_id,item_id,item_name,quantity) VALUES(?,?,?,?)',[created.insertId,item.id,item.name,line.quantity]);
+      }
+    }
     await recordAudit(req.admin, 'create', 'employee_document_entry', created.insertId, {
-      employeeId: workerId, typeId: type.id, expiryMode, financialKind, amountMeaning, amountRecorded:!!financialKind, retroactive, retroactiveMonths, deliveredOn: data.deliveredOn, startOn, expiresOn, versionLabel
+      employeeId: workerId, typeId: type.id, equipmentCount:equipment.length, expiryMode, financialKind, amountMeaning, amountRecorded:!!financialKind, retroactive, retroactiveMonths, deliveredOn: data.deliveredOn, startOn, expiresOn, versionLabel
     }, db);
     await db.commit();
     res.status(201).json({ id: created.insertId, message: 'Entrega registrada. Falta adjuntar el documento si aún no tiene respaldo.' });

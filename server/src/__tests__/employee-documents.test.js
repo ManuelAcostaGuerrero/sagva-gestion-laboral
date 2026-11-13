@@ -22,7 +22,7 @@ test('Catálogo inicial y anexos financieros; administración crea tipos y cada 
   await runMigrations();
   const [initial] = await pool.execute('SELECT name,expiry_mode AS mode,period_value AS period FROM employee_document_types');
   assert.deepEqual(initial.find(type=>type.name==='PACTO DE HORAS'), { name:'PACTO DE HORAS',mode:'PERIOD',period:3 });
-  assert.equal(initial.length,3);
+  assert.equal(initial.length,4);
   const [owner] = await pool.execute("INSERT INTO admins(username,password_hash,full_name,role) VALUES('docs-admin','hash','Documentos','admin')");
   const [operator] = await pool.execute("INSERT INTO admins(username,password_hash,full_name,role) VALUES('docs-operador','hash','Operador','operator')");
   const [worker] = await pool.execute("INSERT INTO employees(full_name,document_id) VALUES('Trabajador de pruebas','98.654.321-0')");
@@ -43,7 +43,7 @@ test('Catálogo inicial y anexos financieros; administración crea tipos y cada 
   }
   try {
     const catalog = await request('/employee-documents/types',operatorToken);
-    assert.equal(catalog.types.length,3);
+    assert.equal(catalog.types.length,4);
     const typeId = catalog.types.find(type=>type.name==='PACTO DE HORAS').id;
     await request('/employee-documents/types',operatorToken,'POST',{name:'ENTREGA DE CAMISAS',expiryMode:'NONE'},403);
     const custom = await request('/employee-documents/types',adminToken,'POST',{name:'entrega de camisas',expiryMode:'NONE'},201);

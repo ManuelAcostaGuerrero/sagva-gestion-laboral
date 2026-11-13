@@ -10,6 +10,7 @@ import { migrateRotativoShiftLibrary } from './shiftNormalizationMigration.js';
 import { migrateEmployeeContracts } from './employeeContracts.js';
 import { migrateWorkPositions } from './workPositions.js';
 import { migrateEmployeeDocuments, migrateDocumentCatalog, migrateDocumentPhysicalStatus } from './employeeDocuments.js';
+import {migrateEquipmentDocuments} from './equipmentDocuments.js';
 import { migrateMedicalLeaves } from './medicalLeaves.js';
 import { migrateMedicalProfiles } from './medicalProfiles.js';
 import { migrateCompanyProfiles, migrateCompanyTerritory, migrateCompanyContactEmails } from './companyProfiles.js';
@@ -158,6 +159,7 @@ async function migrate() {
     await migrateEmployeeDocuments(connection);
     await migrateDocumentCatalog(connection);
     await migrateDocumentPhysicalStatus(connection);
+    await migrateEquipmentDocuments(connection);
     await migrateMedicalLeaves(connection);
     await migrateMedicalProfiles(connection);
     await migrateCompanyProfiles(connection);
