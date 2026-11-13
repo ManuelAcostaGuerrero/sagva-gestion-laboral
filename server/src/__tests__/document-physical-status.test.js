@@ -10,10 +10,11 @@ const {signAdmin}=await import('../auth.js');
 
 test('Los indicadores separan soporte físico, entrega digital y PDF cargado',()=>{
  assert.equal(documentEvidenceLabels(null,'MISSING').physical.text,'Sin respaldo físico disponible');
- assert.equal(documentEvidenceLabels(null,'AVAILABLE').digital.text,'Sin entrega registrada');
- assert.equal(documentEvidenceLabels({attachments:[]},'AVAILABLE').digital.text,'Falta cargar PDF');
+ assert.equal(documentEvidenceLabels(null,'AVAILABLE').digital.text,'Sin carga digital');
+ assert.equal(documentEvidenceLabels({attachments:[]},'AVAILABLE').digital.kind,'warning');
  assert.equal(documentEvidenceLabels({attachments:[{id:1}]},'UNVERIFIED').digital.kind,'success');
- assert.equal(documentEvidenceLabels({attachments:[{id:1}]},'MISSING').physical.kind,'danger');
+ assert.equal(documentEvidenceLabels({attachments:[{id:1}]},'MISSING').physical.kind,'warning');
+ assert.equal(documentEvidenceLabels(null,'UNVERIFIED').digital.kind,'danger');
 });
 
 test('Estado físico del documento: auditoría, concurrencia, permisos y PDF intacto',async t=>{

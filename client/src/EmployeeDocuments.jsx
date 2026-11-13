@@ -45,6 +45,7 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
   const [entries, setEntries] = useState([]);
   const [physicalStatuses,setPhysicalStatuses]=useState({});
   const [physicalDrafts,setPhysicalDrafts]=useState({});
+  const [expandedType,setExpandedType]=useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -94,6 +95,7 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
       setError('');
     }).catch(err => { if (active) setError(err.message); });
     setEditing(null);
+    setExpandedType(null);
     setUploads({});
     setPhysicalDrafts({});
     return () => { active = false; };
@@ -233,7 +235,7 @@ export default function EmployeeDocuments({ employeeId, hasUnsavedChanges = fals
         const isEditing = editing === type.id;
         const expiryMode = entryDraft.expiryMode === 'MANUAL' ? 'MANUAL' : type.expiryMode;
         return (
-          <details key={type.id} className="ed-document">
+          <details key={type.id} className="ed-document" open={expandedType===type.id} onClick={event=>{if(event.target.closest("summary")){event.preventDefault();setExpandedType(previous=>previous===type.id?null:type.id);}}}>
             <summary><strong>{type.name}</strong>
              <span className="ed-state-stack">
               <span className={'ed-status ed-'+evidence.digital.kind}>{evidence.digital.text}</span>

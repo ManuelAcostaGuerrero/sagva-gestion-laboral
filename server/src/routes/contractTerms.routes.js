@@ -19,8 +19,8 @@ const schema=z.object({
  gratification:z.enum(['','ART_50','ART_47','OTHER']),
  weeklyHours:z.union([z.number().min(0).max(45),z.literal('')]),
  shiftDistribution:textField(2000),
- shiftPlan:z.array(z.object({day:z.enum(['LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES','SÁBADO','DOMINGO']),enabled:z.boolean(),
-  shifts:z.array(z.object({id:z.number().int().positive(),name:z.string().max(150),startTime:z.string().max(8),endTime:z.string().max(8)}).strict()).max(100)}).strict()).max(7).refine(rows=>new Set(rows.map(r=>r.day)).size===rows.length).default([]),
+ shiftPlan:z.array(z.object({day:z.enum(['LUNES','MARTES','MIÉRCOLES','JUEVES','VIERNES','SÁBADO','DOMINGO','FESTIVO']),enabled:z.boolean(),
+  shifts:z.array(z.object({id:z.number().int().positive(),name:z.string().max(150),startTime:z.string().max(8),endTime:z.string().max(8)}).strict()).max(100)}).strict()).max(8).refine(rows=>new Set(rows.map(r=>r.day)).size===rows.length).default([]),
  breakMinutes:z.union([z.number().int().min(0).max(240),z.literal('')]),
  workplace:textField(500),paymentMethod:z.enum(['','TRANSFERENCIA','EFECTIVO','MIXTO','CHEQUE','OTRO']),paymentDetails:textField(1000).default(''),
  jobDuties:textField(5000),additionalTerms:textField(2000)
