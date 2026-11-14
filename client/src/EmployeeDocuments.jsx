@@ -1,3 +1,4 @@
+import {sortEquipmentItems} from './equipmentSorting.js';
 import DateField from './DateField.jsx';
 import PesoField from './PesoField.jsx';
 import React, { useEffect, useState } from 'react';
@@ -273,7 +274,7 @@ export default function EmployeeDocuments({ employeeId, workerName='', hasUnsave
                 {type.isEquipment&&<fieldset className="ed-full ed-equipment-picker">
                   <legend>Selecciona los implementos entregados</legend>
                   <div className="ed-equipment-list">
-                  {[...(type.items||[])].sort((a,b)=>a.name.localeCompare(b.name,'es',{sensitivity:'base'})).map(item=>{
+                  {sortEquipmentItems(type.items||[]).map(item=>{
                    const picked=entryDraft.equipmentItems.find(x=>x.itemId===item.id);
                    return <div className="ed-equipment-item" key={item.id}>
                      <label><input type="checkbox" checked={!!picked} onChange={e=>changeEntry('equipmentItems',e.target.checked?[...entryDraft.equipmentItems,{itemId:item.id,quantity:1}]:entryDraft.equipmentItems.filter(x=>x.itemId!==item.id))}/>{item.name}</label>
