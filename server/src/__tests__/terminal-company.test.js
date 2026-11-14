@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import crypto from 'node:crypto';
-process.env.SQLITE_PATH=':memory:';process.env.JWT_SECRET='terminal-company-tests';
+process.env.SQLITE_PATH=':memory:';process.env.SAGVA_QR_DATA_KEY='0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';process.env.JWT_SECRET='terminal-company-tests';
 const {app}=await import('../app.js');const {pool}=await import('../db.js');const {runMigrations}=await import('../migrations.js');const {signAdmin}=await import('../auth.js');
 test('Terminal-empresa-trabajador: QR/PIN aislados, vista previa sin escrituras, cámara autorizada e idempotencia',async()=>{
  await runMigrations();await runMigrations();

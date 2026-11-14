@@ -5,6 +5,7 @@ import { projectRoot } from "./databasePath.js";
 import { normalizeSegments } from "./shiftTime.js";
 import { migrateEmployeeFiles } from './employeeFilesMigration.js';
 import { migrateTokens } from './tokenMigration.js';
+import { migrateWorkerQrVault } from './workerQrMigration.js';
 import { migrateWorkerIdentity } from './workerIdentityMigration.js';
 import { migrateRotativoShiftLibrary } from './shiftNormalizationMigration.js';
 import { migrateEmployeeContracts } from './employeeContracts.js';
@@ -152,6 +153,7 @@ async function migrate() {
     }
     await migrateEmployeeFiles(connection);
     await migrateTokens(connection);
+    await migrateWorkerQrVault(connection);
     await migrateWorkerIdentity(connection);
     await migrateRotativoShiftLibrary(connection);
     await migrateEmployeeContracts(connection);
