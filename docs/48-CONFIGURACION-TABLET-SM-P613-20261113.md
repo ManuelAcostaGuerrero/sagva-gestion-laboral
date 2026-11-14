@@ -36,3 +36,12 @@ El sistema mantiene los mecanismos anteriores de activación, QR, PIN de respald
 - Probar distancia aproximada inicial 20–40 cm y ajustar según nitidez: ni muy cerca ni tan lejos que se pierda detalle. Evitar reflejos de plastificado, sombra, pantalla sucia y contraluz.
 - getUserMedia solicita resolución **ideal** 1280 × 720, no requisito obligatorio. No confundir un QR más grande en pantalla de PC con un código impreso físicamente mayor.
 - Comprobar marca **solo después** de que se haya leído e identificado correctamente; nunca marcar al aumentar tamaño o al abrir la cámara.
+
+## Decisión operativa: tablet instalada fija en pared (14-11-2026)
+
+- La **cámara trasera se descarta** porque quedará orientada hacia la pared. El kiosco usa **exclusivamente la frontal** (5 MP). Se retiró el botón de alternancia frontal/trasera del kiosco de pared. Se recomienda colocar el QR frente al lente, no en el centro físico de la tablet si la cámara está desplazada.
+- Se mantiene el QR ampliado a **28 × 28 mm** (misma credencial y token). Antes de emitir códigos nuevos, usar **Reimprimir carnets existentes**, lo cual no invalida los anteriores.
+- Para intentar ocultar la barra de estado con reloj, batería y controles del sistema, la PWA solicita `display: fullscreen` en el manifiesto. El botón **Activar pantalla tablet** también solicita Fullscreen API por gesto del usuario cuando está disponible. En Android, las barras pueden reaparecer al deslizar el borde o por restricciones del fabricante: no es modo kiosco administrado (MDM).
+- **Actualizar la instalación de la PWA** y abrirla desde su ícono en la pantalla de inicio, no desde una pestaña normal; el cambio de manifiesto puede necesitar reinstalación. En Chrome normal Fullscreen API puede ocultar las barras mientras esté activa, pero no es garantía de persistencia.
+- Reflejos físicos: bajar brillo y evitar contra luz directa; preferir funda/portacarnet mate, QR negro nítido en fondo blanco con zona de silencio intacta, lente frontal limpio. Ajustar la distancia de lectura y probar 3 usuarios distintos, dos condiciones de luz, pantalla instalada en el muro.
+- No hay prueba física de lectura automática en la Galaxy Tab S6 Lite todavía. Si el QR de 28 mm sigue sin leerse por la frontal, considerar una plantilla con QR de 30–32 mm o un lector QR externo mirando al trabajador antes de invertir en otro hardware.

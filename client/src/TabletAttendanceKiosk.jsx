@@ -11,7 +11,7 @@ const timeFmt={timeZone:'America/Santiago',hour:'2-digit',minute:'2-digit',secon
 export default function TabletAttendanceKiosk({terminal,onExit,onRevoked}){
  const [stage,setStage]=useState('idle'),[worker,setWorker]=useState(null),[token,setToken]=useState('');
  const [info,setInfo]=useState(null),[result,setResult]=useState(null),[error,setError]=useState('');
- const [front,setFront]=useState(true),[busy,setBusy]=useState(false);
+ const [busy,setBusy]=useState(false);
  const [clock,setClock]=useState({offset:0,ok:false}),[now,setNow]=useState(Date.now());
  const [secondsRemaining,setSecondsRemaining]=useState(10);
  const pending=useRef(null),successUntil=useRef(null);
@@ -80,8 +80,9 @@ export default function TabletAttendanceKiosk({terminal,onExit,onRevoked}){
    </div>}
    {stage==='scan'&&<div className="sagva-kiosk-card">
      <h2>Escanear credencial</h2><p>La cámara se cerrará automáticamente después de leer el QR.</p>
-     <CameraIdentityPreview key={front?'front':'rear'} autoStart facingMode={front?'user':'environment'} terminalToken={terminal.token} onRead={onRead} actionLabel="Identificando"/>
-     <div className="sagva-alts"><button type="button" onClick={()=>setFront(v=>!v)}>Cambiar a cámara {front?'trasera':'frontal'}</button><button type="button" onClick={reset}>Cancelar</button></div>
+     <CameraIdentityPreview autoStart facingMode="user" terminalToken={terminal.token} onRead={onRead} actionLabel="Identificando"/>
+     <p>Usa la cámara frontal. Presenta el carnet a la altura de la cámara, con buena iluminación y sin reflejos.</p>
+     <div className="sagva-alts"><button type="button" onClick={reset}>Cancelar</button></div>
    </div>}
    {stage==='choose'&&<div className="sagva-kiosk-card">
      <h2>{worker?.displayName}</h2><p>Escaneo a las {info?.scannedAt?.slice(11)} · Día operativo {info?.operatingDay}</p>
