@@ -3,20 +3,20 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {QR_CREDENTIAL_PRINT,paginateQrCredentials,qrCredentialPrintCss} from '../../../client/src/qrCredentialPrintLayout.js';
 
-test('Medidas del diseño aprobado son invariables, verticales y con QR de 20 mm',()=>{
+test('Medidas del diseño aprobado son invariables, verticales y con QR de 28 mm',()=>{
   const fixed=QR_CREDENTIAL_PRINT;
   assert.ok(Object.isFrozen(fixed));
   assert.equal(fixed.faceWidthMm,54);
   assert.equal(fixed.faceHeightMm,85);
   assert.equal(fixed.unfoldedWidthMm,108);
   assert.equal(fixed.unfoldedHeightMm,85);
-  assert.equal(fixed.qrSizeMm,20);
+  assert.equal(fixed.qrSizeMm,28);
   assert.equal(fixed.perSheet,4);
   const css=qrCredentialPrintCss();
   assert.match(css,/@page\{size:letter;margin:12mm\}/);
   assert.match(css,/\.qr-face\{[^}]*width:54mm;height:85mm;flex:0 0 54mm/);
   assert.match(css,/\.qr-pair\{[^}]*width:108mm;height:85mm/);
-  assert.match(css,/\.qr-face-image\{[^}]*width:20mm;height:20mm/);
+  assert.match(css,/\.qr-face-image\{[^}]*width:28mm;height:28mm/);
   assert.match(css,/transform:rotate\(90deg\)/);
   assert.match(css,/grid-template-columns:85mm 85mm;grid-template-rows:108mm 108mm/);
   assert.doesNotMatch(css,/size:A4|85\.6mm|width:45mm/i);

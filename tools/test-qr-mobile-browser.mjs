@@ -55,7 +55,7 @@ try {
  const popupPromise=context.waitForEvent('page');await page.locator('#test-print').click();const popup=await popupPromise;
  await popup.waitForFunction(()=>window.__printed===true);assert.equal(await popup.locator('h1').textContent(),'TRABAJADOR <PILOTO>');assert.equal(await popup.locator('.qr-face').count(),2,'cada credencial debe tener dos caras idénticas');assert.ok(await popup.locator('.qr-face-image').first().evaluate(img=>img.naturalWidth>0));
  const sizes=await popup.locator('.qr-face').first().evaluate(el=>{const rect=el.getBoundingClientRect();const qr=el.querySelector('.qr-face-image').getBoundingClientRect();return {w:rect.width,h:rect.height,qr:qr.width};});
- const mm=96/25.4;assert.ok(Math.abs(sizes.w-54*mm)<1&&Math.abs(sizes.h-85*mm)<1,'medidas físicas 54x85 mm');assert.ok(Math.abs(sizes.qr-20*mm)<1,'QR fijo de 20 mm');
+ const mm=96/25.4;assert.ok(Math.abs(sizes.w-54*mm)<1&&Math.abs(sizes.h-85*mm)<1,'medidas físicas 54x85 mm');assert.ok(Math.abs(sizes.qr-28*mm)<1,'QR fijo de 28 mm');
  await popup.evaluate(()=>{window.close=()=>{};});
  await popup.pdf({path:path.join(out,'qr-print-test.pdf'),printBackground:true});assert.deepEqual(failures,[]);
  console.log('OK: viewport móvil, cámara se detiene tras cada lectura, nombre grande, marcación sintética y QR visible en impresión/PDF. No se probó hardware del teléfono.');

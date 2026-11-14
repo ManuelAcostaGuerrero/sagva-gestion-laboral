@@ -55,7 +55,7 @@ export default function CameraIdentityPreview({terminalToken,actionLabel,onRead,
         if(!formats.includes('qr_code'))throw new Error('El navegador no admite códigos QR.');
         const detector=new window.BarcodeDetector({formats:['qr_code']});
         const acquired=await navigator.mediaDevices.getUserMedia({
-          video:{facingMode:{ideal:facingMode}},audio:false
+          video:{facingMode:{ideal:facingMode},width:{ideal:1280},height:{ideal:720}},audio:false
         });
         if(!valid()){acquired.getTracks().forEach(track=>track.stop());return;}
         stream=acquired;
@@ -99,7 +99,7 @@ export default function CameraIdentityPreview({terminalToken,actionLabel,onRead,
       <video ref={videoRef} muted playsInline autoPlay aria-label="Vista de cámara QR"/>
     </div>}
     {!enabled&&!result&&<div className={'tk-camera-status tk-camera-'+status.kind} role="status">{status.text}</div>}
-    {enabled&&<p className="tk-camera-hint">Enfoca el QR del trabajador.</p>}
+    {enabled&&<p className="tk-camera-hint">Mantén el QR completo, bien iluminado y sin reflejos. Si se ve borroso, aléjalo un poco hasta que la cámara enfoque.</p>}
     <button type="button" className="primary tk-next-scan" disabled={busy}
       onClick={()=>enabled?setEnabled(false):next()}>
       {enabled?'Detener cámara':result?'Escanear otro QR':'Escanear QR'}

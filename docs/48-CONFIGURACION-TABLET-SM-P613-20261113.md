@@ -28,3 +28,11 @@ El rango comienza **06:00:00** hasta **05:59:59** del día siguiente. Ejemplo: v
 - Validación laboral independiente antes de uso como sistema legal de asistencia: Resolución Exenta DT 38/2024, mecanismos y rectificaciones, autorización/registro/certificación.
 
 El sistema mantiene los mecanismos anteriores de activación, QR, PIN de respaldo y corrección administrativa. **No se ha probado ni configurado aquí la tablet física.**
+
+## Mejoras de lectura de QR (14-11-2026)
+
+- En Administración → Credenciales y terminales → Reimprimir carnets existentes, imprimir la misma credencial con el QR **28 × 28 mm**; el código interno sigue siendo el mismo y se conserva en la bóveda cifrada.
+- En el kiosco, probar «Cambiar a cámara trasera» (8 MP, enfoque automático según Samsung) si el montaje lo permite. La cámara frontal queda predeterminada por su orientación hacia el trabajador, pero puede enfocar peor de cerca.
+- Probar distancia aproximada inicial 20–40 cm y ajustar según nitidez: ni muy cerca ni tan lejos que se pierda detalle. Evitar reflejos de plastificado, sombra, pantalla sucia y contraluz.
+- getUserMedia solicita resolución **ideal** 1280 × 720, no requisito obligatorio. No confundir un QR más grande en pantalla de PC con un código impreso físicamente mayor.
+- Comprobar marca **solo después** de que se haya leído e identificado correctamente; nunca marcar al aumentar tamaño o al abrir la cámara.
