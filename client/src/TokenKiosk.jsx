@@ -162,8 +162,14 @@ export default function TokenKiosk({setMessage}){
   </form>;
 
   if(tabletMode)return <TabletAttendanceKiosk terminal={terminal}
-   onExit={()=>{localStorage.removeItem('attendanceTabletMode');setTabletMode(false);}}
-   onRevoked={()=>{localStorage.removeItem('attendanceTerminal');setTerminal(null);}}/>;
+   onExit={()=>{
+     if(document.fullscreenElement)void document.exitFullscreen?.().catch(()=>{});
+     localStorage.removeItem('attendanceTabletMode');setTabletMode(false);
+   }}
+   onRevoked={()=>{
+     if(document.fullscreenElement)void document.exitFullscreen?.().catch(()=>{});
+     localStorage.removeItem('attendanceTerminal');setTerminal(null);
+   }}/>;
   return <section className="tk-kiosk tk-kiosk-minimal">
     <header className="tk-terminal-head">
       <span className="tk-badge"><strong>{terminal.name}</strong>
@@ -171,7 +177,14 @@ export default function TokenKiosk({setMessage}){
       </span>
     </header>
 
-    <button type="button" onClick={()=>{localStorage.setItem('attendanceTabletMode','1');setTabletMode(true);}}>Activar pantalla tablet</button>
+    <button type="button" onClick={()=>{
+      localStorage.setItem('attendanceTabletMode','1');
+      setTabletMode(true);
+      // Requiere gesto del usuario. En PWA instalada Android, manifest solicita
+      // fullscreen inmersivo; API aquí es respaldo para Chrome normal.
+      if(!document.fullscreenElement&&document.documentElement.requestFullscreen)
+        void document.documentElement.requestFullscreen().catch(()=>{});
+    }}>Activar pantalla tablet</button>
     <h2>Registrar asistencia</h2>
     <div className="tk-actions" role="group" aria-label="Tipo de marcación">
       {actions.map(([value,label])=><button type="button" key={value}

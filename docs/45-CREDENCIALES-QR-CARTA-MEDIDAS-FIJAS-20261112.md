@@ -6,7 +6,7 @@
 
 - Cara individual: **54 mm de ancho × 85 mm de alto**, equivalente a la medida nominal aprobada **85 × 54 mm**, en orientación vertical.
 - Credencial plegable desplegada: **108 × 85 mm**: dos caras **idénticas** de 54 × 85 mm, con línea central de pliegue.
-- QR personal: **20 × 20 mm** por cara, sin escalar.
+- QR personal: **28 × 28 mm** por cara desde el ajuste del 14-11-2026, sin escalar.
 - Diseño: **RED TAURUS · GASTRO-BAR**, fondo negro y rojo, nombre, cargo, uso interno/asistencia; sin ranura de cordón.
 - Las dimensiones se definen una sola vez en `client/src/qrCredentialPrintLayout.js` y se validan por pruebas automáticas. No reducir las credenciales para que entre un lote más grande.
 
@@ -41,7 +41,7 @@ Cantidad | Hojas carta
 
 - Prueba unitaria sintética: `server/src/__tests__/qr-credential-print-layout.test.js` valida medidas, lote y cuadrícula.
 - Prueba navegador sintética: `tools/test-qr-mobile-browser.mjs` valida dos caras e inspecciona las medidas DOM en impresión.
-- Pendiente en físico: imprimir hoja carta con **escala 100 %**, medir 54 × 85 mm y QR 20 mm con regla, cortar, doblar y leer ambos QR reales con dispositivo autorizado.
+- Pendiente en físico: imprimir hoja carta con **escala 100 %**, medir 54 × 85 mm y QR 28 mm con regla, cortar, doblar y leer ambos QR reales con dispositivo autorizado.
 
 **Política:** integrar código y documentación en `main` del entorno de pruebas después de CI. No equivale a actualizar automáticamente el Windows local ni a declarar aprobada la impresión física.
 
@@ -54,3 +54,10 @@ Cantidad | Hojas carta
 - Para los QR creados **antes** de esta migración, solo se guardó hash y **no es posible deducir el código**. Si todavía existe el carnet impreso, leer su contenido mediante un lector QR, buscar trabajador en Administración y usar **Recuperar una tarjeta QR ya impresa**. SAGVA compara el hash de la lectura con el hash activo y conserva el código cifrado **sin revocarlo ni modificarlo**. Si no se tiene el QR original, emitir uno nuevo invalida el anterior de manera explícita.
 - Seguridad: respuesta con `Cache-Control: private, no-store`, no registrar secreto en bitácora, no imprimir QR inactivos/revocados. La bóveda usa `SAGVA_QR_DATA_KEY` hex de 64 caracteres si se configura; en instalaciones existentes deriva una clave AES del `JWT_SECRET` fuerte generado por `Preparar.bat`. Respaldar `server/.env` junto con SQLite: **rotar/perder la clave sin migrar el cifrado impide futuras reimpresiones**. No permitir acceso de la terminal a esta función.
 - La impresión en el navegador *no prueba físicamente que la impresora haya impreso*: se audita la **preparación para reimpresión**, no una entrega comprobada. No se alteran registros de asistencia.
+
+## Legibilidad para cámara Samsung SM-P613 (14-11-2026)
+
+- Se aumentó el QR impreso de **20 × 20 mm a 28 × 28 mm** (40 % por lado, cerca del doble de superficie). El contenido del QR emitido por trabajador **no cambia**: reimprimir no reemplaza ni revoca credenciales.
+- Se conserva cada cara **54 × 85 mm**, las dos caras idénticas, el plegado y **cuatro carnets por hoja carta** a escala 100 %. El QR se centra en 13 mm y se desplaza el pie a 76,4 mm para evitar superposición.
+- La cámara trasera de esta tablet dispone de enfoque automático según las especificaciones Samsung, mientras que la frontal es la apropiada para orientación al trabajador cuando el equipo está fijo; probar ambas. El frontend solicita resolución ideal 1280 × 720, no obligatoria.
+- La imagen digital del QR se escala con bordes definidos, no con desenfoque; exigir prueba real con carné impreso, mica y luz del local, verificando lectura a distancia razonable. La resolución solicitada puede no ser respetada por todas las cámaras.

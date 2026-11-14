@@ -238,7 +238,7 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
             {w.displayName}
           </label>)}
         </div>}
-        <p>Seleccionados: {count} / 20 · {count ? Math.ceil(count / 4) : 0} hoja(s) carta. Máximo 4 credenciales por hoja, cada una con dos caras idénticas de 54 × 85 mm y QR de 20 × 20 mm.</p>
+        <p>Seleccionados: {count} / 20 · {count ? Math.ceil(count / 4) : 0} hoja(s) carta. Máximo 4 credenciales por hoja, cada una con dos caras idénticas de 54 × 85 mm y QR de 28 × 28 mm.</p>
         {count>0&&<div className="tk-buttons">
           <button type="button" disabled={busy} onClick={()=>setBatchConfirm(true)}>Emitir {count} QR nuevos</button>
           <button type="button" disabled={busy} onClick={()=>{setBatchSelected({});setBatchConfirm(false);}}>Limpiar selección</button>
