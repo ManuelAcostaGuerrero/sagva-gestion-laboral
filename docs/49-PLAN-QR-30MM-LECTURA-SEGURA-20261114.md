@@ -1,6 +1,6 @@
 # P08 · Plan de optimización del QR impreso a 30 × 30 mm
 
-**Fecha:** 14-11-2026. **Repositorio:** `ManuelAcostaGuerrero/sagva-gestion-laboral`. **Estado:** PLANIFICADO, SIN CAMBIO FUNCIONAL. **Destino de implementación futura:** `main` de pruebas mediante PR, CI y aceptación física.
+**Fecha:** 14-11-2026. **Repositorio:** `ManuelAcostaGuerrero/sagva-gestion-laboral`. **Estado:** código P08 implementado en **PR #43** sobre rama de pruebas, pendiente de validación física. **Destino:** `main` de pruebas después de revisión y CI. La aceptación física de 30 mm NO está acreditada.
 
 ## Contexto y objetivo
 
@@ -80,4 +80,4 @@ Si el texto de nombres/cargos largos pierde legibilidad, corregir su acomodo sin
 - **Plantillas y logotipos configurables por empresa**: funcionalidad futura; evitar ampliar alcance de P08 para hacerla ahora.
 - Prueba física de 28 mm fue **reportada por el propietario**, mientras que 30 mm **no se ha probado**.
 
-**Estado de avance actual:** plan técnico documentado. Código de 30 mm, CI de implementación, ensayo físico y actualización Windows siguen pendientes.
+**Estado de avance P08 (PR #43):** código de impresión de 30 mm y pruebas automáticas actualizadas en rama. La revisión/CI, ensayo físico y actualización Windows requieren acreditación independiente; no declarar aprobado el rendimiento real hasta prueba física.
