@@ -1,3 +1,4 @@
+import {sortEquipmentItems} from './equipmentSorting.js';
 import React,{useEffect,useState} from 'react';
 import {api} from './services/api.js';
 import './documentCatalog.css';
@@ -83,7 +84,7 @@ export default function DocumentCatalog({employees=[],onMessage,onOpenWorker}){
         <p>Marca y registra cada entrega desde la ficha del trabajador. Aquí solo se configura el catálogo.</p>
         <p className="dc-equipment-count">{draft.items.length} implemento(s) configurado(s) · orden alfabético.</p>
         <div className="dc-equipment-list">
-          {[...draft.items].sort((a,b)=>a.localeCompare(b,'es',{sensitivity:'base'})).map(item=><div className="dc-equipment-row" key={item}>
+          {sortEquipmentItems(draft.items).map(item=><div className="dc-equipment-row" key={item}>
             <span>{item}</span>
             <button type="button" aria-label={'Quitar '+item} onClick={()=>change('items',draft.items.filter(name=>name!==item))}>Quitar</button>
           </div>)}
