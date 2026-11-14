@@ -2,7 +2,9 @@
 
 > **Ficha contractual / jornada:** [simplificación de evaluación DT y resumen agrupado de horarios](46-FICHA-CONTRATO-RESUMEN-JORNADA-20261112.md). No modifica contratos ni historial; requiere revisión jurídica de horarios efectivos.
 
-> **Credenciales RED TAURUS en hoja carta:** [medidas invariables y distribución de 1 a 20 QR](45-CREDENCIALES-QR-CARTA-MEDIDAS-FIJAS-20261112.md). 54 × 85 mm por cara vertical, QR de 20 mm, cuatro pares plegables por carta. Pendiente validación de impresión física.
+> **P08 planificado (14-11-2026):** [aumentar de 28 a 30 mm el QR impreso, protegiendo el diseño y los tokens](49-PLAN-QR-30MM-LECTURA-SEGURA-20261114.md). El propietario reporta lectura funcional con QR de 28 mm, aunque algo lenta. **30 mm aún no se ha implementado ni probado físicamente.**
+
+> **Credenciales RED TAURUS en hoja carta:** [medidas invariables y distribución de 1 a 20 QR](45-CREDENCIALES-QR-CARTA-MEDIDAS-FIJAS-20261112.md). 54 × 85 mm por cara vertical, QR **actual de 28 mm**, cuatro pares plegables por carta. La prueba física del tamaño vigente fue reportada por el propietario; medición instrumental pendiente.
 
 > **Plan de Asistencia del 12-11-2026:** [Comprobantes, rectificaciones, reportes y fases posteriores](42-PLAN-TRABAJO-ASISTENCIA-20261112.md). 13 subtareas seleccionadas para desarrollar, no completadas.
 
