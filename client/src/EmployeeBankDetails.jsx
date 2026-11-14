@@ -30,8 +30,18 @@ const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,wo
   }).catch(e=>{if(active)setError(e.message);});
   return()=>{active=false;};
  },[employeeId]);
+ function validateChanges(){
+  if(!dirty||!canWrite)return;
+  if(!Number.isSafeInteger(Number(data.bankId))||Number(data.bankId)<1)throw new Error('Selecciona el banco.');
+  if(!/^[0-9A-Za-z.-]{3,55}$/.test(data.accountNumber.trim()))throw new Error('Completa un número de cuenta válido.');
+  const rut=thirdParty?data.holderRut:(workerRut||data.holderRut);
+  const name=thirdParty?data.holderName:(workerName||data.holderName);
+  if(!name?.trim()||!checkRut(rut).valid)throw new Error('Revisa el nombre y RUT del titular de la cuenta.');
+  if(thirdParty&&!/^BANCARIA-[1-9][0-9]*$/.test(data.authorizationRef))throw new Error('Primero carga el PDF firmado de autorización de cuenta de tercero.');
+ }
  async function save(){
   if(!employeeId||!cap||!canWrite||busy)return;
+  validateChanges();
   setBusy(true);setError('');
   try{
    const payload={...data,bankId:Number(data.bankId),holderName:data.holderName||workerName,holderRut:data.holderRut||workerRut};
@@ -41,7 +51,7 @@ const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,wo
    setData(value);setSaved(JSON.stringify(value));
   }catch(e){setError(e.message);throw e;}finally{setBusy(false);}
  }
- useImperativeHandle(ref,()=>({isDirty:()=>cap&&canWrite&&dirty,saveChanges:save}),[cap,dirty,data,employeeId,busy,workerName,workerRut]);
+ useImperativeHandle(ref,()=>({isDirty:()=>cap&&canWrite&&dirty,validateChanges,saveChanges:save}),[cap,canWrite,dirty,data,employeeId,busy,workerName,workerRut,thirdParty]);
  if(!employeeId)return <p className="ef-note">Guarda primero al trabajador. Después podrás registrar su solicitud de transferencia, si corresponde.</p>;
  if(!cap)return <div className="ef-note" role="status"><strong>Registro bancario temporalmente no disponible.</strong>
   <p>{reason==='NOT_AUTHORIZED'
