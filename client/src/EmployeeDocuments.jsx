@@ -272,13 +272,15 @@ export default function EmployeeDocuments({ employeeId, workerName='', hasUnsave
               <div className="ed-panel ed-grid">
                 {type.isEquipment&&<fieldset className="ed-full ed-equipment-picker">
                   <legend>Selecciona los implementos entregados</legend>
-                  {(type.items||[]).map(item=>{
+                  <div className="ed-equipment-list">
+                  {[...(type.items||[])].sort((a,b)=>a.name.localeCompare(b.name,'es',{sensitivity:'base'})).map(item=>{
                    const picked=entryDraft.equipmentItems.find(x=>x.itemId===item.id);
                    return <div className="ed-equipment-item" key={item.id}>
                      <label><input type="checkbox" checked={!!picked} onChange={e=>changeEntry('equipmentItems',e.target.checked?[...entryDraft.equipmentItems,{itemId:item.id,quantity:1}]:entryDraft.equipmentItems.filter(x=>x.itemId!==item.id))}/>{item.name}</label>
                      {picked&&<label>Cantidad<input type="number" min="1" max="1000" value={picked.quantity} onChange={e=>changeEntry('equipmentItems',entryDraft.equipmentItems.map(x=>x.itemId===item.id?{...x,quantity:Number(e.target.value)}:x))}/></label>}
                    </div>;
                   })}
+                  </div>
                   {!type.items?.length&&<p>Agrega implementos en Administración → Documentos.</p>}
                 </fieldset>}
                 <label>Vigencia de esta entrega / renovación
