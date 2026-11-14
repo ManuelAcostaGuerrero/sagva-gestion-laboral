@@ -32,7 +32,7 @@ test('Solicitud bancaria imprime ambos RUT normalizados y no acepta dígitos inc
  assert.ok(printed.includes('RUT del titular:</b> '+formatRut(holderRut)));
 });
 
-test('Plantilla única contiene la marca auténtica sin duplicar el nombre del local y mantiene QR 28mm',()=>{
+test('Plantilla única contiene la marca auténtica sin duplicar el nombre del local y mantiene QR 30mm',()=>{
  const svg=file('../../../client/public/red-taurus-logo.svg');
  const print=file('../../../client/src/printQrCards.js');
  assert.match(svg,/viewBox="0 0 700 394"/);
@@ -41,8 +41,8 @@ test('Plantilla única contiene la marca auténtica sin duplicar el nombre del l
  assert.match(print,/red-taurus-logo\.svg/);
  assert.doesNotMatch(print,/brand\.textContent = 'RED TAURUS'/);
  assert.doesNotMatch(print,/M162 67Q192 98/);
- assert.equal(QR_CREDENTIAL_PRINT.qrSizeMm,28);
- assert.match(qrCredentialPrintCss(),/width:28mm;height:28mm/);
+ assert.equal(QR_CREDENTIAL_PRINT.qrSizeMm,30);
+ assert.match(qrCredentialPrintCss(),/width:30mm;height:30mm/);
 });
 
 test('Reimpresión permite seleccionar lote o recuperar original y guardar sin cerrar ficha',()=>{
