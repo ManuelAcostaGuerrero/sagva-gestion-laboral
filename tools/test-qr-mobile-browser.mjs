@@ -54,8 +54,18 @@ try {
  await page.evaluate(card=>{window.__card=card;const button=document.createElement('button');button.id='test-print';button.textContent='Imprimir prueba';button.onclick=async()=>{const {printQrCard}=await import('/__test/print.js');window.__printPromise=printQrCard(window.__card);};document.body.append(button);},{name:'TRABAJADOR <PILOTO>',qrDataUrl});
  const popupPromise=context.waitForEvent('page');await page.locator('#test-print').click();const popup=await popupPromise;
  await popup.waitForFunction(()=>window.__printed===true);assert.equal(await popup.locator('h1').textContent(),'TRABAJADOR <PILOTO>');assert.equal(await popup.locator('.qr-face').count(),2,'cada credencial debe tener dos caras idénticas');assert.ok(await popup.locator('.qr-face-image').first().evaluate(img=>img.naturalWidth>0));
- const sizes=await popup.locator('.qr-face').first().evaluate(el=>{const rect=el.getBoundingClientRect();const qr=el.querySelector('.qr-face-image').getBoundingClientRect();return {w:rect.width,h:rect.height,qr:qr.width};});
- const mm=96/25.4;assert.ok(Math.abs(sizes.w-54*mm)<1&&Math.abs(sizes.h-85*mm)<1,'medidas físicas 54x85 mm');assert.ok(Math.abs(sizes.qr-28*mm)<1,'QR fijo de 28 mm');
+ const sizes=await popup.locator('.qr-face').first().evaluate(el=>{
+  const css=(selector)=>{const s=getComputedStyle(el.querySelector(selector));return {left:parseFloat(s.left),top:parseFloat(s.top),width:parseFloat(s.width),height:parseFloat(s.height)};};
+  const face=getComputedStyle(el);
+  return {w:parseFloat(face.width),h:parseFloat(face.height),name:css('.qr-face-name'),role:css('.qr-face-role'),qr:css('.qr-face-image'),footer:css('.qr-face-footer')};
+ });
+ const mm=96/25.4;assert.ok(Math.abs(sizes.w-54*mm)<1&&Math.abs(sizes.h-85*mm)<1,'medidas físicas 54x85 mm');
+ assert.ok(Math.abs(sizes.qr.width-30*mm)<1&&Math.abs(sizes.qr.height-30*mm)<1,'QR fijo de 30 x 30 mm');
+ assert.ok(Math.abs(sizes.qr.left-(sizes.w-sizes.qr.width)/2)<1,'QR centrado en la cara');
+ assert.ok(sizes.name.top+sizes.name.height+0.5*mm<=sizes.role.top,'nombre y cargo no se solapan');
+ assert.ok(sizes.role.top+sizes.role.height+0.5*mm<=sizes.qr.top,'cargo y QR no se solapan');
+ assert.ok(sizes.qr.top+sizes.qr.height+mm<=sizes.footer.top,'QR y pie no se solapan');
+ assert.ok(sizes.footer.top+sizes.footer.height<=sizes.h-mm,'pie dentro de tarjeta');
  await popup.evaluate(()=>{window.close=()=>{};});
  await popup.pdf({path:path.join(out,'qr-print-test.pdf'),printBackground:true});assert.deepEqual(failures,[]);
  console.log('OK: viewport móvil, cámara se detiene tras cada lectura, nombre grande, marcación sintética y QR visible en impresión/PDF. No se probó hardware del teléfono.');
