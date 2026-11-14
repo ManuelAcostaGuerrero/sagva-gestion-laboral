@@ -6,7 +6,7 @@
 
 - Cara individual: **54 mm de ancho × 85 mm de alto**, equivalente a la medida nominal aprobada **85 × 54 mm**, en orientación vertical.
 - Credencial plegable desplegada: **108 × 85 mm**: dos caras **idénticas** de 54 × 85 mm, con línea central de pliegue.
-- QR personal: **28 × 28 mm** por cara desde el ajuste del 14-11-2026, sin escalar.
+- QR personal: **30 × 30 mm** por cara desde la implementación P08 (PR #43, 14-11-2026), sin escalar. El tamaño **28 × 28 mm** sigue documentado como versión anterior y referencia de comparación física.
 - Diseño: **RED TAURUS · GASTRO-BAR**, fondo negro y rojo, nombre, cargo, uso interno/asistencia; sin ranura de cordón.
 - Las dimensiones se definen una sola vez en `client/src/qrCredentialPrintLayout.js` y se validan por pruebas automáticas. No reducir las credenciales para que entre un lote más grande.
 
@@ -41,7 +41,7 @@ Cantidad | Hojas carta
 
 - Prueba unitaria sintética: `server/src/__tests__/qr-credential-print-layout.test.js` valida medidas, lote y cuadrícula.
 - Prueba navegador sintética: `tools/test-qr-mobile-browser.mjs` valida dos caras e inspecciona las medidas DOM en impresión.
-- Pendiente en físico: imprimir hoja carta con **escala 100 %**, medir 54 × 85 mm y QR 28 mm con regla, cortar, doblar y leer ambos QR reales con dispositivo autorizado.
+- Pendiente en físico para P08: imprimir hoja carta con **escala 100 %**, medir 54 × 85 mm y QR **30 mm** con regla, cortar, doblar y leer ambos QR reales con la terminal autorizada. Comparar con QR anterior de 28 mm.
 
 **Política:** integrar código y documentación en `main` del entorno de pruebas después de CI. No equivale a actualizar automáticamente el Windows local ni a declarar aprobada la impresión física.
 
@@ -61,3 +61,12 @@ Cantidad | Hojas carta
 - Se conserva cada cara **54 × 85 mm**, las dos caras idénticas, el plegado y **cuatro carnets por hoja carta** a escala 100 %. El QR se centra en 13 mm y se desplaza el pie a 76,4 mm para evitar superposición.
 - La cámara trasera de esta tablet dispone de enfoque automático según las especificaciones Samsung, mientras que la frontal es la apropiada para orientación al trabajador cuando el equipo está fijo; probar ambas. El frontend solicita resolución ideal 1280 × 720, no obligatoria.
 - La imagen digital del QR se escala con bordes definidos, no con desenfoque; exigir prueba real con carné impreso, mica y luz del local, verificando lectura a distancia razonable. La resolución solicitada puede no ser respetada por todas las cámaras.
+
+
+## Implementación P08 (PR #43, 14-11-2026) · QR de 30 × 30 mm
+
+- Se modifica **solo presentación**: `qrSizeMm=30`, caja QR centrada a **12 mm del borde izquierdo** y **45,8 mm desde arriba**. Nombre, cargo y pie se redistribuyen para conservar separación y evitar cortes; ambas caras siguen siendo idénticas.
+- Permanecen sin cambio el contenido y validez del QR personal, la bóveda cifrada, la emisión y revocación, la empresa asignada, el logotipo, el tamaño 54 × 85 mm, el plegado y cuatro carnets por hoja carta.
+- Se ajustan dos suites unitarias, la prueba sintética de navegador y el texto de Administración a 30 mm. Una prueba automatizada **no equivale** a una prueba con impresora ni cámara frontal real.
+- La validación de 30 mm queda **pendiente de medición y comparación física** en la Samsung SM-P613 contra la versión de 28 mm aceptada anteriormente por el propietario. Si la mejora no se verifica, revertir únicamente diseño/tamaño de impresión.
+- Instrucciones operativas y criterios en [plan P08](49-PLAN-QR-30MM-LECTURA-SEGURA-20261114.md). La incorporación a `main` de pruebas **no actualiza automáticamente** la instalación Windows.
