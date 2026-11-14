@@ -44,3 +44,13 @@ Cantidad | Hojas carta
 - Pendiente en físico: imprimir hoja carta con **escala 100 %**, medir 54 × 85 mm y QR 20 mm con regla, cortar, doblar y leer ambos QR reales con dispositivo autorizado.
 
 **Política:** integrar código y documentación en `main` del entorno de pruebas después de CI. No equivale a actualizar automáticamente el Windows local ni a declarar aprobada la impresión física.
+
+
+## Reimpresión segura de credenciales (14-11-2026)
+
+- Hay **un QR activo por trabajador**. El contenido se guarda **cifrado AES-256-GCM** en `worker_tokens.token_ciphertext` y el hash actual sigue siendo el único medio de validación al marcar.
+- El diseño del carnet está centralizado en `client/src/printQrCards.js`, compartido para todos; se renderiza una imagen QR por trabajador desde su código cifrado **sin generar ni revocar otro**. La reimpresión requiere sesión administrativa autorizada y queda auditada como preparación de reimpresión. 
+- Administración → Credenciales y terminales → **Reimprimir carnets existentes** muestra hasta 100 trabajadores por página, selección de 1 a 20, luego **Cargar selección para imprimir** y **Imprimir selección / Guardar PDF**.
+- Para los QR creados **antes** de esta migración, solo se guardó hash y **no es posible deducir el código**. Si todavía existe el carnet impreso, leer su contenido mediante un lector QR, buscar trabajador en Administración y usar **Recuperar una tarjeta QR ya impresa**. SAGVA compara el hash de la lectura con el hash activo y conserva el código cifrado **sin revocarlo ni modificarlo**. Si no se tiene el QR original, emitir uno nuevo invalida el anterior de manera explícita.
+- Seguridad: respuesta con `Cache-Control: private, no-store`, no registrar secreto en bitácora, no imprimir QR inactivos/revocados. La bóveda usa `SAGVA_QR_DATA_KEY` hex de 64 caracteres si se configura; en instalaciones existentes deriva una clave AES del `JWT_SECRET` fuerte generado por `Preparar.bat`. Respaldar `server/.env` junto con SQLite: **rotar/perder la clave sin migrar el cifrado impide futuras reimpresiones**. No permitir acceso de la terminal a esta función.
+- La impresión en el navegador *no prueba físicamente que la impresora haya impreso*: se audita la **preparación para reimpresión**, no una entrega comprobada. No se alteran registros de asistencia.

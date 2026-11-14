@@ -16,6 +16,7 @@ import {ATTENDANCE_TYPES} from '../attendanceSchema.js';
 import {createAttendanceProof,verifyAttendanceProof} from '../attendanceProofs.js';
 import {createAttendanceReceipt,readAttendanceReceipt,dispatchAttendanceReceipt} from '../attendanceReceipts.js';
 import {terminalActivationQrPayload} from '../terminalActivationQr.js';
+import {sealWorkerQr,unsealWorkerQr} from '../workerQrVault.js';
 
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
 const random=()=>crypto.randomBytes(32).toString('base64url');
@@ -32,13 +33,79 @@ tokenRouter.get('/workers',management,asyncHandler(async(req,res)=>{
   const like='%'+escaped+'%';
   const [people]=await pool.execute(`SELECT e.id,e.full_name AS fullName,e.is_active AS isActive,
     e.access_code_enabled AS pinEnabled,f.extra_json AS extraJson,
-    (SELECT created_at FROM worker_tokens t WHERE t.employee_id=e.id AND t.revoked_at IS NULL) AS issuedAt
+    (SELECT created_at FROM worker_tokens t WHERE t.employee_id=e.id AND t.revoked_at IS NULL) AS issuedAt,
+    (SELECT CASE WHEN t.token_ciphertext IS NOT NULL THEN 1 ELSE 0 END FROM worker_tokens t
+      WHERE t.employee_id=e.id AND t.revoked_at IS NULL) AS reprintable
     FROM employees e LEFT JOIN employee_files f ON f.employee_id=e.id
     WHERE e.full_name LIKE ? ESCAPE '\\' OR e.document_id LIKE ? ESCAPE '\\'
     ORDER BY e.is_active DESC,e.full_name LIMIT 30`,[like,like]);
   res.set('Cache-Control','no-store');
-  res.json({workers:people.map(p=>({id:p.id,displayName:workerName(p),isActive:!!p.isActive,pinEnabled:!!p.pinEnabled,issuedAt:p.issuedAt}))});
+  res.json({workers:people.map(p=>({id:p.id,displayName:workerName(p),isActive:!!p.isActive,pinEnabled:!!p.pinEnabled,issuedAt:p.issuedAt,reprintable:!!p.reprintable}))});
 }));
+
+// Listado a demanda: solo metadata. Nunca entregar el secreto QR en este endpoint.
+tokenRouter.get('/workers/issued',management,asyncHandler(async(req,res)=>{
+ const offset=Number(req.query.offset||0);
+ if(!Number.isSafeInteger(offset)||offset<0||offset>100000)throw error('Página de credenciales inválida.');
+ const [rows]=await pool.execute(`SELECT e.id,e.full_name AS fullName,e.is_active AS isActive,
+   e.position_name AS positionName,f.extra_json AS extraJson,
+   t.created_at AS issuedAt,t.token_ciphertext AS stored
+   FROM worker_tokens t JOIN employees e ON e.id=t.employee_id
+   LEFT JOIN employee_files f ON f.employee_id=e.id
+   WHERE t.revoked_at IS NULL ORDER BY e.full_name,e.id LIMIT 101 OFFSET ?`,[offset]);
+ res.set('Cache-Control','private, no-store');
+ res.json({workers:rows.slice(0,100).map(w=>({id:w.id,displayName:workerName(w),role:w.positionName||'PERSONAL',
+   isActive:!!w.isActive,issuedAt:w.issuedAt,reprintable:!!w.stored})),hasMore:rows.length>100,nextOffset:offset+100});
+}));
+// Reimprimir no crea ni rota tokens. Solo recupera su imagen desde el valor cifrado.
+tokenRouter.post('/workers/batch-reprint',management,asyncHandler(async(req,res)=>{
+ const parsed=batchIssueSchema.safeParse(req.body);
+ if(!parsed.success)throw error('Selecciona entre 1 y 20 credenciales distintas.');
+ const ids=parsed.data.employeeIds,placeholders=ids.map(()=>'?').join(',');
+ const c=await pool.getConnection();
+ try{
+  await c.beginTransaction();
+  const [rows]=await c.execute(`SELECT e.id,e.full_name AS fullName,e.is_active AS isActive,
+    e.position_name AS positionName,f.extra_json AS extraJson,
+    t.id AS credentialId,t.token_hash AS tokenHash,t.token_ciphertext AS stored
+    FROM employees e JOIN worker_tokens t ON t.employee_id=e.id AND t.revoked_at IS NULL
+    LEFT JOIN employee_files f ON f.employee_id=e.id
+    WHERE e.id IN (${placeholders})`,ids);
+  if(rows.length!==ids.length||rows.some(r=>!r.isActive||!r.stored))
+   throw error('Hay trabajadores sin QR recuperable o inactivos. Ningún QR fue cambiado. Para los antiguos, registra el código de la tarjeta impresa.',409);
+  const map=new Map(rows.map(r=>[r.id,r])),cards=[];
+  for(const id of ids){
+   const worker=map.get(id),token=unsealWorkerQr(worker.stored);
+   if(hash(token)!==worker.tokenHash)throw error('Inconsistencia de integridad en QR: requiere revisión; no se imprimirá.',409);
+   cards.push({employeeId:id,name:workerName(worker),role:worker.positionName||'PERSONAL',
+     qrDataUrl:await QRCode.toDataURL('asistencia:'+token,{errorCorrectionLevel:'M',width:360,margin:3})});
+   await recordAudit(req.admin,'prepare_worker_credential_reprint','employee',id,{credentialId:worker.credentialId},c);
+  }
+  await c.commit();res.set('Cache-Control','private, no-store');res.json({cards});
+ }catch(e){await c.rollback();throw e;}finally{c.release();}
+}));
+// Para los QR emitidos antes de esta función, recuperar el código leyendo la tarjeta física.
+// El hash debe coincidir EXACTAMENTE con la credencial ACTIVA del trabajador.
+tokenRouter.post('/workers/:id/restore-print',management,asyncHandler(async(req,res)=>{
+ const id=Number(req.params.id);
+ if(!Number.isSafeInteger(id)||id<1)throw error('Trabajador inválido.');
+ const value=String(req.body?.scannedQr||'').trim().replace(/^asistencia:/i,'');
+ if(!/^at_[A-Za-z0-9_-]{43}$/.test(value))throw error('Pega el texto completo leído del QR de asistencia.');
+ const c=await pool.getConnection();
+ try{
+  await c.beginTransaction();
+  const [rows]=await c.execute('SELECT id,token_hash AS tokenHash,token_ciphertext AS stored FROM worker_tokens WHERE employee_id=? AND revoked_at IS NULL',[id]);
+  if(!rows.length)throw error('El trabajador no tiene QR activo.',404);
+  if(rows[0].stored)throw error('Ese QR ya está disponible para reimpresión.',409);
+  if(hash(value)!==rows[0].tokenHash)throw error('El QR escaneado no corresponde al trabajador seleccionado o está revocado.',409);
+  await c.execute('UPDATE worker_tokens SET token_ciphertext=? WHERE id=? AND token_ciphertext IS NULL',
+    [sealWorkerQr(value),rows[0].id]);
+  await recordAudit(req.admin,'restore_worker_credential_print','employee',id,{credentialId:rows[0].id},c);
+  await c.commit();res.set('Cache-Control','private, no-store');
+  res.json({message:'QR original recuperado para reimpresión. La tarjeta impresa sigue vigente.'});
+ }catch(e){await c.rollback();throw e;}finally{c.release();}
+}));
+
 // Emisión múltiple únicamente de QR NUEVOS. No revocar credenciales existentes.
 const batchIssueSchema=z.object({
   employeeIds:z.array(z.number().int().positive()).min(1).max(20)
@@ -53,7 +120,7 @@ tokenRouter.post('/workers/batch-issue',requireRoles('admin'),asyncHandler(async
     await c.beginTransaction();
     const placeholders=ids.map(()=>'?').join(',');
     const [people]=await c.execute(`SELECT e.id,e.full_name AS fullName,e.is_active AS isActive,
-      f.extra_json AS extraJson,t.id AS existingToken
+      e.position_name AS positionName,f.extra_json AS extraJson,t.id AS existingToken
       FROM employees e LEFT JOIN employee_files f ON f.employee_id=e.id
       LEFT JOIN worker_tokens t ON t.employee_id=e.id AND t.revoked_at IS NULL
       WHERE e.id IN (${placeholders})`,ids);
@@ -65,30 +132,30 @@ tokenRouter.post('/workers/batch-issue',requireRoles('admin'),asyncHandler(async
     for(const id of ids){
       const person=byId.get(id),token='at_'+random();
       const qrDataUrl=await QRCode.toDataURL('asistencia:'+token,{errorCorrectionLevel:'M',width:360,margin:3});
-      const [created]=await c.execute('INSERT INTO worker_tokens(employee_id,token_hash,created_by) VALUES(?,?,?)',
-        [id,hash(token),req.admin.id]);
+      const [created]=await c.execute('INSERT INTO worker_tokens(employee_id,token_hash,token_ciphertext,created_by) VALUES(?,?,?,?)',
+        [id,hash(token),sealWorkerQr(token),req.admin.id]);
       await recordAudit(req.admin,'issue_worker_token','employee',id,
         {credentialId:created.insertId,batch:true},c);
-      cards.push({employeeId:id,name:workerName(person),qrDataUrl});
+      cards.push({employeeId:id,name:workerName(person),role:person.positionName||'PERSONAL',qrDataUrl});
     }
     await c.commit();
     res.set('Cache-Control','no-store');
-    res.status(201).json({cards,message:`Se emitieron ${cards.length} tarjetas nuevas. Imprime o guarda ahora: no se pueden recuperar desde el servidor.`});
+    res.status(201).json({cards,message:`Se emitieron y guardaron ${cards.length} QR cifrados. Se podrán reimprimir desde Administración sin regenerarlos.`});
   }catch(e){await c.rollback();throw e;}finally{c.release();}
 }));
 tokenRouter.post('/workers/:id/issue',management,asyncHandler(async(req,res)=>{
   const id=Number(req.params.id);const token='at_'+random();const qrDataUrl=await QRCode.toDataURL(`asistencia:${token}`,{errorCorrectionLevel:'M',width:360,margin:3});
   const c=await pool.getConnection();try{await c.beginTransaction();
     const [people]=await c.execute('SELECT id,is_active FROM employees WHERE id=?',[id]);if(!people[0]?.is_active)throw error('Trabajador activo no encontrado.',404);
-    await c.execute("UPDATE worker_tokens SET revoked_at=datetime('now','localtime') WHERE employee_id=? AND revoked_at IS NULL",[id]);
-    const [created]=await c.execute('INSERT INTO worker_tokens(employee_id,token_hash,created_by) VALUES(?,?,?)',[id,hash(token),req.admin.id]);
+    await c.execute("UPDATE worker_tokens SET revoked_at=datetime('now','localtime'),token_ciphertext=NULL WHERE employee_id=? AND revoked_at IS NULL",[id]);
+    const [created]=await c.execute('INSERT INTO worker_tokens(employee_id,token_hash,token_ciphertext,created_by) VALUES(?,?,?,?)',[id,hash(token),sealWorkerQr(token),req.admin.id]);
     await recordAudit(req.admin,'issue_worker_token','employee',id,{credentialId:created.insertId},c);await c.commit();
-    res.status(201).json({token,qrDataUrl,message:'QR emitido. El anterior ya no sirve. Guarda o imprime esta tarjeta; el token no se vuelve a mostrar.'});
+    res.set('Cache-Control','private, no-store');res.status(201).json({token,qrDataUrl,message:'QR nuevo guardado cifrado. El anterior ya no sirve; esta tarjeta se podrá reimprimir.'});
   }catch(e){await c.rollback();throw e;}finally{c.release();}
 }));
 tokenRouter.post('/workers/:id/revoke',management,asyncHandler(async(req,res)=>{
   const id=Number(req.params.id);if(!Number.isInteger(id)||id<1)throw error('Trabajador inválido.');
-  const c=await pool.getConnection();try{await c.beginTransaction();await c.execute("UPDATE worker_tokens SET revoked_at=datetime('now','localtime') WHERE employee_id=? AND revoked_at IS NULL",[id]);await recordAudit(req.admin,'revoke_worker_token','employee',id,{},c);await c.commit();res.json({message:'QR revocado.'});}catch(e){await c.rollback();throw e;}finally{c.release();}
+  const c=await pool.getConnection();try{await c.beginTransaction();await c.execute("UPDATE worker_tokens SET revoked_at=datetime('now','localtime'),token_ciphertext=NULL WHERE employee_id=? AND revoked_at IS NULL",[id]);await recordAudit(req.admin,'revoke_worker_token','employee',id,{},c);await c.commit();res.json({message:'QR revocado.'});}catch(e){await c.rollback();throw e;}finally{c.release();}
 }));
 tokenRouter.put('/workers/:id/pin',management,asyncHandler(async(req,res)=>{
   const parsed=z.object({enabled:z.boolean(),pin:z.string().regex(/^\d{4,8}$/).optional()}).safeParse(req.body);

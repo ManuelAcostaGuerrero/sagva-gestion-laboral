@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import crypto from 'node:crypto';
-process.env.SQLITE_PATH=':memory:';process.env.JWT_SECRET='token-tests-not-real';
+process.env.SQLITE_PATH=':memory:';process.env.SAGVA_QR_DATA_KEY='0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';process.env.JWT_SECRET='token-tests-not-real';
 const {app}=await import('../app.js');const {pool}=await import('../db.js');const {runMigrations}=await import('../migrations.js');const {signAdmin}=await import('../auth.js');const {terminalActivationQrPayload,parseTerminalActivationQr}=await import('../terminalActivationQr.js');
 test('QR/PIN: terminal obligatoria, activación única, credenciales hash, rotación/revocación, auditoría e idempotencia',async()=>{
   await runMigrations();const [admin]=await pool.execute("INSERT INTO admins(username,password_hash,full_name) VALUES('token-test','hash','Prueba')");
