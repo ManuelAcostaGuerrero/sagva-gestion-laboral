@@ -1,9 +1,14 @@
+import {checkRut,formatRut} from '../../server/src/rut.js';
 // Formulario impreso, nunca enviado a un servicio externo ni guardado automáticamente.
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 export function printBankAuthorization(details){
  const fields=['workerName','workerRut','holderName','holderRut','bankName','accountType','accountNumber'];
  if(fields.some(name=>!String(details[name]??'').trim()))throw new Error('Completa los datos bancarios para generar el documento.');
- const x=name=>escapeHtml(details[name]);const date=new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'});
+ for(const [field,label] of [['workerRut','trabajador'],['holderRut','titular de la cuenta']]){
+   if(!checkRut(details[field]).valid)throw new Error('El RUT del '+label+' es inválido. Corrígelo antes de imprimir.');
+ }
+ const normalizedDetails={...details,workerRut:formatRut(details.workerRut),holderRut:formatRut(details.holderRut)};
+ const x=name=>escapeHtml(normalizedDetails[name]);const date=new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'});
  const page=`<!doctype html><html lang="es"><head><meta charset="utf-8">
  <title>Solicitud de pago en cuenta de tercero</title><style>
  body{font:15px/1.6 Arial,sans-serif;color:#111;margin:13mm 16mm;}h1{font-size:20px;text-align:center;margin:20px 0;}
