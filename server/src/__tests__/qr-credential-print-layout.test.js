@@ -3,23 +3,47 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {QR_CREDENTIAL_PRINT,paginateQrCredentials,qrCredentialPrintCss} from '../../../client/src/qrCredentialPrintLayout.js';
 
-test('Medidas del diseño aprobado son invariables, verticales y con QR de 28 mm',()=>{
+test('Medidas del diseño aprobado son invariables, verticales y con QR de 30 mm',()=>{
   const fixed=QR_CREDENTIAL_PRINT;
   assert.ok(Object.isFrozen(fixed));
   assert.equal(fixed.faceWidthMm,54);
   assert.equal(fixed.faceHeightMm,85);
   assert.equal(fixed.unfoldedWidthMm,108);
   assert.equal(fixed.unfoldedHeightMm,85);
-  assert.equal(fixed.qrSizeMm,28);
+  assert.equal(fixed.qrSizeMm,30);
   assert.equal(fixed.perSheet,4);
   const css=qrCredentialPrintCss();
   assert.match(css,/@page\{size:letter;margin:12mm\}/);
   assert.match(css,/\.qr-face\{[^}]*width:54mm;height:85mm;flex:0 0 54mm/);
   assert.match(css,/\.qr-pair\{[^}]*width:108mm;height:85mm/);
-  assert.match(css,/\.qr-face-image\{[^}]*width:28mm;height:28mm/);
+  assert.match(css,/\.qr-face-image\{[^}]*width:30mm;height:30mm/);
   assert.match(css,/transform:rotate\(90deg\)/);
   assert.match(css,/grid-template-columns:85mm 85mm;grid-template-rows:108mm 108mm/);
   assert.doesNotMatch(css,/size:A4|85\.6mm|width:45mm/i);
+});
+
+
+test('QR de 30 mm centrado y sin solapes con nombre, cargo y pie',()=>{
+  const css=qrCredentialPrintCss();
+  const readBox=selector=>{
+    const block=css.match(new RegExp('\\.'+selector+'\\{([^}]*)\\}'))?.[1];
+    assert.ok(block,selector+' debe tener estilo');
+    const mm=key=>{
+      const match=block.match(new RegExp('(?:^|;)'+key+':([0-9.]+)mm'));
+      assert.ok(match,selector+' '+key);
+      return Number(match[1]);
+    };
+    return {top:mm('top'),height:mm('height'),left:mm('left'),width:mm('width')};
+  };
+  const name=readBox('qr-face-name'),role=readBox('qr-face-role');
+  const qr=readBox('qr-face-image'),footer=readBox('qr-face-footer');
+  assert.equal(qr.width,30);
+  assert.equal(qr.height,30);
+  assert.equal(qr.left,(QR_CREDENTIAL_PRINT.faceWidthMm-qr.width)/2,'QR centrado horizontalmente');
+  assert.ok(name.top+name.height+0.5<=role.top,'separar nombre y cargo');
+  assert.ok(role.top+role.height+0.5<=qr.top,'separar cargo y QR');
+  assert.ok(qr.top+qr.height+1<=footer.top,'respetar margen blanco entre QR y pie');
+  assert.ok(footer.top+footer.height<=QR_CREDENTIAL_PRINT.faceHeightMm-1,'pie dentro de la tarjeta');
 });
 
 test('Hoja carta admite 4 credenciales plegables a tamaño real, con márgenes seguros',()=>{
