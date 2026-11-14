@@ -321,7 +321,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     {label}{key.endsWith('Date') ? (
       <DateField value={draft[key] || ''} onChange={e => change(key,e.target.value)} />
     ) : (
-      <input type="text" value={key==='fullName' ? (assembledWorkerName(draft)||draft.fullName||'') : key==='documentId' ? (rutFocused?draft[key]||'':formatRut(draft[key])) : draft[key] || ''}
+      <input type="text" autoComplete="off" value={key==='fullName' ? (assembledWorkerName(draft)||draft.fullName||'') : key==='documentId' ? (rutFocused?draft[key]||'':formatRut(draft[key])) : draft[key] || ''}
         className={key==='fullName'?'ef-readonly':''}
         readOnly={key==='fullName'} tabIndex={key==='fullName'?-1:undefined}
         onFocus={key==='documentId'?()=>setRutFocused(true):undefined} onBlur={key==='documentId'?()=>setRutFocused(false):undefined}
@@ -330,7 +330,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     {key==='documentId' && <span role="status">{checkRut(draft.documentId).valid ? 'RUT válido · dígito verificador correcto' : draft.documentId ? 'RUT inválido · revisa las cifras y el dígito verificador' : 'RUT pendiente'}</span>}
     {renderClear(key)}
   </label>;
-  const renderExtra = ([key,label]) => <label key={key}>{label}<input value={draft.extra?.[key] || ''} onChange={e => change('extra',{...draft.extra,[key]:normalizeLabel(e.target.value)})} /></label>;
+  const renderExtra = ([key,label]) => <label key={key}>{label}<input autoComplete="off" value={draft.extra?.[key] || ''} onChange={e => change('extra',{...draft.extra,[key]:normalizeLabel(e.target.value)})} /></label>;
   const renderSelectExtra=(key,label,options)=> <label key={key}>{label}<select value={draft.extra?.[key]||''} onChange={e=>change('extra',{...draft.extra,[key]:e.target.value})}>
     <option value="">Sin informar</option>
     {options.map(value=><option key={value} value={value}>{value}</option>)}
@@ -429,7 +429,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
           {!shown.length && <p>No hay fichas en este filtro.</p>}
         </aside>
         {draft ? (
-          <form className="ef-form" onSubmit={event=>save(event)} noValidate>
+          <form className="ef-form" autoComplete="off" onSubmit={event=>save(event)} noValidate>
             <div className="ef-heading">
               <h2>{draft.id ? `Ficha ${draft.id}` : "Nueva ficha"}</h2>
               {(counts.pending > 0 || draft.validationStatus !== 'VALIDADO') && <div className="ef-review-status">
