@@ -223,7 +223,9 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   async function save(event,complete=false) {
     event?.preventDefault();
     if (!draft || busy) return;
-    if(documentsDirty){setError('Termina o cancela el documento laboral en preparación antes de cerrar la ficha.');return;}
+    if(documentsDirty){setError('Termina o cancela el documento laboral en preparación antes de guardar la ficha.');return;}
+    try { bankRef.current?.validateChanges?.(); }
+    catch (e) { setError('Cuenta bancaria: '+e.message+' Los demás cambios siguen pendientes.');setTab('general');setSubTab('bank');return; }
     setBusy(true);
     setError('');
     let resultFile = null;
@@ -279,19 +281,10 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
           return contractRef.current.saveChanges();
         }
       });
-      const closed = canCloseAfterSuccessfulSave({savedSections:completed,documents:documentsDirty});
-      if (closed) {
-        if (next) select(next);
-        else {
-          setDraft(null);
-          setSaved('');
-          setNext(null);
-          setTab('general');
-          setSubTab('personal');
-        }
-      } else if (next) {
-        select(next);
-      }
+      // Guardar por sí solo nunca cambia de trabajador ni cierra la ficha.
+      // Si se pidió navegar, solo continuar tras guardar todas las secciones requeridas.
+      const changingWorker=Boolean(next)&&canCloseAfterSuccessfulSave({savedSections:completed,documents:documentsDirty});
+      if(changingWorker)select(next);
       if (generalSaved) {
         try {
           await load();
@@ -300,7 +293,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
           setError('Datos guardados, pero no se pudo refrescar la lista: '+refreshError.message);
         }
       }
-      onMessage?.(closed ? 'Cambios guardados. Ficha cerrada correctamente.'
+      onMessage?.(changingWorker ? 'Cambios guardados. Trabajador cambiado.'
         : completed.length ? 'Cambios guardados: '+completed.join(', ')+'.'
         : 'La ficha ya está guardada, sin cambios pendientes.');
     } catch (e) {
@@ -392,11 +385,14 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
       {next && (
         <div className="ef-note" role="dialog" aria-label="Cambios pendientes">
           <p>
-            Cambios pendientes en: <strong>{pendingSections.join(', ')}</strong>.
-            Guarda esa sección antes de cambiar de trabajador o descarta los cambios.
+            Hay cambios sin guardar en: <strong>{pendingSections.join(', ')}</strong>.
+            Puedes guardarlos todos y cambiar de trabajador, seguir editando o descartarlos.
           </p>
-          <button onClick={() => setNext(null)}>Seguir editando</button>
-          <button onClick={() => select(next)}>Descartar y cambiar</button>
+          <button type="button" className="primary" disabled={busy||documentsDirty} onClick={()=>save(null,false)}>
+            {busy?'Guardando…':'Guardar y cambiar'}
+          </button>
+          <button type="button" disabled={busy} onClick={() => setNext(null)}>Seguir editando</button>
+          <button type="button" disabled={busy} onClick={() => select(next)}>Descartar cambios y cambiar</button>
         </div>
       )}
       <div className="ef-layout">
