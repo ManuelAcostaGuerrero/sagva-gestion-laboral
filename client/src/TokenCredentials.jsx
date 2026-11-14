@@ -9,6 +9,10 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
   const [search,setSearch]=useState(''),[workers,setWorkers]=useState([]),[searchBusy,setSearchBusy]=useState(false),[searchVersion,setSearchVersion]=useState(0);
   const [employee,setEmployee]=useState(''),[pin,setPin]=useState(''),[card,setCard]=useState(null);
   const [batchSelected,setBatchSelected]=useState({}),[batchCards,setBatchCards]=useState([]),[batchConfirm,setBatchConfirm]=useState(false);
+  const [issuedVisible,setIssuedVisible]=useState(false),[issuedWorkers,setIssuedWorkers]=useState([]),
+    [issuedOffset,setIssuedOffset]=useState(0),[issuedMore,setIssuedMore]=useState(false),[issuedBusy,setIssuedBusy]=useState(false);
+  const [reprintSelected,setReprintSelected]=useState({}),[reprintCards,setReprintCards]=useState([]);
+  const [scannedQr,setScannedQr]=useState('');
   const [companies,setCompanies]=useState([]),[companyId,setCompanyId]=useState(''),[terminalDrafts,setTerminalDrafts]=useState({});
   const [terminals,setTerminals]=useState([]),[name,setName]=useState(''),[activation,setActivation]=useState(null);
   const [terminalToRevoke,setTerminalToRevoke]=useState(null);
@@ -42,13 +46,29 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
     setBusy(true);setError('');
     try{
       await action();setConfirm(null);
-      if(refreshWorkers)setSearchVersion(n=>n+1);
+      if(refreshWorkers){setSearchVersion(n=>n+1);setIssuedVisible(false);setReprintSelected({});setReprintCards([]);}
       if(refreshTerminals){
         const [t,c]=await Promise.all([api('/tokens/terminals'),api('/companies')]);
         setTerminals(t.terminals);setCompanies(c.companies.filter(company=>company.isActive));
       }
     }catch(e){setError(e.message);}
     finally{setBusy(false);}
+  }
+  async function loadIssued(offset=0){
+    setIssuedBusy(true);setError('');
+    try{
+      const data=await api('/tokens/workers/issued?offset='+offset);
+      setIssuedWorkers(old=>offset===0?data.workers:[...old,...data.workers]);
+      setIssuedOffset(data.nextOffset);setIssuedMore(data.hasMore);setIssuedVisible(true);
+    }catch(e){setError(e.message);}
+    finally{setIssuedBusy(false);}
+  }
+  function prepareReprint(ids){
+    return perform(async()=>{
+      const data=await api('/tokens/workers/batch-reprint',{method:'POST',body:JSON.stringify({employeeIds:ids})});
+      setReprintCards(data.cards);
+      onMessage?.(data.cards.length+' credencial(es) cargada(s). Sus QR siguen siendo los originales.');
+    });
   }
   const issue=()=>perform(async()=>{
     const result=await api('/tokens/workers/'+employee+'/issue',{method:'POST'});
@@ -84,14 +104,14 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
       <p>Busca al trabajador por nombre o documento. No se carga el listado completo.</p>
       <label>Buscar trabajador
         <input type="search" value={search} placeholder="Escribe al menos 2 caracteres"
-          onChange={e=>{setSearch(e.target.value);setEmployee('');setCard(null);setConfirm(null);}}/>
+          onChange={e=>{setSearch(e.target.value);setEmployee('');setCard(null);setConfirm(null);setScannedQr('');setReprintCards([]);}}/>
       </label>
       {searchBusy&&<small>Buscando…</small>}
       {search.trim().length>=2&&!searchBusy&&workers.length===0&&<p>Sin resultados.</p>}
       {workers.length>0&&<>
         <label>Trabajador encontrado
           <select value={employee} onChange={e=>{
-            setEmployee(e.target.value);setPin('');setCard(null);setConfirm(null);
+            setEmployee(e.target.value);setPin('');setCard(null);setConfirm(null);setScannedQr('');setReprintCards([]);
           }}>
             <option value="">Seleccionar trabajador</option>
             {workers.map(w=><option key={w.id} value={w.id}>{w.displayName}{w.isActive?'':' (inactivo)'}</option>)}
@@ -101,12 +121,16 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
       </>}
       {selected&&<div className="tk-note">
         <strong>{selected.displayName}</strong>
-        <p>QR: {selected.issuedAt?'emitido':'pendiente'} · PIN: {selected.pinEnabled?'habilitado':'pendiente'}</p>
+        <p>QR: {selected.issuedAt?(selected.reprintable?'guardado y reimprimible':'emitido antes del respaldo cifrado'):'pendiente'} · PIN: {selected.pinEnabled?'habilitado':'pendiente'}</p>
         <div className="tk-buttons">
           <button type="button" disabled={busy||!selected.isActive} onClick={()=>setConfirm({type:'issue'})}>
             {selected.issuedAt?'Regenerar QR':'Emitir QR'}
           </button>
           <button type="button" disabled={busy||!selected.issuedAt} onClick={()=>setConfirm({type:'revoke'})}>Revocar QR</button>
+          {selected.issuedAt&&selected.reprintable&&selected.isActive&&
+            <button type="button" disabled={busy} onClick={()=>prepareReprint([selected.id])}>
+              Cargar carnet existente para reimprimir
+            </button>}
         </div>
         {confirm&&<div className="tk-note" role="dialog" aria-label="Confirmar credencial">
           <p>{confirm.type==='issue'?'Emitir un QR nuevo invalidará cualquier tarjeta anterior.':'La tarjeta dejará de funcionar.'}</p>
@@ -116,6 +140,23 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
             setCard(null);onMessage?.('QR revocado.');
           },{refreshWorkers:true})}>Confirmar</button>
         </div>}
+        {selected.issuedAt&&!selected.reprintable&&selected.isActive&&<form className="tk-restore" onSubmit={e=>{
+          e.preventDefault();
+          perform(async()=>{
+            await api('/tokens/workers/'+selected.id+'/restore-print',{method:'POST',
+              body:JSON.stringify({scannedQr:scannedQr.trim()})});
+            setScannedQr('');
+            onMessage?.('QR original recuperado sin invalidar la tarjeta existente.');
+          },{refreshWorkers:true});
+        }}>
+          <strong>Recuperar una tarjeta QR ya impresa</strong>
+          <p>Este QR es antiguo: SAGVA guardó solo su huella. Lee con el teléfono la tarjeta original y pega aquí el contenido completo. No se emitirá un código nuevo.</p>
+          <label>Texto leído del QR original
+            <input type="password" value={scannedQr} autoComplete="off"
+              onChange={e=>setScannedQr(e.target.value)} placeholder="asistencia:at_…"/>
+          </label>
+          <button disabled={busy||!/^((asistencia:)?at_[A-Za-z0-9_-]{43})$/.test(scannedQr.trim())}>Vincular QR original para reimprimir</button>
+        </form>}
         <form onSubmit={e=>{e.preventDefault();perform(async()=>{
           await api('/tokens/workers/'+employee+'/pin',{method:'PUT',body:JSON.stringify({enabled:true,pin})});
           setPin('');onMessage?.('PIN guardado.');
@@ -134,16 +175,59 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
       </div>}
       {card&&<div className="tk-card">
         <strong>{card.name}</strong><img src={card.qrDataUrl} alt="Tarjeta QR personal"/>
-        <p>Guarda o imprime ahora. El QR privado no puede recuperarse del servidor.</p>
+        <p>El QR queda guardado cifrado en la ficha. Podrás reimprimir este mismo código más adelante, desde otra sesión autorizada.</p>
         <a href={card.qrDataUrl} download="tarjeta-asistencia.png">Guardar QR</a>
         <button type="button" onClick={()=>printQrCard(card).catch(e=>setError(e.message))}>Imprimir credencial RED TAURUS · carta</button>
         <button type="button" onClick={()=>setCard(null)}>Cerrar tarjeta</button>
       </div>}
 
+      <section className="tk-bulk" aria-label="Credenciales ya emitidas y reimpresión">
+        <h3>Reimprimir carnets existentes</h3>
+        <p>Selecciona los trabajadores que ya tienen QR. Se imprime el mismo código, sin emitir ni revocar credenciales.
+          Una sola plantilla general RED TAURUS para todos.</p>
+        <div className="tk-buttons">
+          <button type="button" disabled={busy||issuedBusy} onClick={()=>{
+            if(issuedVisible){setIssuedVisible(false);setReprintSelected({});setReprintCards([]);}
+            else void loadIssued(0);
+          }}>{issuedVisible?'Ocultar credenciales':'Ver credenciales creadas'}</button>
+        </div>
+        {issuedBusy&&<small>Cargando credenciales…</small>}
+        {issuedVisible&&<>
+          {issuedWorkers.length===0&&<p>Aún no hay QR activos para listar.</p>}
+          <div className="tk-bulk-choices" role="group" aria-label="Seleccionar QR para reimprimir">
+            {issuedWorkers.map(w=><label key={w.id}>
+              <input type="checkbox" disabled={busy||!w.isActive||!w.reprintable||(!reprintSelected[w.id]&&Object.keys(reprintSelected).length>=20)}
+                checked={!!reprintSelected[w.id]}
+                onChange={e=>{
+                  setReprintCards([]);
+                  setReprintSelected(old=>{
+                    const next={...old};if(e.target.checked)next[w.id]={id:w.id,name:w.displayName};
+                    else delete next[w.id];return next;
+                  });
+                }}/>
+              <span>{w.displayName} · {w.isActive?(w.reprintable?'QR guardado':'QR antiguo: recuperar desde la tarjeta'):'Trabajador inactivo'}</span>
+            </label>)}
+          </div>
+          {issuedMore&&<button type="button" disabled={issuedBusy||busy} onClick={()=>loadIssued(issuedOffset)}>Mostrar más trabajadores</button>}
+          <p>Seleccionados: {Object.keys(reprintSelected).length} / 20. Máximo 4 carnets plegables por hoja carta.</p>
+          <div className="tk-buttons">
+            <button type="button" disabled={busy||!Object.keys(reprintSelected).length}
+              onClick={()=>prepareReprint(Object.keys(reprintSelected).map(Number))}>Cargar selección para imprimir</button>
+            <button type="button" disabled={busy} onClick={()=>{setReprintSelected({});setReprintCards([]);}}>Limpiar selección</button>
+          </div>
+        </>}
+      </section>
+      {reprintCards.length>0&&<div className="tk-note" role="region" aria-label="Imprimir carnets guardados">
+        <strong>{reprintCards.length} credencial(es) originales listas para impresión</strong>
+        <p>{reprintCards.map(c=>c.name).join(', ')} · {Math.ceil(reprintCards.length/4)} hoja(s).
+          Reimprimir no cambia el QR del trabajador.</p>
+        <button type="button" onClick={()=>printQrCards(reprintCards).catch(e=>setError(e.message))}>Imprimir selección / Guardar PDF</button>
+        <button type="button" onClick={()=>setReprintCards([])}>Cerrar vista segura</button>
+      </div>}
       {canBulk&&<section className="tk-bulk">
         <h3>Credenciales plegables RED TAURUS · hoja carta</h3>
-        <p>Solo se pueden emitir en lote tarjetas de trabajadores que todavía no tienen QR.
-          Los QR ya emitidos no se regeneran ni se invalidan.</p>
+        <p>Esta sección es para emitir QR nuevos. Para imprimir los existentes utiliza «Reimprimir carnets existentes».
+          Emitir un QR nuevo para reemplazar otro exige confirmación específica.</p>
         {workers.filter(w=>w.isActive&&!w.issuedAt).length>0&&<div className="tk-bulk-choices">
           {workers.filter(w=>w.isActive&&!w.issuedAt).map(w=><label key={w.id}>
             <input type="checkbox" disabled={busy||(!batchSelected[w.id]&&count>=20)}
@@ -160,14 +244,14 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
           <button type="button" disabled={busy} onClick={()=>{setBatchSelected({});setBatchConfirm(false);}}>Limpiar selección</button>
         </div>}
         {batchConfirm&&<div className="tk-note" role="dialog" aria-label="Confirmar impresión múltiple">
-          <p>Se generarán {count} credenciales nuevas. Imprime o guarda inmediatamente las tarjetas:
-            el servidor conservará solo sus hashes, no las imágenes.</p>
+          <p>Se generarán {count} credenciales nuevas y se guardarán sus códigos cifrados, asociados a cada trabajador.
+            Podrás volver a imprimirlas sin regenerarlas.</p>
           <button type="button" disabled={busy} onClick={()=>setBatchConfirm(false)}>Cancelar</button>
           <button type="button" disabled={busy||count===0} onClick={issueBatch}>Confirmar emisión</button>
         </div>}
         {batchCards.length>0&&<div className="tk-note">
           <strong>{batchCards.length} tarjetas nuevas generadas</strong>
-          <p>Formato RED TAURUS aprobado: 54 × 85 mm por cara, plegable de 108 × 85 mm. {Math.ceil(batchCards.length / 4)} hoja(s) carta, 4 credenciales por página. Imprimir a tamaño real (100 %, sin ajustar a página). No cierres antes de imprimir o guardar en PDF.</p>
+          <p>Formato RED TAURUS: 54 × 85 mm por cara, plegable de 108 × 85 mm. {Math.ceil(batchCards.length / 4)} hoja(s) carta. Estos QR quedaron guardados cifrados y podrán reimprimirse después. Imprimir a tamaño real (100 %, sin ajustar).</p>
           <button type="button" onClick={()=>printQrCards(batchCards).catch(e=>setError(e.message))}>Imprimir todas / Guardar PDF</button>
           <button type="button" onClick={()=>setBatchCards([])}>Cerrar tarjetas</button>
         </div>}

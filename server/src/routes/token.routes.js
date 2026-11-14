@@ -33,12 +33,14 @@ tokenRouter.get('/workers',management,asyncHandler(async(req,res)=>{
   const like='%'+escaped+'%';
   const [people]=await pool.execute(`SELECT e.id,e.full_name AS fullName,e.is_active AS isActive,
     e.access_code_enabled AS pinEnabled,f.extra_json AS extraJson,
-    (SELECT created_at FROM worker_tokens t WHERE t.employee_id=e.id AND t.revoked_at IS NULL) AS issuedAt
+    (SELECT created_at FROM worker_tokens t WHERE t.employee_id=e.id AND t.revoked_at IS NULL) AS issuedAt,
+    (SELECT CASE WHEN t.token_ciphertext IS NOT NULL THEN 1 ELSE 0 END FROM worker_tokens t
+      WHERE t.employee_id=e.id AND t.revoked_at IS NULL) AS reprintable
     FROM employees e LEFT JOIN employee_files f ON f.employee_id=e.id
     WHERE e.full_name LIKE ? ESCAPE '\\' OR e.document_id LIKE ? ESCAPE '\\'
     ORDER BY e.is_active DESC,e.full_name LIMIT 30`,[like,like]);
   res.set('Cache-Control','no-store');
-  res.json({workers:people.map(p=>({id:p.id,displayName:workerName(p),isActive:!!p.isActive,pinEnabled:!!p.pinEnabled,issuedAt:p.issuedAt}))});
+  res.json({workers:people.map(p=>({id:p.id,displayName:workerName(p),isActive:!!p.isActive,pinEnabled:!!p.pinEnabled,issuedAt:p.issuedAt,reprintable:!!p.reprintable}))});
 }));
 
 // Listado a demanda: solo metadata. Nunca entregar el secreto QR en este endpoint.
