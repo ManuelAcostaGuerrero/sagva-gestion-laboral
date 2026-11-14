@@ -45,3 +45,12 @@ El sistema mantiene los mecanismos anteriores de activación, QR, PIN de respald
 - **Actualizar la instalación de la PWA** y abrirla desde su ícono en la pantalla de inicio, no desde una pestaña normal; el cambio de manifiesto puede necesitar reinstalación. En Chrome normal Fullscreen API puede ocultar las barras mientras esté activa, pero no es garantía de persistencia.
 - Reflejos físicos: bajar brillo y evitar contra luz directa; preferir funda/portacarnet mate, QR negro nítido en fondo blanco con zona de silencio intacta, lente frontal limpio. Ajustar la distancia de lectura y probar 3 usuarios distintos, dos condiciones de luz, pantalla instalada en el muro.
 - No hay prueba física de lectura automática en la Galaxy Tab S6 Lite todavía. Si el QR de 28 mm sigue sin leerse por la frontal, considerar una plantilla con QR de 30–32 mm o un lector QR externo mirando al trabajador antes de invertir en otro hardware.
+
+
+## Implementación P08: QR impreso de 30 mm (PR #43, 14-11-2026)
+
+- La versión anterior de **28 × 28 mm** fue declarada funcional en prueba física por el propietario, pero con lectura algo lenta. P08 cambia únicamente la **impresión** a **30 × 30 mm** y reposiciona los elementos visuales; **no exige** cambiar tokens, volver a activar la terminal o sustituir la PWA.
+- Para validación manual, tras integrar y actualizar la instalación, reimprimir **3 carnets existentes** (no usar «Emitir QR nuevos»), en carta al **100 %**. Medir con regla 30 × 30 mm en ambas caras y 54 × 85 mm cada cara. Usar el portacarnet real, sin brillo excesivo.
+- Probar la **cámara frontal** de la SM-P613 montada en pared: cada carné 10 lecturas con buena iluminación y 10 con luz habitual. Comparar contra pruebas equivalentes del QR anterior de 28 mm. Registrar medianas de tiempo, fallos y lecturas erróneas sin divulgar códigos reales.
+- Conservar carnets de 28 mm hasta verificar que 30 mm mejora efectivamente lectura y no causa problemas de impresión. Si no mejora, revertir solo CSS/tamaño de impresión; la identificación de trabajadores y sus marcas no debe alterarse.
+- **Estado de aceptación física de 30 mm:** pendiente. Aprobación automática de CI no demuestra lectura en cámara física.
