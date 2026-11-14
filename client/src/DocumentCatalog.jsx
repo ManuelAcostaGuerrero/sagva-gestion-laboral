@@ -1,3 +1,4 @@
+import {sortEquipmentItems} from './equipmentSorting.js';
 import React,{useEffect,useState} from 'react';
 import {api} from './services/api.js';
 import './documentCatalog.css';
@@ -56,7 +57,7 @@ export default function DocumentCatalog({employees=[],onMessage,onOpenWorker}){
   }
   const ordered=[...employees].sort((a,b)=>a.fullName.localeCompare(b.fullName,'es'));
   return <div className="dc-module module-content">
-    <form className="form-panel module-top-panel dc-form" onSubmit={save}>
+    <form className="form-panel module-top-panel dc-form" onSubmit={save} autoComplete="off">
       <h2>{editing?'Editar documento laboral':'Crear documento laboral'}</h2>
       <p>Catálogo general. Cada documento activo aparece en las fichas a las que corresponda.</p>
       {error&&<p className="soft-alert" role="alert">{error}</p>}
@@ -81,12 +82,16 @@ export default function DocumentCatalog({employees=[],onMessage,onOpenWorker}){
       {draft.name==='ENTREGA DE IMPLEMENTOS DE TRABAJO'&&<fieldset className="dc-select-people">
         <legend>Ítems de implementos para entregar</legend>
         <p>Marca y registra cada entrega desde la ficha del trabajador. Aquí solo se configura el catálogo.</p>
-        {draft.items.map((item,index)=><div className="row-actions" key={item}>
-          <strong>{item}</strong><button type="button" onClick={()=>change('items',draft.items.filter((_,i)=>i!==index))}>Quitar</button>
-        </div>)}
-        <div className="row-actions">
-          <input aria-label="Nuevo implemento" value={newEquipmentItem} maxLength={100} onChange={e=>setNewEquipmentItem(e.target.value.toLocaleUpperCase('es-CL'))} placeholder="Ej.: UNIFORME"/>
-          <button type="button" disabled={!newEquipmentItem.trim()||draft.items.includes(newEquipmentItem.trim())} onClick={()=>{change('items',[...draft.items,newEquipmentItem.trim()]);setNewEquipmentItem('');}}>Agregar implemento</button>
+        <p className="dc-equipment-count">{draft.items.length} implemento(s) configurado(s) · orden alfabético.</p>
+        <div className="dc-equipment-list">
+          {sortEquipmentItems(draft.items).map(item=><div className="dc-equipment-row" key={item}>
+            <span>{item}</span>
+            <button type="button" aria-label={'Quitar '+item} onClick={()=>change('items',draft.items.filter(name=>name!==item))}>Quitar</button>
+          </div>)}
+        </div>
+        <div className="dc-equipment-new">
+          <input aria-label="Nuevo implemento" autoComplete="off" value={newEquipmentItem} maxLength={100} onChange={e=>setNewEquipmentItem(e.target.value.toLocaleUpperCase('es-CL'))} placeholder="Ej.: UNIFORME"/>
+          <button type="button" disabled={!newEquipmentItem.trim()||draft.items.some(item=>item.toLocaleUpperCase('es-CL')===newEquipmentItem.trim().toLocaleUpperCase('es-CL'))} onClick={()=>{change('items',[...draft.items,newEquipmentItem.trim()]);setNewEquipmentItem('');}}>Agregar implemento</button>
         </div>
       </fieldset>}
       {draft.applicability==='SELECTED'&&<div className="dc-select-people">

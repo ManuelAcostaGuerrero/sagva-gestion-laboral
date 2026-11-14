@@ -98,3 +98,13 @@
  .tk-activation-qr{width:min(100%,230px)}
  .tk-kiosk{width:100%;max-width:100%;box-sizing:border-box}
 }
+
+/* Credenciales existentes: lectura clara, selección rápida y recuperación individual. */
+.tk-bulk-choices{grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:8px}
+.tk-bulk-choices>label{display:flex!important;align-items:flex-start;flex-direction:row!important;gap:10px;border:1px solid #d1e0d6;border-radius:8px;background:#fff;min-width:0;padding:10px}
+.tk-bulk-choices>label>input[type=checkbox]{flex:0 0 auto;width:19px;height:19px;margin-top:3px}
+.tk-issued-info{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0;overflow-wrap:break-word}
+.tk-issued-info small{font-size:12px;line-height:1.4;color:#53685d}
+.tk-restore-trigger{align-self:flex-start;font-size:12px;padding:6px 10px}
+.tk-restore-inline{border:1px solid #c6d6cb;border-radius:9px;padding:12px;background:#fff}
+.tk-restore-inline input{min-width:0;max-width:100%;box-sizing:border-box}

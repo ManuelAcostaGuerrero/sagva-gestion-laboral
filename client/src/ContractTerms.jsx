@@ -84,7 +84,7 @@ const ContractTerms = forwardRef(function ContractTerms({employeeId,positionName
    <label>Colación (minutos)
     <input type="number" min="0" max="240" step="1" value={draft.breakMinutes} onChange={e=>change('breakMinutes',e.target.value===''?'':Number(e.target.value))}/></label>
    <label>Lugar habitual de prestación
-    <input value={draft.workplace} maxLength={500} onChange={e=>change('workplace',e.target.value.toLocaleUpperCase('es-CL'))} placeholder={suggestedWorkplace||'Por definir'}/></label>
+    <input autoComplete="off" name="sagva-workplace" value={draft.workplace} maxLength={500} onChange={e=>change('workplace',e.target.value.toLocaleUpperCase('es-CL'))} placeholder={suggestedWorkplace||'Por definir'}/></label>
    {suggestedWorkplace&&<div className="ef-field-wide">
     <button type="button" disabled={draft.workplace===suggestedWorkplace} onClick={()=>change('workplace',suggestedWorkplace)}>Usar sucursal sugerida: {suggestedWorkplace}</button>
     <p className="ef-note">Sugerencia opcional; no modifica el lugar histórico sin confirmación.</p>

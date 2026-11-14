@@ -43,3 +43,11 @@
 .ed-equipment-item>label:first-child{display:flex;flex-direction:row;align-items:center;gap:9px}
 .ed-equipment-item input[type=number]{width:85px}
 .ed-equipment-delivered{padding:12px;background:#f0f6f2;border-radius:9px}
+
+/* Selector de implementos: la casilla y el nombre no deben quedar en columnas estrechas. */
+.ed-equipment-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:8px;margin-top:9px}
+.ed-equipment-picker .ed-equipment-item{display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:7px;padding:10px 12px;border:1px solid #d5e3db;border-radius:8px;background:#fff;min-width:0}
+.ed-equipment-picker .ed-equipment-item>label:first-child{display:flex!important;flex-direction:row!important;align-items:flex-start;gap:10px;min-width:0;white-space:normal;overflow-wrap:break-word;word-break:normal;line-height:1.35;font-weight:650}
+.ed-equipment-picker .ed-equipment-item input[type=checkbox]{flex:0 0 auto;width:19px;height:19px;min-width:19px;margin:0}
+.ed-equipment-picker .ed-equipment-item>label:last-child:not(:first-child){display:flex;flex-direction:row;align-items:center;gap:10px;justify-content:flex-end;font-size:13px}
+.ed-equipment-picker .ed-equipment-item input[type=number]{width:85px;min-width:85px}

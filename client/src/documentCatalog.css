@@ -16,3 +16,13 @@
 .dc-linked-people{display:flex;flex-direction:column;gap:8px}
 .dc-linked-people button{text-align:left;white-space:normal}
 @media(max-width:850px){.dc-grid,.dc-cards,.dc-people{grid-template-columns:1fr}}
+
+/* Catálogo de implementos: renglones legibles incluso en pantallas angostas. */
+.dc-equipment-count{font-size:13px;color:#4b6259;margin:4px 0}
+.dc-equipment-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:8px}
+.dc-equipment-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;min-width:0;background:#f8faf9;border:1px solid #dce5e3;border-radius:8px}
+.dc-equipment-row span{min-width:0;overflow-wrap:break-word;font-weight:650;line-height:1.35}
+.dc-equipment-row button{flex:0 0 auto}
+.dc-equipment-new{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:10px}
+.dc-equipment-new input{flex:1 1 220px;min-width:0}
+.dc-equipment-new button{flex:0 0 auto}

@@ -1,6 +1,6 @@
 
 import React,{forwardRef,useEffect,useImperativeHandle,useRef,useState} from 'react';
-import {normalizeRut,formatRut} from '../../server/src/rut.js';
+import {normalizeRut,formatRut,checkRut} from '../../server/src/rut.js';
 import {api} from './services/api.js';
 import {printBankAuthorization} from './printBankAuthorization.js';
 const initial=()=>({revision:0,bankId:0,accountType:'VISTA',accountNumber:'',holderName:'',holderRut:'',authorizationRef:''});
@@ -30,8 +30,18 @@ const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,wo
   }).catch(e=>{if(active)setError(e.message);});
   return()=>{active=false;};
  },[employeeId]);
+ function validateChanges(){
+  if(!dirty||!canWrite)return;
+  if(!Number.isSafeInteger(Number(data.bankId))||Number(data.bankId)<1)throw new Error('Selecciona el banco.');
+  if(!/^[0-9A-Za-z.-]{3,55}$/.test(data.accountNumber.trim()))throw new Error('Completa un número de cuenta válido.');
+  const rut=thirdParty?data.holderRut:(workerRut||data.holderRut);
+  const name=thirdParty?data.holderName:(workerName||data.holderName);
+  if(!name?.trim()||!checkRut(rut).valid)throw new Error('Revisa el nombre y RUT del titular de la cuenta.');
+  if(thirdParty&&!/^BANCARIA-[1-9][0-9]*$/.test(data.authorizationRef))throw new Error('Primero carga el PDF firmado de autorización de cuenta de tercero.');
+ }
  async function save(){
   if(!employeeId||!cap||!canWrite||busy)return;
+  validateChanges();
   setBusy(true);setError('');
   try{
    const payload={...data,bankId:Number(data.bankId),holderName:data.holderName||workerName,holderRut:data.holderRut||workerRut};
@@ -41,7 +51,7 @@ const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,wo
    setData(value);setSaved(JSON.stringify(value));
   }catch(e){setError(e.message);throw e;}finally{setBusy(false);}
  }
- useImperativeHandle(ref,()=>({isDirty:()=>cap&&canWrite&&dirty,saveChanges:save}),[cap,dirty,data,employeeId,busy,workerName,workerRut]);
+ useImperativeHandle(ref,()=>({isDirty:()=>cap&&canWrite&&dirty,validateChanges,saveChanges:save}),[cap,canWrite,dirty,data,employeeId,busy,workerName,workerRut,thirdParty]);
  if(!employeeId)return <p className="ef-note">Guarda primero al trabajador. Después podrás registrar su solicitud de transferencia, si corresponde.</p>;
  if(!cap)return <div className="ef-note" role="status"><strong>Registro bancario temporalmente no disponible.</strong>
   <p>{reason==='NOT_AUTHORIZED'
@@ -88,9 +98,11 @@ const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,wo
    <label>Número de cuenta<input disabled={!canWrite} type={showNumber?'text':'password'} value={data.accountNumber} autoComplete="off" onChange={e=>set('accountNumber',e.target.value)}/></label>
    <label>Mostrar número de cuenta<button type="button" onPointerDown={()=>setShowNumber(true)} onPointerUp={()=>setShowNumber(false)} onPointerLeave={()=>setShowNumber(false)} onBlur={()=>setShowNumber(false)} onKeyDown={e=>{if(e.key===' '||e.key==='Enter')setShowNumber(true);}} onKeyUp={()=>setShowNumber(false)}>Mantener pulsado para ver</button></label>
    <label className="la-check"><input type="checkbox" disabled={!canWrite} checked={thirdParty} onChange={e=>changeHolder(e.target.checked)}/> Titular distinto del trabajador</label>
-   <label>Titular de la cuenta<input disabled={!canWrite||!thirdParty} value={thirdParty?data.holderName:(workerName||data.holderName)} placeholder={workerName||''} onChange={e=>set('holderName',e.target.value.toLocaleUpperCase('es-CL'))}/></label>
-   <label>RUT del titular<input disabled={!canWrite||!thirdParty} value={holderRutFocused?(thirdParty?data.holderRut:(workerRut||data.holderRut)):formatRut(thirdParty?data.holderRut:(workerRut||data.holderRut))} onFocus={()=>setHolderRutFocused(true)} onBlur={()=>setHolderRutFocused(false)} placeholder={workerRut||''} onChange={e=>set('holderRut',e.target.value)}/></label>
+   <label>Titular de la cuenta<input autoComplete="off" disabled={!canWrite||!thirdParty} value={thirdParty?data.holderName:(workerName||data.holderName)} placeholder={workerName||''} onChange={e=>set('holderName',e.target.value.toLocaleUpperCase('es-CL'))}/></label>
+   <label>RUT del titular<input autoComplete="off" inputMode="text" aria-invalid={thirdParty&&!!data.holderRut&&!checkRut(data.holderRut).valid} disabled={!canWrite||!thirdParty} value={holderRutFocused?(thirdParty?data.holderRut:(workerRut||data.holderRut)):formatRut(thirdParty?data.holderRut:(workerRut||data.holderRut))} onFocus={()=>setHolderRutFocused(true)} onBlur={()=>setHolderRutFocused(false)} placeholder={workerRut||''} onChange={e=>set('holderRut',e.target.value)}/></label>
    
+   {thirdParty&&!!data.holderRut&&!checkRut(data.holderRut).valid&&<p role="alert" className="ef-note ef-field-wide">El RUT del titular no tiene formato o dígito verificador válido. Debes corregirlo antes de imprimir.</p>}
+   {thirdParty&&!!workerRut&&!checkRut(workerRut).valid&&<p role="alert" className="ef-note ef-field-wide">El RUT del trabajador registrado en la ficha es inválido. Corrige ese dato antes de generar la solicitud.</p>}
    {thirdParty&&<div className="ef-field-wide la-inline-actions">
     <button type="button" className="la-small" disabled={!canWrite||uploading} onClick={()=>{
      try{const selected=banks.find(b=>b.id===Number(data.bankId));if(!selected||!data.accountNumber||!data.holderName||!data.holderRut)throw new Error('Completa banco, cuenta y datos del titular antes de generar la autorización.');

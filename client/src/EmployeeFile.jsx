@@ -223,7 +223,9 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
   async function save(event,complete=false) {
     event?.preventDefault();
     if (!draft || busy) return;
-    if(documentsDirty){setError('Termina o cancela el documento laboral en preparación antes de cerrar la ficha.');return;}
+    if(documentsDirty){setError('Termina o cancela el documento laboral en preparación antes de guardar la ficha.');return;}
+    try { bankRef.current?.validateChanges?.(); }
+    catch (e) { setError('Cuenta bancaria: '+e.message+' Los demás cambios siguen pendientes.');setTab('general');setSubTab('bank');return; }
     setBusy(true);
     setError('');
     let resultFile = null;
@@ -279,19 +281,10 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
           return contractRef.current.saveChanges();
         }
       });
-      const closed = canCloseAfterSuccessfulSave({savedSections:completed,documents:documentsDirty});
-      if (closed) {
-        if (next) select(next);
-        else {
-          setDraft(null);
-          setSaved('');
-          setNext(null);
-          setTab('general');
-          setSubTab('personal');
-        }
-      } else if (next) {
-        select(next);
-      }
+      // Guardar por sí solo nunca cambia de trabajador ni cierra la ficha.
+      // Si se pidió navegar, solo continuar tras guardar todas las secciones requeridas.
+      const changingWorker=Boolean(next)&&canCloseAfterSuccessfulSave({savedSections:completed,documents:documentsDirty});
+      if(changingWorker)select(next);
       if (generalSaved) {
         try {
           await load();
@@ -300,7 +293,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
           setError('Datos guardados, pero no se pudo refrescar la lista: '+refreshError.message);
         }
       }
-      onMessage?.(closed ? 'Cambios guardados. Ficha cerrada correctamente.'
+      onMessage?.(changingWorker ? 'Cambios guardados. Trabajador cambiado.'
         : completed.length ? 'Cambios guardados: '+completed.join(', ')+'.'
         : 'La ficha ya está guardada, sin cambios pendientes.');
     } catch (e) {
@@ -321,7 +314,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     {label}{key.endsWith('Date') ? (
       <DateField value={draft[key] || ''} onChange={e => change(key,e.target.value)} />
     ) : (
-      <input type="text" value={key==='fullName' ? (assembledWorkerName(draft)||draft.fullName||'') : key==='documentId' ? (rutFocused?draft[key]||'':formatRut(draft[key])) : draft[key] || ''}
+      <input type="text" autoComplete="off" value={key==='fullName' ? (assembledWorkerName(draft)||draft.fullName||'') : key==='documentId' ? (rutFocused?draft[key]||'':formatRut(draft[key])) : draft[key] || ''}
         className={key==='fullName'?'ef-readonly':''}
         readOnly={key==='fullName'} tabIndex={key==='fullName'?-1:undefined}
         onFocus={key==='documentId'?()=>setRutFocused(true):undefined} onBlur={key==='documentId'?()=>setRutFocused(false):undefined}
@@ -330,7 +323,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     {key==='documentId' && <span role="status">{checkRut(draft.documentId).valid ? 'RUT válido · dígito verificador correcto' : draft.documentId ? 'RUT inválido · revisa las cifras y el dígito verificador' : 'RUT pendiente'}</span>}
     {renderClear(key)}
   </label>;
-  const renderExtra = ([key,label]) => <label key={key}>{label}<input value={draft.extra?.[key] || ''} onChange={e => change('extra',{...draft.extra,[key]:normalizeLabel(e.target.value)})} /></label>;
+  const renderExtra = ([key,label]) => <label key={key}>{label}<input autoComplete="off" value={draft.extra?.[key] || ''} onChange={e => change('extra',{...draft.extra,[key]:normalizeLabel(e.target.value)})} /></label>;
   const renderSelectExtra=(key,label,options)=> <label key={key}>{label}<select value={draft.extra?.[key]||''} onChange={e=>change('extra',{...draft.extra,[key]:e.target.value})}>
     <option value="">Sin informar</option>
     {options.map(value=><option key={value} value={value}>{value}</option>)}
@@ -392,11 +385,14 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
       {next && (
         <div className="ef-note" role="dialog" aria-label="Cambios pendientes">
           <p>
-            Cambios pendientes en: <strong>{pendingSections.join(', ')}</strong>.
-            Guarda esa sección antes de cambiar de trabajador o descarta los cambios.
+            Hay cambios sin guardar en: <strong>{pendingSections.join(', ')}</strong>.
+            Puedes guardarlos todos y cambiar de trabajador, seguir editando o descartarlos.
           </p>
-          <button onClick={() => setNext(null)}>Seguir editando</button>
-          <button onClick={() => select(next)}>Descartar y cambiar</button>
+          <button type="button" className="primary" disabled={busy||documentsDirty} onClick={()=>save(null,false)}>
+            {busy?'Guardando…':'Guardar y cambiar'}
+          </button>
+          <button type="button" disabled={busy} onClick={() => setNext(null)}>Seguir editando</button>
+          <button type="button" disabled={busy} onClick={() => select(next)}>Descartar cambios y cambiar</button>
         </div>
       )}
       <div className="ef-layout">
@@ -429,7 +425,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
           {!shown.length && <p>No hay fichas en este filtro.</p>}
         </aside>
         {draft ? (
-          <form className="ef-form" onSubmit={event=>save(event)} noValidate>
+          <form className="ef-form" autoComplete="off" onSubmit={event=>save(event)} noValidate>
             <div className="ef-heading">
               <h2>{draft.id ? `Ficha ${draft.id}` : "Nueva ficha"}</h2>
               {(counts.pending > 0 || draft.validationStatus !== 'VALIDADO') && <div className="ef-review-status">

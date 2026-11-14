@@ -11,7 +11,6 @@ const ART = [
   '<path d="M540 190Q485 340 345 385Q155 435 0 565V620Q183 474 359 453Q505 410 540 320Z" fill="url(#redWave)"/>',
   '<path d="M540 679Q390 782 115 850H310Q466 808 540 754Z" fill="#d70913"/>',
   '<path d="M0 758Q112 709 219 708Q112 754 0 832Z" fill="url(#redWave)"/>',
-  '<path d="M162 67Q192 98 214 95Q231 85 222 71Q251 97 288 92Q315 88 337 70Q319 111 292 113Q314 125 329 156Q347 188 318 195Q304 196 289 187L276 204Q249 213 235 190L211 185Q203 174 219 155L234 134Q195 130 175 110Z" fill="#fc0019"/>',
   '<path d="M0 836H540" stroke="#ee1522" stroke-width="4"/>'
 ].join('');
 
@@ -24,9 +23,14 @@ function printableFace(doc, card, mainFace) {
   art.setAttribute('aria-hidden','true');
   art.innerHTML = ART;
 
-  const brand = doc.createElement('div');
+  const brand = doc.createElement('img');
   brand.className = 'qr-face-brand';
-  brand.textContent = 'RED TAURUS';
+  brand.alt = 'Logotipo original RED TAURUS';
+  const brandLoaded = new Promise((resolve,reject) => {
+    brand.onload = resolve;
+    brand.onerror = () => reject(new Error('No se pudo cargar el logotipo RED TAURUS.'));
+  });
+  brand.src = new URL('/red-taurus-logo.svg',window.location.href).href;
   const subtitle = doc.createElement('div');
   subtitle.className = 'qr-face-subtitle';
   subtitle.textContent = 'GASTRO-BAR';
@@ -61,7 +65,7 @@ function printableFace(doc, card, mainFace) {
   right.textContent = 'ASISTENCIA';
   footer.append(left,divider,right);
   face.append(art,brand,subtitle,name,role,img,footer);
-  return {face,loaded:loaded.then(() => img.decode ? img.decode() : undefined)};
+  return {face,loaded:Promise.all([loaded.then(() => img.decode ? img.decode() : undefined),brandLoaded.then(() => brand.decode ? brand.decode() : undefined)])};
 }
 
 export async function printQrCards(cards) {
