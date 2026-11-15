@@ -483,8 +483,8 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                 {fields.filter(([key])=>!['mobile','phone'].includes(key)).map(([key,label])=>renderField(key,label))}
                 <p className="ef-note ef-field-wide">«Nombre completo» se calcula con los nombres y apellidos de abajo. Puedes corregir sus partes y, si corresponde, el «Nombre legal registrado». Guarda la ficha para actualizar ambos datos.</p>
                 <TerritoryFields prefix="Trabajador" value={draft.extra||{}} onChange={changes=>change('extra',{...draft.extra,...changes})}/>
-                <div data-ef-field="mobile" className={pendingClass('mobile')}><PhoneField label="Celular" mobile value={draft.mobile} onChange={value=>change('mobile',value)}/></div>
-                <div data-ef-field="phone" className={pendingClass('phone')}><PhoneField label="Teléfono fijo" value={draft.phone} onChange={value=>change('phone',value)}/></div>
+                <div data-ef-field="mobile" className={pendingClass('mobile')}><PhoneField label="Celular" mobile value={draft.mobile} onChange={value=>change('mobile',value)}/>{renderClear('mobile')}</div>
+                <div data-ef-field="phone" className={pendingClass('phone')}><PhoneField label="Teléfono fijo" value={draft.phone} onChange={value=>change('phone',value)}/>{renderClear('phone')}</div>
                 <label>Número del trabajador (derivado del RUT)<input readOnly value={workerNumberFromRut(draft.documentId)||draft.extra?.workerNumber||''}/></label>
                 {!draft.documentId&&renderExtra(['temporaryDocument','Documento temporal (sin RUT)'])}
                 {renderSelectExtra('sex','Sexo',SEX_OPTIONS)}
@@ -660,6 +660,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
                 value={draft.readableObservations ?? draft.observations ?? ""}
                 onChange={(e) => setDraft(current => ({...current,observations:e.target.value,readableObservations:e.target.value}))}
               />
+              {renderClear('observations')}
             </label>
             {!!draft.warnings?.length && (
               <div className="ef-note">
@@ -684,7 +685,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
             <div hidden={subTab!=='bank'}>
               <EmployeeBankDetails ref={bankRef} key={draft.id||'new'} employeeId={draft.id}
                 workerName={draft.legalFullName||draft.fullName} workerRut={draft.documentId} workerCompany={draft.company||''}
-                onDirtyChange={setBankDirty}/>
+                onDirtyChange={setBankDirty} onEditOwner={()=>{setTab('general');setSubTab('personal');}}/>
             </div>
             </div>
             <div className="ef-tab-content" hidden={tab!=='documents'}>
