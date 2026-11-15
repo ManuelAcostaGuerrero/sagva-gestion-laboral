@@ -20,6 +20,8 @@ test('Medidas del diseño aprobado son invariables, verticales y con QR de 30 mm
   assert.match(css,/transform:rotate\(90deg\)/);
   assert.match(css,/grid-template-columns:85mm 85mm;grid-template-rows:108mm 108mm/);
   assert.doesNotMatch(css,/size:A4|85\.6mm|width:45mm/i);
+  assert.match(css,/@media print\{[^}]*\}\.qr-sheet\{width:183mm;height:235mm;margin:10\.2mm auto 0;box-shadow:none\}/,
+    'hoja interna de impresión con tolerancia para evitar auto-reducción');
 });
 
 
@@ -44,6 +46,20 @@ test('QR de 30 mm centrado y sin solapes con nombre, cargo y pie',()=>{
   assert.ok(role.top+role.height+0.5<=qr.top,'separar cargo y QR');
   assert.ok(qr.top+qr.height+1<=footer.top,'respetar margen blanco entre QR y pie');
   assert.ok(footer.top+footer.height<=QR_CREDENTIAL_PRINT.faceHeightMm-1,'pie dentro de la tarjeta');
+});
+
+test('El tamaño de impresión queda desacoplado del QR: 54 × 85 mm por cara y 108 × 85 mm plegado',()=>{
+  const m=QR_CREDENTIAL_PRINT;
+  assert.deepEqual([m.faceWidthMm,m.faceHeightMm,m.unfoldedWidthMm,m.unfoldedHeightMm],[54,85,108,85]);
+  assert.equal(m.qrSizeMm,30);
+  // El grid real ocupa 177 × 225 mm; la hoja interna de impresión es ligeramente mayor,
+  // pero menor que la zona imprimible, evitando reescalado accidental por redondeo.
+  const printSheet={width:183,height:235,top:10.2};
+  const available={width:m.letterWidthMm-2*m.printMarginMm,height:m.letterHeightMm-2*m.printMarginMm};
+  assert.ok(2*m.faceHeightMm+7<printSheet.width);
+  assert.ok(2*m.unfoldedWidthMm+9<printSheet.height);
+  assert.ok(printSheet.width<available.width);
+  assert.ok(printSheet.top+printSheet.height<available.height);
 });
 
 test('Hoja carta admite 4 credenciales plegables a tamaño real, con márgenes seguros',()=>{

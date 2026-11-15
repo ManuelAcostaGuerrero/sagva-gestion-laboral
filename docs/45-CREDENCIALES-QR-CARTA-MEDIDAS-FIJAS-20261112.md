@@ -70,3 +70,12 @@ Cantidad | Hojas carta
 - Se ajustan dos suites unitarias, la prueba sintética de navegador y el texto de Administración a 30 mm. Una prueba automatizada **no equivale** a una prueba con impresora ni cámara frontal real.
 - La validación de 30 mm queda **pendiente de medición y comparación física** en la Samsung SM-P613 contra la versión de 28 mm aceptada anteriormente por el propietario. Si la mejora no se verifica, revertir únicamente diseño/tamaño de impresión.
 - Instrucciones operativas y criterios en [plan P08](49-PLAN-QR-30MM-LECTURA-SEGURA-20261114.md). La incorporación a `main` de pruebas **no actualiza automáticamente** la instalación Windows.
+
+
+## Protección de escala física (15-11-2026)
+
+Ante el reporte de una impresión con dimensiones distintas a las aprobadas, se contrastó PR #43 con PR #42: ambos definen la **misma cara 54 × 85 mm** y par plegable **108 × 85 mm**; el QR de PR #43 es **30 × 30 mm**. El PR #43 no cambió el tamaño exterior en CSS. La impresión observada en la instalación del propietario no se ha medido desde aquí; no atribuir una causa definitiva sin ver configuración de impresora/PDF.
+
+Se añade una tolerancia de impresión en la **hoja interna** (183 × 235 mm, con margen superior 10,2 mm) dentro del papel **carta 215,9 × 279,4 mm** para evitar reescalado por exceder marginalmente la zona imprimible. La rejilla impresa de cuatro pares queda **177 × 225 mm**, sin modificar caras, QR, corte ni plegado; el layout de pantalla no cambia. Las pruebas verifican dimensiones reales bajo medios de impresión y papel carta del PDF.
+
+**Ajustes de impresora que no controla JavaScript:** elegir papel **Carta**, escala **100 % / Tamaño real**, desactivar **Ajustar a página/Encajar/Reducir**, evitar convertir a A4. Si se utiliza un PDF ya descargado, mantener idénticas opciones en su visor al imprimir. Antes de imprimir 20, validar **una sola credencial** con regla: cada cara 54 × 85 mm, QR 30 × 30 mm. Si no coincide, detener la emisión masiva y revisar ajustes del cuadro de impresión.

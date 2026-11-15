@@ -66,7 +66,21 @@ try {
  assert.ok(sizes.role.top+sizes.role.height+0.5*mm<=sizes.qr.top,'cargo y QR no se solapan');
  assert.ok(sizes.qr.top+sizes.qr.height+mm<=sizes.footer.top,'QR y pie no se solapan');
  assert.ok(sizes.footer.top+sizes.footer.height<=sizes.h-mm,'pie dentro de tarjeta');
+ // Verificar específicamente el motor de IMPRESIÓN, no solo el tamaño visible en pantalla.
+ await popup.emulateMedia({media:'print'});
+ const printed=await popup.locator('.qr-face').first().evaluate(el=>{
+  const get=selector=>{const style=getComputedStyle(el.closest('.qr-sheet').querySelector(selector));return [parseFloat(style.width),parseFloat(style.height)];};
+  const face=getComputedStyle(el);
+  return {face:[parseFloat(face.width),parseFloat(face.height)],pair:get('.qr-pair'),sheet:get('.qr-sheet'),qr:get('.qr-face-image')};
+ });
+ const near=(actual,expected)=>Math.abs(actual-expected*mm)<1;
+ assert.ok(near(printed.face[0],54)&&near(printed.face[1],85),'cara REAL 54x85 mm al imprimir');
+ assert.ok(near(printed.pair[0],108)&&near(printed.pair[1],85),'par plegable REAL 108x85 mm al imprimir');
+ assert.ok(near(printed.qr[0],30)&&near(printed.qr[1],30),'solo QR 30x30 mm al imprimir');
+ assert.ok(near(printed.sheet[0],183)&&near(printed.sheet[1],235),'hoja interna con espacio para evitar autoescalado');
  await popup.evaluate(()=>{window.close=()=>{};});
- await popup.pdf({path:path.join(out,'qr-print-test.pdf'),printBackground:true});assert.deepEqual(failures,[]);
+ const pdf=await popup.pdf({path:path.join(out,'qr-print-test.pdf'),printBackground:true,preferCSSPageSize:true});
+ assert.match(pdf.toString('latin1'),/\/MediaBox\s*\[0\s+0\s+612\s+792\]/,'PDF debe ser papel CARTA real, no A4');
+ assert.deepEqual(failures,[]);
  console.log('OK: viewport móvil, cámara se detiene tras cada lectura, nombre grande, marcación sintética y QR visible en impresión/PDF. No se probó hardware del teléfono.');
 }finally{await browser.close();await new Promise(r=>server.close(r));await new Promise(r=>api.close(r));await pool.end();}

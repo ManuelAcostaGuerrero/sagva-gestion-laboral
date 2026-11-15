@@ -248,6 +248,7 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
         <strong>{reprintCards.length} credencial(es) originales listas para impresión</strong>
         <p>{reprintCards.map(c=>c.name).join(', ')} · {Math.ceil(reprintCards.length/4)} hoja(s).
           Reimprimir no cambia el QR del trabajador.</p>
+        <p><strong>Tamaño obligatorio:</strong> papel CARTA (21,59 × 27,94 cm), escala 100 % o «Tamaño real», sin «Ajustar a página». Cada cara debe medir 54 × 85 mm y el QR 30 × 30 mm.</p>
         <button type="button" onClick={()=>printQrCards(reprintCards).catch(e=>setError(e.message))}>Imprimir selección / Guardar PDF</button>
         <button type="button" onClick={()=>setReprintCards([])}>Cerrar vista segura</button>
       </div>}
@@ -265,7 +266,7 @@ export default function TokenCredentials({onMessage,canBulk=false,canRevokeTermi
             {w.displayName}
           </label>)}
         </div>}
-        <p>Seleccionados: {count} / 20 · {count ? Math.ceil(count / 4) : 0} hoja(s) carta. Máximo 4 credenciales por hoja, cada una con dos caras idénticas de 54 × 85 mm y QR de 30 × 30 mm.</p>
+        <p>Seleccionados: {count} / 20 · {count ? Math.ceil(count / 4) : 0} hoja(s) carta. Máximo 4 credenciales por hoja, cada una con dos caras idénticas de 54 × 85 mm y QR de 30 × 30 mm. Imprimir en papel CARTA a escala 100 % («Tamaño real», sin «Ajustar a página»).</p>
         {count>0&&<div className="tk-buttons">
           <button type="button" disabled={busy} onClick={()=>setBatchConfirm(true)}>Emitir {count} QR nuevos</button>
           <button type="button" disabled={busy} onClick={()=>{setBatchSelected({});setBatchConfirm(false);}}>Limpiar selección</button>
