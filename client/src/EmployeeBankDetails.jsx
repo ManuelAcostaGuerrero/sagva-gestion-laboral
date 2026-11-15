@@ -3,8 +3,9 @@ import React,{forwardRef,useEffect,useImperativeHandle,useRef,useState} from 're
 import {normalizeRut,formatRut,checkRut} from '../../server/src/rut.js';
 import {api} from './services/api.js';
 import {printBankAuthorization} from './printBankAuthorization.js';
+import {bankPayloadForSave} from './bankAccountPayload.js';
 const initial=()=>({revision:0,bankId:0,accountType:'VISTA',accountNumber:'',holderName:'',holderRut:'',authorizationRef:''});
-const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,workerName,workerRut,workerCompany='',onDirtyChange},ref){
+const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,workerName,workerRut,workerCompany='',onDirtyChange,onEditOwner},ref){
  const [cap,setCap]=useState(false),[canWrite,setCanWrite]=useState(false),[reason,setReason]=useState(''),[banks,setBanks]=useState([]);
  const [data,setData]=useState(initial),[saved,setSaved]=useState(JSON.stringify(initial()));
  const [error,setError]=useState(''),[busy,setBusy]=useState(false),[showNumber,setShowNumber]=useState(false);
@@ -44,7 +45,7 @@ const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,wo
   validateChanges();
   setBusy(true);setError('');
   try{
-   const payload={...data,bankId:Number(data.bankId),holderName:data.holderName||workerName,holderRut:data.holderRut||workerRut};
+   const payload=bankPayloadForSave(data,{thirdParty,workerName,workerRut});
    await api('/employee-benefits/'+employeeId+'/bank',{method:'PUT',body:JSON.stringify(payload)});
    const response=await api('/employee-benefits/'+employeeId+'/bank');
    const value={...initial(),...response.account,revision:response.revision};
@@ -85,6 +86,7 @@ const EmployeeBankDetails=forwardRef(function EmployeeBankDetails({employeeId,wo
  return <fieldset className="ef-section"><legend>Medio de pago y cuenta bancaria</legend>
   <p>Datos financieros confidenciales. Si el titular es un tercero se exige autorización bancaria en PDF, cifrada y vinculada a esta ficha.</p>
   {!canWrite&&<p className="ef-note" role="status">Solo lectura: puedes consultar estos datos pero no modificarlos sin el permiso individual de edición.</p>}
+  {!thirdParty&&<p className="ef-note ef-field-wide">El titular es el propio trabajador: su nombre y RUT se toman de Datos personales y no se editan por separado en la cuenta bancaria. <button type="button" className="la-small" onClick={onEditOwner}>Corregir nombre o RUT en Datos personales</button></p>}
   {error&&<p role="alert" className="ef-note">{error}</p>}
   <div className="ef-grid">
    <label>Banco<select disabled={!canWrite} value={data.bankId||''} onChange={e=>set('bankId',Number(e.target.value))}>
