@@ -20,6 +20,7 @@ import {currentContractEnd, validContractDate} from '../../server/src/employeeCo
 import {pendingFileSections, canCloseAfterSuccessfulSave, showReviewAction} from './employeeFileReview.js';
 import {saveEmployeeSections} from './saveEmployeeSections.js';
 import {pendingTarget,fieldPending} from './employeeFilePending.js';
+import {changeEmployeeDraft,unconfirmedEmployeeClears,unpersistedPersonalEdits} from './employeeFileEdits.js';
 
 const fresh = () => ({
   fullName: "",
@@ -54,7 +55,8 @@ const fresh = () => ({
   extra: {},
 });
 const fields = [
-  ["fullName", "Nombre completo"],
+  ["fullName", "Nombre completo (calculado)"],
+  ["legalFullName", "Nombre legal registrado"],
   ["firstName", "Primer nombre"],
   ["secondName", "Segundo nombre"],
   ["otherNames", "Otros nombres"],
@@ -199,16 +201,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     open(target); // El aviso de cambios pendientes sigue protegiendo ediciones sin guardar.
     onWorkerNavigationHandled?.();
   }, [workerNavigation?.id, workerNavigation?.seq, files]);
-  const nameKeys=['firstName','secondName','otherNames','firstLastName','secondLastName'];
-  const change = (key, value) => setDraft(current => {
-    const next={...current,[key]:key==='address'?value.toLocaleUpperCase('es-CL'):nameKeys.includes(key)||['fullName','email','company','terminationReason'].includes(key)?normalizeLabel(value):value};
-    if(nameKeys.includes(key)){
-      const assembled=assembledWorkerName(next);
-      if(assembled)next.fullName=assembled;
-      if(!current.id && assembled)next.legalFullName=assembled;
-    }
-    return next;
-  });
+  const change = (key, value) => setDraft(current => changeEmployeeDraft(current,key,value));
   function chooseCompany(raw){
     const company=companies.find(c=>c.id===Number(raw));
     if (!company || (!company.isActive && Number(draft?.companyId)!==company.id)) return;
@@ -224,6 +217,11 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
     event?.preventDefault();
     if (!draft || busy) return;
     if(documentsDirty){setError('Termina o cancela el documento laboral en preparación antes de guardar la ficha.');return;}
+    const pendingClears=dirty?unconfirmedEmployeeClears(draft,JSON.parse(saved||'{}')):[];
+    if(pendingClears.length){
+      setError('Para borrar datos existentes debes marcar «Confirmar vaciado de este campo»: '+pendingClears.join(', ')+'. Los demás cambios siguen pendientes.');
+      setTab('general');setSubTab('personal');return;
+    }
     try { bankRef.current?.validateChanges?.(); }
     catch (e) { setError('Cuenta bancaria: '+e.message+' Los demás cambios siguen pendientes.');setTab('general');setSubTab('bank');return; }
     setBusy(true);
@@ -247,6 +245,8 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
             {method: draft.id ? 'PUT' : 'POST',
               body: JSON.stringify({...draft,completeProfile:complete,validationStatus:complete?'VALIDADO':draft.validationStatus})}
           );
+          const mismatch=unpersistedPersonalEdits(JSON.parse(saved||'{}'),draft,result.file);
+          if(mismatch.length)throw new Error('El servidor no devolvió los cambios solicitados en: '+mismatch.join(', ')+'. No se marcaron como guardados. Actualiza la lista y revisa antes de reintentar.');
           resultFile = result.file;
           generalSaved = true;
           const value = structuredClone(result.file);
@@ -481,6 +481,7 @@ export default function EmployeeFile({ areas, positions = [], onSaved, onMessage
               <legend>Datos personales y contacto</legend>
               <div className="ef-grid">
                 {fields.filter(([key])=>!['mobile','phone'].includes(key)).map(([key,label])=>renderField(key,label))}
+                <p className="ef-note ef-field-wide">«Nombre completo» se calcula con los nombres y apellidos de abajo. Puedes corregir sus partes y, si corresponde, el «Nombre legal registrado». Guarda la ficha para actualizar ambos datos.</p>
                 <TerritoryFields prefix="Trabajador" value={draft.extra||{}} onChange={changes=>change('extra',{...draft.extra,...changes})}/>
                 <div data-ef-field="mobile" className={pendingClass('mobile')}><PhoneField label="Celular" mobile value={draft.mobile} onChange={value=>change('mobile',value)}/></div>
                 <div data-ef-field="phone" className={pendingClass('phone')}><PhoneField label="Teléfono fijo" value={draft.phone} onChange={value=>change('phone',value)}/></div>
