@@ -1,15 +1,14 @@
-import {assembledWorkerName,normalizeLabel} from '../../server/src/workerFileStandards.js';
+import {assembledWorkerName,normalizeLabel,phoneResult} from '../../server/src/workerFileStandards.js';
 import {normalizeRut} from '../../server/src/rut.js';
 
 // La normalización de espacios SOLO se hace al guardar; hacerlo en cada tecla
 // impedía escribir nombres compuestos como "MARÍA JOSÉ".
 const nameParts=['firstName','secondName','otherNames','firstLastName','secondLastName'];
 const uppercaseFields=new Set([...nameParts,'fullName','legalFullName','email','company','terminationReason']);
+// Solo campos con control visible «Confirmar vaciado» en la ficha personal.
 export const clearablePersonalFields=[
-  'email','positionName','workAreaId','company','workSchedule','hireDate',
-  'terminationDate','contractType','birthDate','address','phone','mobile',
-  'observations','firstName','secondName','otherNames','firstLastName',
-  'secondLastName','validationNotes','terminationReason','employmentStatus'
+  'email','birthDate','address','phone','mobile','observations',
+  'firstName','secondName','otherNames','firstLastName','secondLastName'
 ];
 
 export function changeEmployeeDraft(current,key,value) {
@@ -39,8 +38,14 @@ export function unconfirmedEmployeeClears(draft,saved) {
   );
 }
 
-const comparison=(key,value)=>key==='documentId'
-  ? normalizeRut(value):normalizeLabel(value);
+const comparison=(key,value)=>{
+  if(key==='documentId')return normalizeRut(value);
+  if(key==='phone'||key==='mobile'){
+    const normalized=phoneResult(value,{mobile:key==='mobile'});
+    return normalized.valid ? normalized.value : normalizeLabel(value);
+  }
+  return normalizeLabel(value);
+};
 
 export function unpersistedPersonalEdits(before,submitted,returned) {
   // Solo los campos modificados: no bloquea fichas históricas con datos antiguos
