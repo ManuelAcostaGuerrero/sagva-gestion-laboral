@@ -42,6 +42,8 @@ export function qrCredentialPrintCss() {
     '.qr-face-footer{position:absolute;left:6.2mm;top:77mm;width:41.6mm;height:6mm;border:0.35mm solid #fff;border-radius:2mm;display:flex;align-items:center;justify-content:center;gap:1.2mm;font-size:5.8pt;line-height:1;font-weight:750;color:#fff;white-space:nowrap;z-index:1}',
     '.qr-face-footer-divider{height:3.3mm;border-left:0.4mm solid #ed1d24}',
     '@media screen{body{background:#e9e9e9;padding:12px}.qr-sheet{margin:12px auto;background:#fff;box-shadow:0 1px 10px #999}}',
-    '@media print{html,body{width:auto;height:auto;-webkit-print-color-adjust:exact;print-color-adjust:exact}.qr-sheet{margin:0;box-shadow:none}}'
+    // Reservar margen real al motor de impresión: las caras y el grid conservan su medida.
+    // Sin tolerancia el contenedor llenaba justo el área imprimible, con riesgo de ajuste automático.
+    '@media print{html,body{width:auto;height:auto;-webkit-print-color-adjust:exact;print-color-adjust:exact}.qr-sheet{width:183mm;height:235mm;margin:10.2mm auto 0;box-shadow:none}}'
   ].join('\n');
 }
